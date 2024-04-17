@@ -1,0 +1,30 @@
+﻿R e a d m e
+-----------
+
+This script ensures specific cargo containers maintain a specific count of ammo, and queues up more to be
+produced should the total run low. A status display can also be maintained if needed on an LCD.
+
+Instructions
+============
+Set the custom data for the programming block something like
+
+[Config]
+; Update any LCD/cargo with Name [ammo]
+tag=ammo
+; Update every 10 seconds
+refreshSpeed=10
+; Bar length on the display
+barSize=20
+
+Then (assuming your tag is 'ammo', otherwise use the tag)
+
+- add [ammo] to any LCD you want the status displayed on
+- add [ammo] to the assembler you want the ammo to be produced on
+- add [ammo] to any cargo container you regularly want a specific ammount of 
+    ammo produced and moved into.
+
+Once this is done, wait the refreshSpeed seconds, and the cargo containers custom data will be 
+filled with a list of ammo types, and a count of how much you want defaulting to 0. Change the one(s)
+you want to non-zero, and it will queue them up. Once produced they will be moved into the cargo container.
+Note guns partially fill themselves automatically so the first chunk of produced ammo might be divereted
+to the gun(s) in which case more will just be queued up.

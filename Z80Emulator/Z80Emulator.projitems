@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>347b7d9d-4d7a-44b2-b798-b74529661ee5</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Z80Emulator</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ADC HL,rr +          .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ADD A,r +             .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ADD rr,rr               .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AfterInstructionExecutionEventArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AND r +               .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BeforeInstructionExecutionEventArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BeforeInstructionFetchEventArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BIT b,r +            .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BitInfo1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BitInfo2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CCF           .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ClockSynchronizer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core_AudioIn.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core_AudioOut.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core_CPU.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core_IO.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core_Video.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CPL             .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DAA            .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DI               .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DJNZ         .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EI                .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EX (SP),HL +            .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EX AF,AF'  .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EX DE,HL   .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Execute_xD_Instruction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EXX          .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HALT           .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IClockSynchronizer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IComputer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IExecutionStopper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IM n            .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IMainZ80Registers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IMemory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IN A,(n)     .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IN r,(C)             .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)INC r +         .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)INC rr +        .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)INI +             .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InstructionExecutionContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InstructionFetchFinishedEventArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InstructionFetchFinishedEventNotFiredException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InstructionsTable.CB.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InstructionsTable.DD.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InstructionsTable.DDCB.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InstructionsTable.ED.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InstructionsTable.FD.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InstructionsTable.FDCB.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InstructionsTable.SingleByte.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IntBuffer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IZ80InstructionExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IZ80InterruptSource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IZ80Processor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IZ80ProcessorAgent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IZ80Registers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JP (HL) +          .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JR               .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JR cc         1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LD (aa),A       .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LD (aa),rr        .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LD (HL),n +        .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LD A,(aa)       .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LD A,I +            .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LD I,A +            .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LD r,(rr) +          .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LD r,n       .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LD r,r       .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LD rr,(aa)   .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LD rr,nn    .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LD SP,HL +         .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LDI +                    .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Loader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MainZ80Registers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MemoryAccessEventArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MemoryAccessEventType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MemoryAccessMode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NEG          .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NOP          .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NOP2        .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NumberUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)OUT (C),r            .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)OUT (n),A    .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ParityTable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PlainMemory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ProcessorEventArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ProcessorState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PUSH rr +                   .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RET +              .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RETN            .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RLCA +             .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RRD +           .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RST                   .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SCF              .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SET b,r +               .cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Spectrum48K.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StopReason.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Z80Loader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Z80Processor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Z80Registers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)_Z80InstructionExecutor.Core.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,28 @@
+﻿Current Ore Status Display
+==========================
+This script displays on any tagged LCD a report on the current ore, ingot, H2 and O2 status
+
+Note: This script only looks for anything with an inventory on the same grid as the programmable
+block. (This could be changed by removing the lines mentioning CubeGrid)
+
+Installation Instructions
+=========================
+1. Set the programmable block customdata to identify a tag of which lcds to output this data to,
+and some control over the format and speed of updates. (See below for example)
+
+2. Any LCD you wish this to be displayed on, add the tag using the LCD identifier from the 
+custom data, eg "[OreStat] LCD"
+
+3. Add script to the programmable block, recompile and run.
+
+Example custom data - Display long form on all LCDs tagged [OreStat] and update every 10 seconds
+===================
+
+[Config]
+LCD=OreStat
+refreshSpeed=10
+format=long
+
+Server Impact
+=============
+- Very minimal... only checks once every eg. 10 seconds

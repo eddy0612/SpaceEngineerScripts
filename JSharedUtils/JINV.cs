@@ -1,0 +1,162 @@
+using Sandbox.Game.EntityComponents;
+using Sandbox.Game.Screens.Helpers;
+using Sandbox.ModAPI.Ingame;
+using Sandbox.ModAPI.Interfaces;
+using SpaceEngineers.Game.ModAPI.Ingame;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
+using VRage;
+using VRage.Collections;
+using VRage.Game;
+using VRage.Game.Components;
+using VRage.Game.GUI.TextPanel;
+using VRage.Game.ModAPI.Ingame;
+using VRage.Game.ModAPI.Ingame.Utilities;
+using VRage.Game.ObjectBuilders.Definitions;
+using VRageMath;
+
+namespace IngameScript
+{
+    partial class Program
+    {
+        public class JINV
+        {
+            private JDBG jdbg = null;
+
+            public enum BLUEPRINT_TYPES { BOTTLES, COMPONENTS, AMMO, TOOLS, OTHER, ORES };
+
+            /* Ore to Ingot */
+            Dictionary<String, String> oreToIngot = new Dictionary<String, String>
+            {
+                { "MyObjectBuilder_Ore/Cobalt", "MyObjectBuilder_Ingot/Cobalt" },
+                { "MyObjectBuilder_Ore/Gold", "MyObjectBuilder_Ingot/Gold" },
+                { "MyObjectBuilder_Ore/Stone", "MyObjectBuilder_Ingot/Stone" },
+                { "MyObjectBuilder_Ore/Iron", "MyObjectBuilder_Ingot/Iron" },
+                { "MyObjectBuilder_Ore/Magnesium", "MyObjectBuilder_Ingot/Magnesium" },
+                { "MyObjectBuilder_Ore/Nickel", "MyObjectBuilder_Ingot/Nickel" },
+                { "MyObjectBuilder_Ore/Platinum", "MyObjectBuilder_Ingot/Platinum" },
+                { "MyObjectBuilder_Ore/Silicon", "MyObjectBuilder_Ingot/Silicon" },
+                { "MyObjectBuilder_Ore/Silver", "MyObjectBuilder_Ingot/Silver" },
+                { "MyObjectBuilder_Ore/Uranium", "MyObjectBuilder_Ingot/Uranium" },
+
+                // Not needing these at present:
+                //{ "MyObjectBuilder_Ore/Scrap", "MyObjectBuilder_Ingot/Scrap" },
+                //{ "MyObjectBuilder_Ore/Ice", "?" },
+                //{ "MyObjectBuilder_Ore/Organic", "?" },
+            };
+
+            /* Other stuff */
+            Dictionary<String, String> otherCompToBlueprint = new Dictionary<String, String>
+            {
+                { "MyObjectBuilder_BlueprintDefinition/Position0040_Datapad", "MyObjectBuilder_Datapad/Datapad" },
+            };
+
+            /* Tools */
+            Dictionary<String, String> toolsCompToBlueprint = new Dictionary<String, String>
+            {
+                { "MyObjectBuilder_PhysicalGunObject/AngleGrinderItem" , "MyObjectBuilder_BlueprintDefinition/Position0010_AngleGrinder" },
+                { "MyObjectBuilder_PhysicalGunObject/AngleGrinder2Item", "MyObjectBuilder_BlueprintDefinition/Position0020_AngleGrinder2" },
+                { "MyObjectBuilder_PhysicalGunObject/AngleGrinder3Item" , "MyObjectBuilder_BlueprintDefinition/Position0030_AngleGrinder3" },
+                { "MyObjectBuilder_PhysicalGunObject/AngleGrinder4Item" , "MyObjectBuilder_BlueprintDefinition/Position0040_AngleGrinder4" },
+
+                { "MyObjectBuilder_PhysicalGunObject/WelderItem" , "MyObjectBuilder_BlueprintDefinition/Position0090_Welder" },
+                { "MyObjectBuilder_PhysicalGunObject/Welder2Item" , "MyObjectBuilder_BlueprintDefinition/Position0100_Welder2" },
+                { "MyObjectBuilder_PhysicalGunObject/Welder3Item" , "MyObjectBuilder_BlueprintDefinition/Position0110_Welder3" },
+                { "MyObjectBuilder_PhysicalGunObject/Welder4Item" , "MyObjectBuilder_BlueprintDefinition/Position0120_Welder4" },
+
+                { "MyObjectBuilder_PhysicalGunObject/HandDrillItem", "MyObjectBuilder_BlueprintDefinition/Position0050_HandDrill" },
+                { "MyObjectBuilder_PhysicalGunObject/HandDrill2Item", "MyObjectBuilder_BlueprintDefinition/Position0060_HandDrill2" },
+                { "MyObjectBuilder_PhysicalGunObject/HandDrill3Item" , "MyObjectBuilder_BlueprintDefinition/Position0070_HandDrill3" },
+                { "MyObjectBuilder_PhysicalGunObject/HandDrill4Item" , "MyObjectBuilder_BlueprintDefinition/Position0080_HandDrill4" },
+
+            };
+
+            /* Bottles */
+            Dictionary<String, String> bottlesCompToBlueprint = new Dictionary<String, String>
+            {
+                { "MyObjectBuilder_GasContainerObject/HydrogenBottle", "MyObjectBuilder_BlueprintDefinition/Position0020_HydrogenBottle" },
+                { "MyObjectBuilder_OxygenContainerObject/OxygenBottle", "MyObjectBuilder_BlueprintDefinition/HydrogenBottlesRefill" },
+            };
+
+            /* Components */
+            Dictionary<String, String> componentsCompToBlueprint = new Dictionary<String, String>
+            {
+                { "myobjectbuilder_component/bulletproofglass", "myobjectbuilder_blueprintdefinition/bulletproofglass"},
+                { "myobjectbuilder_component/canvas", "myobjectbuilder_blueprintdefinition/position0030_canvas"},
+                { "myobjectbuilder_component/computer", "myobjectbuilder_blueprintdefinition/computercomponent"},
+                { "myobjectbuilder_component/construction", "myobjectbuilder_blueprintdefinition/constructioncomponent"},
+                { "myobjectbuilder_component/detector", "myobjectbuilder_blueprintdefinition/detectorcomponent"},
+                { "myobjectbuilder_component/display", "myobjectbuilder_blueprintdefinition/display"},
+                { "myobjectbuilder_component/explosives", "myobjectbuilder_blueprintdefinition/explosivescomponent"},
+                { "myobjectbuilder_component/girder", "myobjectbuilder_blueprintdefinition/girdercomponent"},
+                { "myobjectbuilder_component/gravitygenerator", "myobjectbuilder_blueprintdefinition/gravitygeneratorcomponent"},
+                { "myobjectbuilder_component/interiorplate", "myobjectbuilder_blueprintdefinition/interiorplate"},
+                { "myobjectbuilder_component/largetube", "myobjectbuilder_blueprintdefinition/largetube"},
+                { "myobjectbuilder_component/medical", "myobjectbuilder_blueprintdefinition/medicalcomponent"},
+                { "myobjectbuilder_component/metalgrid", "myobjectbuilder_blueprintdefinition/metalgrid"},
+                { "myobjectbuilder_component/motor", "myobjectbuilder_blueprintdefinition/motorcomponent"},
+                { "myobjectbuilder_component/powercell", "myobjectbuilder_blueprintdefinition/powercell"},
+                { "myobjectbuilder_component/reactor", "myobjectbuilder_blueprintdefinition/reactorcomponent"},
+                { "myobjectbuilder_component/radiocommunication", "myobjectbuilder_blueprintdefinition/radiocommunicationcomponent"},
+                { "myobjectbuilder_component/smalltube", "myobjectbuilder_blueprintdefinition/smalltube"},
+                { "myobjectbuilder_component/solarcell", "myobjectbuilder_blueprintdefinition/solarcell"},
+                { "myobjectbuilder_component/steelplate", "myobjectbuilder_blueprintdefinition/steelplate"},
+                { "myobjectbuilder_component/superconductor", "myobjectbuilder_blueprintdefinition/superconductor"},
+                { "myobjectbuilder_component/thrust", "myobjectbuilder_blueprintdefinition/thrustcomponent"},
+            };
+
+            /* Ammo */
+            Dictionary<String, String> ammoCompToBlueprint = new Dictionary<String, String>
+            {
+                /* Ammo */
+                { /*"Gatling",*/            "MyObjectBuilder_AmmoMagazine/NATO_25x184mm", "MyObjectBuilder_BlueprintDefinition/Position0080_NATO_25x184mmMagazine" },
+                { /*"Autocannon",*/         "MyObjectBuilder_AmmoMagazine/AutocannonClip", "MyObjectBuilder_BlueprintDefinition/Position0090_AutocannonClip" },
+                { /*"Rocket",*/             "MyObjectBuilder_AmmoMagazine/Missile200mm", "MyObjectBuilder_BlueprintDefinition/Position0100_Missile200mm" },
+                { /*"Assault_Cannon",*/     "MyObjectBuilder_AmmoMagazine/MediumCalibreAmmo", "MyObjectBuilder_BlueprintDefinition/Position0110_MediumCalibreAmmo" },
+                { /*"Artillery",*/          "MyObjectBuilder_AmmoMagazine/LargeCalibreAmmo", "MyObjectBuilder_BlueprintDefinition/Position0120_LargeCalibreAmmo" },
+                { /*"Small_Railgun",*/      "MyObjectBuilder_AmmoMagazine/SmallRailgunAmmo", "MyObjectBuilder_BlueprintDefinition/Position0130_SmallRailgunAmmo" },
+                { /*"Large_Railgun",*/      "MyObjectBuilder_AmmoMagazine/LargeRailgunAmmo", "MyObjectBuilder_BlueprintDefinition/Position0140_LargeRailgunAmmo" },
+                { /*"S-10_Pistol",*/        "MyObjectBuilder_AmmoMagazine/SemiAutoPistolMagazine", "MyObjectBuilder_BlueprintDefinition/Position0010_SemiAutoPistolMagazine" },
+                { /*"S-10E_Pistol",*/       "MyObjectBuilder_AmmoMagazine/ElitePistolMagazine", "MyObjectBuilder_BlueprintDefinition/Position0030_ElitePistolMagazine" },
+                { /*"S-20A_Pistol",*/       "MyObjectBuilder_AmmoMagazine/FullAutoPistolMagazine", "MyObjectBuilder_BlueprintDefinition/Position0020_FullAutoPistolMagazine" },
+                { /*"MR-20_Rifle",*/        "MyObjectBuilder_AmmoMagazine/AutomaticRifleGun_Mag_20rd", "MyObjectBuilder_BlueprintDefinition/Position0040_AutomaticRifleGun_Mag_20rd" },
+                { /*"MR-30E_Rifle",*/       "MyObjectBuilder_AmmoMagazine/UltimateAutomaticRifleGun_Mag_30rd", "MyObjectBuilder_BlueprintDefinition/Position0070_UltimateAutomaticRifleGun_Mag_30rd" },
+                { /*"MR-50A_Rifle",*/       "MyObjectBuilder_AmmoMagazine/RapidFireAutomaticRifleGun_Mag_50rd", "MyObjectBuilder_BlueprintDefinition/Position0050_RapidFireAutomaticRifleGun_Mag_50rd" },
+                { /*"MR-8P_Rifle",*/        "MyObjectBuilder_AmmoMagazine/PreciseAutomaticRifleGun_Mag_5rd", "MyObjectBuilder_BlueprintDefinition/Position0060_PreciseAutomaticRifleGun_Mag_5rd" },
+                { /*"5.56x45mm NATO magazine",*/ "MyObjectBuilder_AmmoMagazine/NATO_5p56x45mm", null /* Not Craftable */ },
+            };
+            public JINV(JDBG dbg)
+            {
+                jdbg = dbg;
+            }
+            public void addBluePrints(BLUEPRINT_TYPES types, ref Dictionary<String, String> into)
+            {
+                switch (types)
+                {
+                    case BLUEPRINT_TYPES.BOTTLES:
+                        into = into.Concat(bottlesCompToBlueprint).ToDictionary(x => x.Key, x => x.Value);
+                        break;
+                    case BLUEPRINT_TYPES.COMPONENTS:
+                        into = into.Concat(componentsCompToBlueprint).ToDictionary(x => x.Key, x => x.Value); 
+                        break;
+                    case BLUEPRINT_TYPES.AMMO:
+                        into = into.Concat(ammoCompToBlueprint).ToDictionary(x => x.Key, x => x.Value);
+                        break;
+                    case BLUEPRINT_TYPES.TOOLS:
+                        into = into.Concat(toolsCompToBlueprint).ToDictionary(x => x.Key, x => x.Value);
+                        break;
+                    case BLUEPRINT_TYPES.OTHER:
+                        into = into.Concat(otherCompToBlueprint).ToDictionary(x => x.Key, x => x.Value);
+                        break;
+                    case BLUEPRINT_TYPES.ORES:
+                        into = into.Concat(oreToIngot).ToDictionary(x => x.Key, x => x.Value);
+                        break;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,121 @@
+﻿/--------------------------------------------------------------------------------------------------
+| Multiple game arcade machine emulator (Intel 8080)
+|
+| This script emulates the 8080 used in the arcade machines very early on, in the era of Space 
+| Invaders. It can play multple games and (on my machine) hits pretty much original speed. 
+| Unfortunately all arcade machines were subtely different so you do need to tell the emulator 
+| which game you are running, and that is done through the filename as known to MAME.
+|
+| (Obviously) no sound support, and probably not a good idea to run this on a multiplayer server
+| as it will consume cycles. Suggest you turn block off when player leaves the controls.
+|
+| Code available on github: <tbc>
+|
+| Q: Why did I do this? I wrote some simple in game scripts, and got bored of writing them one
+|       by one, and started playing... Then I got addicted to getting as much running as I could
+|       
+|
++--------------------------------------------------------------------------------------------------
+| THIS SCRIPT DOES NOT COME WITH ANY GAMES PREINSTALLED due to copyright. Instructions provided
+| below, BUT you need to get the roms and their associated strings which requires (on windows)
+| use command line (cmd.exe), and either
+|   - python
+|   - 2 utilities usually provided by eg cygwin - unzip and base64.
++--------------------------------------------------------------------------------------------------
+|
+| 1. Add script to programmable block named "[GAMEPGM] Block"
+|    In the custom data field, add config:  
+|       [config]
+|		tag=GAME
+|    Note: (The prefix GAME is used for these instructions, you can use what you like)
+| 2. Add an LCD, and name it "[GAMESCREEN] LCD"
+| 3. Add something that controls a ship in front of it, eg a cockpit or even better a helm - A 
+|    good idea to place it where you can see the screen!. Name it "[GAMESEAT] Controller". Sit in 
+|    that cockpit, and press <tab> until the HUD is clear.
+| 4. While still in that seat, Press G and type 'GAME'. Drag the '[GAMEPGM] Block' down to the 
+|    toolbar buttons, and chose the 'Run' option. In the popup, you can enter the parameter of the 
+|    filename of the game you wish to start.  I set up one button per filename, but you only need
+|    a single one to get it working.
+| 5. Obtain the roms you can play (from the list below) from the internet. A search on MAME with 
+|    filename is usually a good hit, see below
+|    NOTE: You need the EXACT names listed below for this to work, similar files will not be
+|    handled correctly and are unlikely to work
+|
+| EITHER Step 6 using python:
+|		6. Download GetRomData.py (or paste in from bottom of these instructions)
+|				 python3 invaders.zip | clip
+| OR Step 6 using cygwin:
+|		6. Using cygwin's unzip and base64, in a comment prompt, do the following, for example:
+|				 unzip -p invaders.zip | base64 --wrap=0 | clip
+|
+|    This will put a textual form of the file into the clipboard. Now go to Space engineers, and 
+|    create a block... Any block with a custom data will do but I generally use control panels as 
+|    they are tiny. Name them [GAME] <filename>, eg "[GAME] invaders.zip". In the custom data, 
+|    paste in what the above stored in the clipboard which is a long string. I've put the expected
+|    first characters in the table below.
+| 7. Launch a game by pressing the appropriate helm button, and you can change the one running as
+|    well.
+| 8. If things go wrong (eg wrong strings etc), you may need to click 'recompile' on the 
+|    programmable block again to get things reset.
+|
+| Controls
+| ========
+|      A - LEFT			W - UP				Q - Add credit
+|      D - RIGHT		S - DOWN			E - Player 1 start
+|      SPACE - Fire		CROUCH - Button 2
+|      
+| Currently supports: (filename, name, first 10 chars expected, sample place to get it)
+| - invaders.zip : Space Invaders			IMPJFiGEIH eg https://www.retrostic.com/roms/mame/space-invaders-space-invaders-m-41304
+| - ballbomb.zip : Balloon Bomber		    AAAAwxgAAA eg https://www.retrostic.com/roms/mame/balloon-bomber-44465
+| - lrescue.zip  : Lunar Rescue				Dw8PDw8PDw eg https://www.retrostic.com/roms/mame/lunar-rescue-43291#google_vignette
+| - schaser.zip  : Space Chaser				Dw8PDw8PDw eg https://www.retrostic.com/roms/mame/space-chaser-47039
+| - spacerng.zip : Space Ranger				CAgICAgICA eg https://www.retrostic.com/roms/mame/space-ranger-51087
+| - vortex.zip   : Vortex					wicZKqd9Ks eg https://www.retrostic.com/roms/mame/vortex-50198
+| - invrvnge.zip : Invaders Revenge			////////// eg https://www.retrostic.com/roms/mame/invader-s-revenge-46143
+| - galxwars.zip : Galaxy Wars				CAgICAgICA eg https://www.retrostic.com/roms/mame/galaxy-wars-43764
+| - rollingc.zip : Rolling Crash/Moon Base	88MAQNQYAA eg https://www.retrostic.com/roms/mame/rolling-crash-moon-base-49086
+| - lupin3.zip   : Lupin III				AAAAw0AAAA eg https://www.retrostic.com/roms/mame/lupin-iii-44777
+| - polaris.zip  : Polaris					AAAAw8YFAA eg https://www.retrostic.com/roms/mame/polaris-45374
+| - indianbt.zip : Indian Battle			AAAAw+VfKw eg https://www.retrostic.com/roms/mame/indian-battle-46986
+| - astropal.zip : Astropal					MaAglwDDtg eg https://www.retrostic.com/roms/mame/astropal-47538
+| - galactic.zip : Galactica				AAAAw5sA// eg https://www.retrostic.com/roms/mame/galactica-batalha-espacial-45078
+| - attackfc.zip : Attack Force				PgAyKyLDAA eg https://www.retrostic.com/roms/mame/attack-force-47625
+|
+| Credit:
+|   - This is a majorly reworked version of code based on an emulator created by Pedro Cortés
+|       (BluestormDNA) and found here: https://github.com/BluestormDNA/i8080-Space-Invaders
+|     The CPU is only slighty modified but the rest was reworked to fit within Space Engineers
+|       limitations and fixed/extended for the other games and colour.
+|   - MAME source was reviewed to assist in getting the variety of games working
+|          https://github.com/mamedev/mame
++--------------------------------------------------------------------------------------------------
+| Extra options:
+|   - Tag an LCD with eg. "[GAMEFPS] fps display" and it will be updated with an approx frames per
+|       second figure
+|   - Tag an LCD with eg. "[GAMENAME] name display" and it will be updated with the name of the
+|       current game
+|   - Set a limit on how many cycles the game can take up - default is 45000, mas is 49000. Less 
+|       cycles = slower FPS.  Add to the [config] something like
+|       speed=40000
+|   - Work like an arcade machine.. Add to the [config] something like
+|		cost=5
+|		safetag=SAFE
+|     Now, tag one cargo container near the machine with [GAMECOINS] Coin In, and another
+|       (which is connected via a conveyor, ideally with a one way sorter to stop things being
+|        removed!) as [SAFE] Coins Safe
+|     If cost is >0 then 'q' will no longer act as coin in, instead drop the space credits as a single
+|       stack into the "coins in" cargo container, and it should add a credit to the game, and move
+|       the space credits out into the safe... 
++--------------------------------------------------------------------------------------------------
+| "GetRomData.py" Contents:
+import os,base64
+from zipfile import ZipFile
+def extract_zip(input_zip):
+    input_zip=ZipFile(input_zip)
+    return {name: input_zip.read(name) for name in input_zip.namelist()}     
+zip_name = os.sys.argv[1]
+zip_data = extract_zip(zip_name)
+total_data = bytearray()
+for name,allbytes in zip_data.items(): total_data = total_data + allbytes
+print( base64.b64encode(total_data).decode("utf-8"), end='', flush=True )
+\--------------------------------------------------------------------------------------------------
