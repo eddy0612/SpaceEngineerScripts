@@ -18,4 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Arcade8080Machine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specifics.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" />
+  </ItemGroup>
 </Project>
