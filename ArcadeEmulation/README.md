@@ -3,7 +3,7 @@
 ### Multiple game arcade machine emulator (Intel 8080)
 
 This script emulates the 8080 used in the arcade machines very early on, in the era of Space 
-Invaders. It can play multple games and (on my machine) hits pretty much original speed. 
+Invaders. It can play multiple games and (on my machine) hits pretty much original speed. 
 Unfortunately all arcade machines were subtely different so you do need to tell the emulator 
 which game you are running, and that is done through the ROM filename (as known to MAME)
 
