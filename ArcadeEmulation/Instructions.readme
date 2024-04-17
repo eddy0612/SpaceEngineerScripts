@@ -9,7 +9,7 @@
 | (Obviously) no sound support, and probably not a good idea to run this on a multiplayer server
 | as it will consume cycles. Suggest you turn block off when player leaves the controls.
 |
-| Code available on github: <tbc>
+| Code available on github: https://github.com/eddy0612/SpaceEngineerScripts
 |
 | Q: Why did I do this? I wrote some simple in game scripts, and got bored of writing them one
 |       by one, and started playing... Then I got addicted to getting as much running as I could
