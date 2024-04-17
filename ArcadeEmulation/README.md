@@ -16,7 +16,7 @@ Code available on github: https://github.com/eddy0612/SpaceEngineerScripts
 Q: Why did I do this? I wrote some simple in game scripts, and got bored of writing them one
       by one, and started playing... Then I got addicted to getting as much running as I could
        
-
+```
 +--------------------------------------------------------------------------------------------------
 | THIS SCRIPT DOES NOT COME WITH ANY GAMES PREINSTALLED due to copyright. 
 |
@@ -25,6 +25,7 @@ Q: Why did I do this? I wrote some simple in game scripts, and got bored of writ
 |   - python
 |   - 2 utilities usually provided by eg cygwin - unzip and base64.
 +--------------------------------------------------------------------------------------------------
+```
 
 ## Installation instructions
 
@@ -108,7 +109,7 @@ expected first few characters in the table below)
   - This is a majorly reworked version of code based on an emulator created by Pedro Cortés
        (BluestormDNA) and found here: https://github.com/BluestormDNA/i8080-Space-Invaders
      The CPU is only slighty modified but the rest was reworked to fit within Space Engineers
-       limitations and fixed/extended for the other games and colour.
+       limitations and fixed/extended for the other games, graphics, cycle handling and colour.
    - MAME source was reviewed to assist in getting the variety of games working
           https://github.com/mamedev/mame
 
