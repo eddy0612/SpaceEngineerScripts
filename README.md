@@ -1,9 +1,9 @@
 # SpaceEngineerScripts
 
-This repository is a list of scripts written when learning Space Engineers - Feel free to use them,
+This repository is a list of scripts written when learning Space Engineers - Feel free to use them, 
 copy them, edit them, ignore them. I absolutely recognize that a number of these have far better 
-solutions in the workshop which I am not trying to replace, and they came about when learning the
-game and playing with no additional mods or scripts. I make no promises on lack of bugs nor good
+solutions in the workshop which I am not trying to replace, and they came about when learning the 
+game and playing with no additional mods or scripts. I make no promises on lack of bugs nor good 
 quality code :-)
 
 The following are the various tools and their current status:
@@ -37,3 +37,4 @@ Note the following are shared libraries used by the above:
 | 8080Emulator | Used by the ArcadeEmulation project for 8080 support |
 | JSharedUtils | Common classes used by most of my scripts |
  
+Constructive feedback welcome!
