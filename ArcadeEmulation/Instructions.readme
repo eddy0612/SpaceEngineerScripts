@@ -27,7 +27,7 @@
 |    In the custom data field, add config:  
 |       [config]
 |		tag=GAME
-|    Note: (The prefix GAME is used for these instructions, you can use what you like)
+|    Note: (The prefix `GAME` is used for these instructions, you can use what you like)
 | 2. Add an LCD, and name it "[GAMESCREEN] LCD"
 | 3. Add something that controls a ship in front of it, eg a cockpit or even better a helm - A 
 |    good idea to place it where you can see the screen!. Name it "[GAMESEAT] Controller". Sit in 

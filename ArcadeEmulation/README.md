@@ -15,6 +15,8 @@ Code available on github: https://github.com/eddy0612/SpaceEngineerScripts
 
 Q: Why did I do this? I wrote some simple in game scripts, and got bored of writing them one
       by one, and started playing... Then I got addicted to getting as much running as I could
+
+All feedback welcome, please use the discussion area
        
 ```
 +--------------------------------------------------------------------------------------------------
@@ -36,7 +38,7 @@ Q: Why did I do this? I wrote some simple in game scripts, and got bored of writ
 	tag=GAME
 ```
 
-+ Note: (The prefix GAME is used for these instructions, you can use what you like)
++ Note: (The prefix `GAME` is used for these instructions, you can use what you like)
 2. Add an LCD, and name it "[GAMESCREEN] LCD"
 3. Add something that controls a ship in front of it, eg a cockpit or even better a helm - A 
    good idea to place it where you can see the screen!. Name it "[GAMESEAT] Controller". Sit in 

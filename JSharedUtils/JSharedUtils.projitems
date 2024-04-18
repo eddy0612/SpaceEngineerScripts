@@ -14,4 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)JINV.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)JLCD.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" />
+  </ItemGroup>
 </Project>
