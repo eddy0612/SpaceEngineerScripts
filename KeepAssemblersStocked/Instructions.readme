@@ -13,7 +13,8 @@ Installation
 tag=ingots
 3. Tag all the cargo containers you are happy for the ingots to be moved to with [ingots] somewhere in the name
 4. Tag all the assemblers you want kept stocked with ingots with [ingots] somewhere in the name
-5. Recompile and run the script
+5. Anything you do not want things moved from/to can be tagged with [LOCKED]
+6. Recompile and run the script
 
 This script does 2 things
 

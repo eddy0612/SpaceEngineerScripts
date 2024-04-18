@@ -23,6 +23,9 @@ using VRage.Game.ModAPI.Ingame.Utilities;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
 
+// TODO: Use JINV for item blueprints
+// TODO: Use JLCD for colours/LCD interactions
+
 namespace IngameScript
 {
     partial class Program : MyGridProgram

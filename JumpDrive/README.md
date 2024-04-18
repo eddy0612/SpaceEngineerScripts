@@ -1,4 +1,4 @@
-﻿JumpDrive
+JumpDrive
 =========
 
 This is a very simple script which outputs to a display the current status of any Jump drive it finds on the local grid onto an LCD. It was started to

@@ -24,6 +24,13 @@ using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
 using static IngameScript.Program;
 
+// TODO: If custom data missing item section, add it but default all to 0
+// TODO: Default to 10% if 2nd number missing
+// TODO: Use JINV for blueprints
+// TODO: Use JLCD for screen interactions, font sizes etc
+// TODO: Default batch size to 10%
+// TODO: Only look on current grid
+
 namespace IngameScript
 {
     partial class Program : MyGridProgram

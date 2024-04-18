@@ -27,6 +27,8 @@ using VRage.Game.ModAPI.Ingame.Utilities;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
 
+// TODO: Use JLCD for display/font selection and colours
+
 namespace IngameScript
 {
     partial class Program : MyGridProgram
@@ -45,7 +47,7 @@ namespace IngameScript
         // My configuration
         /* Example custom data in programming block:
 [Config]
-tag=JCE
+tag=GAME
         */
 
         const char cYELLOW = '';

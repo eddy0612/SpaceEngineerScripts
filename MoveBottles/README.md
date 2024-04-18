@@ -1,4 +1,4 @@
-﻿MoveBottles
+MoveBottles
 -----------
 
 This is a simple script which runs periodically and moves any oxygen or hydrogen bottles it can find over to a set of nominated oxygen or hydrogen 

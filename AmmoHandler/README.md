@@ -1,4 +1,4 @@
-﻿R e a d m e
+R e a d m e
 -----------
 
 This script ensures specific cargo containers maintain a specific count of ammo, and queues up more to be
@@ -24,7 +24,9 @@ Then (assuming your tag is 'ammo', otherwise use the tag)
     ammo produced and moved into.
 
 Once this is done, wait the refreshSpeed seconds, and the cargo containers custom data will be 
-filled with a list of ammo types, and a count of how much you want defaulting to 0. Change the one(s)
-you want to non-zero, and it will queue them up. Once produced they will be moved into the cargo container.
-Note guns partially fill themselves automatically so the first chunk of produced ammo might be divereted
-to the gun(s) in which case more will just be queued up.
+filled with a list of ammo types, and a count of how much you want but all defaulting to 0. 
+
+Change the custom data in the cargo container for the quantity of ammo you need to non-zero, and it will
+queue them up. Once produced they will be moved into the cargo container. Note guns partially fill themselves
+automatically so the first chunk of produced ammo might be divereted to the gun(s) in which case more will
+just be queued up.

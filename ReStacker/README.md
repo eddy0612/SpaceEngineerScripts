@@ -1,4 +1,4 @@
-﻿ReStacker
+ReStacker
 =========
 This is a very simple script which periodically runs through all items with inventories, and
 if it finds multiple stacks of the same item, it combines them into a single item.

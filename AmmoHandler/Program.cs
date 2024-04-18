@@ -26,6 +26,8 @@ using VRage.Game.ModAPI.Ingame.Utilities;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
 
+// TODO: Use JInv and JLCD for colours
+// TODO: ?use current grid only?
 
 namespace IngameScript
 {

@@ -1,4 +1,4 @@
-﻿KeepBuilding
+KeepBuilding
 ============
 This is an extremely useful script which you can set running on a base, and based on configuration you provide, it will
 ensure there is always a certain amount of each item type that is available pre-built. If you are low on items, it queues
