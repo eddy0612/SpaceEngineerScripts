@@ -1,0 +1,26 @@
+Refinery LCD status
+===================
+This script displays on any tagged LCD a quick highlight on the status of the refinery. Its
+targetted at single line LCDs attached to a repository.
+
+Note: This script only looks for anything with an inventory on the same grid as the programmable
+block. (This could be changed by removing the lines mentioning CubeGrid)
+
+Installation Instructions
+=========================
+1. Set the programmable block customdata to identify the tag which links the refineries names and
+    the LCD status displays, er "Status"
+2. Add to the name of any refinery the tag "[Status:xxx]" where Status is the tag from above, and xx
+    is either an Ore symbol (Fe for Iron etc) or the text to be in the display
+3. Add to the name of the LCD to display that refineries information, the same tag
+4. If you have a full LCD to display a one page sumamry, call it [Status:all]
+5. Add script to the programmable block, recompile and run.
+
+Example custom data 
+===================
+[Config]
+tag=Status
+
+Server Impact
+=============
+- Very minimal... only checks once every eg. 10 seconds

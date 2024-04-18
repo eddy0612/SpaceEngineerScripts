@@ -27,9 +27,9 @@ using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI.Ingame.Utilities;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
-//using static VRage.Game.MyObjectBuilder_CurveDefinition;
-//using static VRage.Game.ObjectBuilders.Definitions.MyObjectBuilder_GameDefinition;
-//using static VRage.Game.ObjectBuilders.Definitions.MyObjectBuilder_GameDefinition;
+
+// TODO: Use JLCD for colours and screen interations
+// TODO: Use JDBG for all debugging information
 
 namespace IngameScript
 {

@@ -1,4 +1,4 @@
-﻿RenameShip
+RenameShip
 ==========
 This is a useful utility to help idenitfy which block comes from where by providing a docking port, and when a ship docks to it you can
 select a prefix which is then applied to all blocks connected to that docking port. 
