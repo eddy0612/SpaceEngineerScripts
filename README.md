@@ -1,12 +1,16 @@
 # SpaceEngineerScripts
 
-This repository is a list of scripts written when learning Space Engineers - Feel free to use them, 
+This repository is the source for scripts written when learning Space Engineers - Feel free to use them, 
 copy them, edit them, ignore them. I absolutely recognize that a number of these have far better 
 solutions in the workshop which I am not trying to replace, and they came about when learning the 
 game and playing with no additional mods or scripts. 
 
 I make no promises on lack of bugs nor good quality code :-)  These scripts were developed over a 
 period and some are much tidier than others, making use of a common set of library classes I developed.
+
+In the `__IN_GAME_SCRIPTS` directory are versions of the scripts built and ready to deploy - just cut
+and paste them into SpaceEngineers (or drop the folder for the tool you are interested in
+under `%appdata%\SpaceEngineers\IngameScripts\local` and select the script from your workshop then.
 
 The following are the various tools and their current status:
 
