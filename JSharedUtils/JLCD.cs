@@ -1,21 +1,9 @@
-﻿using Sandbox.Game.EntityComponents;
-using Sandbox.ModAPI.Ingame;
+﻿using Sandbox.ModAPI.Ingame;
 using Sandbox.ModAPI.Interfaces;
-using SpaceEngineers.Game.ModAPI.Ingame;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
-using VRage;
-using VRage.Collections;
-using VRage.Game;
-using VRage.Game.Components;
 using VRage.Game.GUI.TextPanel;
-using VRage.Game.ModAPI.Ingame;
-using VRage.Game.ModAPI.Ingame.Utilities;
-using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
 
 namespace IngameScript
@@ -71,6 +59,21 @@ namespace IngameScript
                 mypgm.GridTerminalSystem.GetBlocksOfType(allLCDs, (IMyTerminalBlock x) => (
                                                                                        (x.CustomName != null) &&
                                                                                        (x.CustomName.ToUpper().IndexOf("[" + tag.ToUpper() + "]") >= 0) &&
+                                                                                       (x is IMyTextSurfaceProvider)
+                                                                                      ));
+                jdbg.Debug("Found " + allLCDs.Count + " lcds to update with tag " + tag);
+                return allLCDs;
+            }
+
+            // ---------------------------------------------------------------------------
+            // Get a list of the LCDs with a specific name
+            // ---------------------------------------------------------------------------
+            public List<IMyTerminalBlock> GetLCDsWithName(String tag)
+            {
+                List<IMyTerminalBlock> allLCDs = new List<IMyTerminalBlock>();
+                mypgm.GridTerminalSystem.GetBlocksOfType(allLCDs, (IMyTerminalBlock x) => (
+                                                                                       (x.CustomName != null) &&
+                                                                                       (x.CustomName.ToUpper().IndexOf(tag.ToUpper()) >= 0) &&
                                                                                        (x is IMyTextSurfaceProvider)
                                                                                       ));
                 jdbg.Debug("Found " + allLCDs.Count + " lcds to update with tag " + tag);
@@ -173,6 +176,17 @@ namespace IngameScript
                         thisSurface.FontSize *= 4;
                     }
                 }
+            }
+
+            // ---------------------------------------------------------------------------
+            // Update the programmable block with the script name
+            // ---------------------------------------------------------------------------
+            public void UpdateFullScreen(IMyTerminalBlock block, String text)
+            {
+                List<IMyTerminalBlock> lcds = new List<IMyTerminalBlock> { block };
+                InitializeLCDs(lcds, TextAlignment.CENTER);
+                SetupFont(lcds, 1, text.Length + 4, false);
+                WriteToAllLCDs(lcds, text, false);
             }
 
             // ---------------------------------------------------------------------------

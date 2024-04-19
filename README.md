@@ -8,9 +8,14 @@ game and playing with no additional mods or scripts.
 I make no promises on lack of bugs nor good quality code :-)  These scripts were developed over a 
 period and some are much tidier than others, making use of a common set of library classes I developed.
 
+Using the scripts
+-----------------
 In the `__IN_GAME_SCRIPTS` directory are versions of the scripts built and ready to deploy - just cut
-and paste them into SpaceEngineers (or drop the folder for the tool you are interested in
-under `%appdata%\SpaceEngineers\IngameScripts\local` and select the script from your workshop then.
+and paste them into SpaceEngineers (Alternatively,  drop the folder for the tool you are interested in
+under `%appdata%\SpaceEngineers\IngameScripts\local` and select the script from your workshop then).
+
+Scripts Descriptions
+--------------------
 
 The following are the various tools and their current status:
 

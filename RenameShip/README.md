@@ -7,17 +7,21 @@ In effect, you would dock a ship, select the prefix on the buttons, then apply t
 
 Instructions
 ------------
-1. Add a programmable block, add config similar to the following
+1. Add a programmable block, add config with a tag, which is how you will identify the related parts
 ```
 [Config]
-connector=[rename] Connector
-4buttonpanel=Rename 4 button[renamelcd]
-dockedlcd = [renamelcd] Docked LCD
+tag=rename
 ```
 
-2. Add a connector and give it the exact name listed in the config
-3. Add an LCD where the name of the ship currently docked will be displayed - Must have the exact name listed in the config
-4. Add a 4 button panel which is where you will set the prefix and say go... 
+2. Add a connector and tag it with the tag above in square brackets, eg `[rename] Rename Connector`
+3. Add an LCD where the name of the ship currently docked will be displayed, and tag it again, eg `[rename] Status LCD`
+4. Add a 4 button panel which is where the button pressed will change the prefix and say go, and tag it eg `[rename] Rename buttons`
+- Go into the button setup and drag the programmable block onto each button in turn, and use the Run action
+- When it asks for a parameter: 
+	- Button one's parameter is "B1" (without the quotes)
+	- Button twos parameter is "B2" (without the quotes)
+	- Button three's parameter is "B3" (without the quotes)
+	- Button four's parameter is "GO" (without the quotes)
 5. Add the script to the programmable block, click recompile/run
 
 Usage
@@ -31,3 +35,15 @@ to go backwards you have to wait for it to fully rotate!
 
 Once you have the buttons showing the prefix you want, press the 4th button and it will apply it - EVERY block in the grid connected
 to the connector will be renamed
+
+Extra options
+-------------
+In the config you can optionally add a line to set the divider of the prefix at the front of the blocks
+
+The divider can be set to any of:
+
+|chars|Description|
+|--|--|
+|[]| The prefix is [xxx]|
+|\{}| The prefix is {xxx}|
+|not defined|The prefix is xxx.|

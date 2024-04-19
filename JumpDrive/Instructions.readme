@@ -1,19 +1,49 @@
-﻿JumpDrive
-=========
+﻿RenameShip
+==========
+This is a useful utility to help idenitfy which block comes from where by providing a docking port, and when a ship docks to it you can
+select a prefix which is then applied to all blocks connected to that docking port. 
 
-This is a very simple script which outputs to a display the current status of any Jump drive it finds on the local grid onto an LCD. It was started to
-be a lot more functional but I then discovered that the API in Space Engineers to interface with JumpDrives is extremely limited, and this was all I could
-do for now
+In effect, you would dock a ship, select the prefix on the buttons, then apply the prefix and all blocks on that ship get renamed
 
 Instructions
 ------------
-
-1. Create a programmable block, name it something like `[JUMPDRIVEPGM]`. Add custom data as follows - the value of the tag can be anything but you need to use it consistently everywhere as a prefix
-
+1. Add a programmable block, add config with a tag, which is how you will identify the related parts
 ```
-[config]
-tag=JUMPDRIVE
+[Config]
+tag=rename
 ```
 
-2. Create an LCD, change its name to `[JUMPDRIVE] JumpDrive lcd`  (only the tag [..] bit is important)
-3. Add the script to the programmable block, recompile and run.
+2. Add a connector and tag it with the tag above in square brackets, eg `[rename] Rename Connector`
+3. Add an LCD where the name of the ship currently docked will be displayed, and tag it again, eg `[rename] Status LCD`
+4. Add a 4 button panel which is where the button pressed will change the prefix and say go, and tag it eg `[rename] Rename buttons`
+- Go into the button setup and drag the programmable block onto each button in turn, and use the Run action
+- When it asks for a parameter: 
+	- Button one's parameter is "B1" (without the quotes)
+	- Button twos parameter is "B2" (without the quotes)
+	- Button three's parameter is "B3" (without the quotes)
+	- Button four's parameter is "GO" (without the quotes)
+5. Add the script to the programmable block, click recompile/run
+
+Usage
+-----
+Dock a ship - if the connector of the ship already has a prefix, that will be displayed on the LCD
+and the text over the 4 button pannel will display it, otherwise it will display unknown and the buttons
+start blank
+
+Use the buttons to select an up to 3 character prefix. Press a button rotates that letter by one - if you need
+to go backwards you have to wait for it to fully rotate!
+
+Once you have the buttons showing the prefix you want, press the 4th button and it will apply it - EVERY block in the grid connected
+to the connector will be renamed
+
+Extra options
+-------------
+In the config you can optionally add a line to set the divider of the prefix at the front of the blocks
+
+The divider can be set to any of:
+
+|chars|Description|
+|--|--|
+|[]| The prefix is [xxx]|
+|\{}| The prefix is {xxx}|
+|not defined|The prefix is xxx.|
