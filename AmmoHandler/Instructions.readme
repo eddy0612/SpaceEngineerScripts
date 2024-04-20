@@ -4,6 +4,8 @@
 This script ensures specific cargo containers maintain a specific count of ammo, and queues up more to be
 produced should the total run low. A status display can also be maintained if needed on an LCD.
 
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
+
 Instructions
 ============
 Set the custom data for the programable block something like

@@ -5,6 +5,8 @@ if it finds multiple stacks of the same item, it combines them into a single ite
 
 Note any block with [LOCKED] in the name is ignored.
 
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
+
 Instructions
 ------------
 1. Add programmable block, add script, click recompile/run - No config required

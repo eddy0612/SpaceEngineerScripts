@@ -1,5 +1,5 @@
-﻿DataPad Handler
-===============
+PowerData
+=========
 
 Work in progress
 

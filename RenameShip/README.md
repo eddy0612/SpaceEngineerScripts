@@ -5,6 +5,8 @@ select a prefix which is then applied to all blocks connected to that docking po
 
 In effect, you would dock a ship, select the prefix on the buttons, then apply the prefix and all blocks on that ship get renamed
 
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
+
 Instructions
 ------------
 1. Add a programmable block, add config with a tag, which is how you will identify the related parts

@@ -1,4 +1,4 @@
-﻿ControllerTesting
+ControllerTesting
 =================
 This is a simple script to display on an LCD the input from a cockpit/helm and map it to key presses
 

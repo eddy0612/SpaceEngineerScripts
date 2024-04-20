@@ -6,6 +6,8 @@ targetted at single line LCDs attached to a repository.
 Note: This script only looks for anything with an inventory on the same grid as the programmable
 block. (This could be changed by removing the lines mentioning CubeGrid)
 
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
+
 Installation Instructions
 =========================
 1. Set the programmable block customdata to identify the tag which links the refineries names and

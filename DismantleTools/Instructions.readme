@@ -6,6 +6,7 @@ mode and disassembles them.
 
 Note: This script looks for anything it can find, irrespective of grids.
 
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
 
 Installation Instructions
 =========================

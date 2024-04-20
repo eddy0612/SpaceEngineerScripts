@@ -5,6 +5,8 @@ ensure there is always a certain amount of each item type that is available pre-
 up in batches to ensure you dont block up the assemblers. in addition it can output to an LCD the current status of
 how it is coping.
 
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
+
 Instructions
 ------------
 1. Add a programmable block. In its custom data, add the following (but edit the numbers - see below)

@@ -5,6 +5,8 @@ We had a few problems that assemblers werent pulling the ores they needed as fas
 - all the ore being in one assembler, and the other wouldnt pull ore from another assembler
 - times when it was really slow pulling ore, not clear why
 
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
+
 Installation
 ------------
 1. Put script in programmable block

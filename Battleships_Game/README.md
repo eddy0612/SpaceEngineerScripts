@@ -2,6 +2,8 @@ Battleships
 ===========
 This implements a one or two player battleships game
 
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
+
 Setup Instructions
 ------------------
 1. Create a programmable block, name it something like `[GAMEPGM]`. Add custom data as follows - the value of the tag can be anything but you need to use it consistently everywhere as a prefix

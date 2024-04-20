@@ -5,6 +5,8 @@ This is a very simple script which outputs to a display the current status of an
 be a lot more functional but I then discovered that the API in Space Engineers to interface with JumpDrives is extremely limited, and this was all I could
 do for now
 
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
+
 Instructions
 ------------
 

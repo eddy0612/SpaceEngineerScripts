@@ -3,6 +3,8 @@ BREAKOUT
 
 This is a very simple implementation of Breakout - move the bat and keep the ball alive. I wrote this when learning about how to update screens (and the lack of graphics)
 
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
+
 Instructions
 ------------
 1. Create a programmable block, name it something like `[GAMEPGM]`. Add custom data as follows - the value of the tag can be anything but you need to use it consistently everywhere as a prefix

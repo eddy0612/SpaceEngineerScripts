@@ -3,6 +3,8 @@
 This is a fun little script which takes a projection on a flat bed console, and gently rotates it around over time, so it can be better
 seen as a 3D model from all sides.
 
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
+
 Instructions
 ------------
 1. Add a flat projection console, and on the name add a tag, for example [rotateme]

@@ -50,6 +50,9 @@
     <AdditionalFiles Include="thumb.png" />
     <AdditionalFiles Include="MDK\whitelist.cache" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+  </ItemGroup>
   <Import Project="..\JSharedUtils\JSharedUtils.projitems" Label="Shared" />
   <Import Project="..\Z80Emulator\Z80Emulator.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

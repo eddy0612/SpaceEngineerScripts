@@ -5,6 +5,7 @@ This is a simple script which runs periodically and moves any oxygen or hydrogen
 tanks (or O2H2 Generator). Anything with an inventory with the tag [LOCKED] is ignored. Be aware as coded it will grab from anywhere it can and is
 not filtered to the current grid. This would be a trivial change
 
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
 
 Instructions
 ------------
