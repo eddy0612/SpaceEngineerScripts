@@ -36,6 +36,7 @@ The following are the various tools and their current status:
 | PowerData | InProgress | Display some data about the power usage |
 | ReStacker | Complete | Periodically run through the inventories, combining stacks where possible |
 | RenameShip | Complete | Rename all blocks on grid connected to a specific connector with a user prefix |
+| RotatingConsole | Complete | Rotates the projection on a console around over a period |
 | StatusLCDs | Complete | Display assembler status beside the assembler plus a central status deisplay |
 | Z80Emulator | Abandoned | Shared library for ZXSpectrum emulator
 | ZXSpectrum | Abandoned| ZXSpectrum emulator

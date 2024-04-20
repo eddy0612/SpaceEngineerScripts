@@ -58,6 +58,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "__IN_GAME_SCRIPTS__", "__IN_GAME_SCRIPTS__\__IN_GAME_SCRIPTS__.vcxproj", "{C533FBDE-C761-47E6-8276-E27D9EF88A5E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RotatingConsole", "RotatingConsole\RotatingConsole.csproj", "{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -210,6 +212,14 @@ Global
 		{C533FBDE-C761-47E6-8276-E27D9EF88A5E}.Release|x64.Build.0 = Release|x64
 		{C533FBDE-C761-47E6-8276-E27D9EF88A5E}.Release|x86.ActiveCfg = Release|Win32
 		{C533FBDE-C761-47E6-8276-E27D9EF88A5E}.Release|x86.Build.0 = Release|Win32
+		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}.Debug|x64.ActiveCfg = Debug|x64
+		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}.Debug|x64.Build.0 = Debug|x64
+		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}.Debug|x86.ActiveCfg = Debug|x64
+		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}.Debug|x86.Build.0 = Debug|x64
+		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}.Release|x64.ActiveCfg = Debug|x64
+		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}.Release|x64.Build.0 = Debug|x64
+		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}.Release|x86.ActiveCfg = Debug|x64
+		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}.Release|x86.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -236,6 +246,7 @@ Global
 		{A5ED3B58-D73D-48FA-BD9A-921188C0F931} = {45CA2169-BE61-4FFB-A389-D9E88F05920D}
 		{3330AF42-F726-4550-A87E-0F09D8B37D9B} = {F2564B34-516A-4D6F-BB94-30AD7ADF84AA}
 		{C533FBDE-C761-47E6-8276-E27D9EF88A5E} = {4AAAEA48-9E7E-4288-853F-A75B580DBADC}
+		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4} = {F2564B34-516A-4D6F-BB94-30AD7ADF84AA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5F261BFD-DE92-4F2C-99FC-71989B6008BF}
@@ -243,6 +254,7 @@ Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		JSharedUtils\JSharedUtils.projitems*{082033ac-6c5a-4976-b3e7-8c5928c64ce2}*SharedItemsImports = 4
 		JSharedUtils\JSharedUtils.projitems*{15d59ce6-eb89-4aee-a0a9-7052affc9c5c}*SharedItemsImports = 4
+		JSharedUtils\JSharedUtils.projitems*{30a10d74-d9c7-4709-b88f-d8c7a015ada4}*SharedItemsImports = 4
 		JSharedUtils\JSharedUtils.projitems*{3330af42-f726-4550-a87e-0f09d8b37d9b}*SharedItemsImports = 4
 		Z80Emulator\Z80Emulator.projitems*{347b7d9d-4d7a-44b2-b798-b74529661ee5}*SharedItemsImports = 13
 		8080Emulator\8080Emulator.projitems*{34a873be-cc98-486a-8ab0-147aebc3bdaa}*SharedItemsImports = 4

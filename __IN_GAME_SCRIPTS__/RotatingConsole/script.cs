@@ -1,41 +1,13 @@
 ﻿/*
- * RenameShip
- * ==========
- * This is a useful utility to help idenitfy which block comes from where by providing a docking port, and when a ship docks to it you can
- * select a prefix which is then applied to all blocks connected to that docking port. 
+ * R e a d m e
+ * -----------
  * 
- * In effect, you would dock a ship, select the prefix on the buttons, then apply the prefix and all blocks on that ship get renamed
- * 
- * Instructions
- * ------------
- * 1. Add a programmable block, add config similar to the following
- * ```
- * [Config]
- * connector=[rename] Connector
- * 4buttonpanel=Rename 4 button[renamelcd]
- * dockedlcd = [renamelcd] Docked LCD
- * ```
- * 
- * 2. Add a connector and give it the exact name listed in the config
- * 3. Add an LCD where the name of the ship currently docked will be displayed - Must have the exact name listed in the config
- * 4. Add a 4 button panel which is where you will set the prefix and say go... 
- * 5. Add the script to the programmable block, click recompile/run
- * 
- * Usage
- * -----
- * Dock a ship - if the connector of the ship already has a prefix, that will be displayed on the LCD
- * and the text over the 4 button pannel will display it, otherwise it will display unknown and the buttons
- * start blank
- * 
- * Use the buttons to select an up to 3 character prefix. Press a button rotates that letter by one - if you need
- * to go backwards you have to wait for it to fully rotate!
- * 
- * Once you have the buttons showing the prefix you want, press the 4th button and it will apply it - EVERY block in the grid connected
- * to the connector will be renamed
+ * In this file you can include any instructions or other comments you want to have injected onto the 
+ * top of your final script. You can safely delete this file if you do not want any such comments.
  */
 
 // ----------------------------- CUT -------------------------------------
-String thisScript = "RenameShip";
+String thisScript = "RotatingConsole";
 
 // Development time flags
 bool debug = false;
@@ -54,14 +26,19 @@ private String alertTag = "alert";    // TODO: Could move into config
 
 // Data read from program config
 String mytag = "IDONTCARE";    /* Which LCDs to display status on */
+int frameSkip = 1;
+int xRotation = 1;
+int yRotation = 0;
+int zRotation = 0;
 
 // My configuration
-int refreshSpeed = 10;
+int refreshSpeed = 1;
 String originalName = "";
 bool isConfirm = false;
 
 // Internals
 DateTime lastCheck = new DateTime(0);
+int counter = 0;
 
 // ---------------------------------------------------------------------------
 // Constructor
@@ -70,7 +47,7 @@ public Program()
 {
     // Run every 100 ticks, but relies on internal check to only actually
     // perform on a defined frequency
-    if (stayRunning) Runtime.UpdateFrequency = UpdateFrequency.Update100;
+    if (stayRunning) Runtime.UpdateFrequency = UpdateFrequency.Update1;
 
     // Initialize the utility classes
     jdbg = new JDBG(this, debug);
@@ -85,7 +62,6 @@ public Program()
 // ---------------------------------------------------------------------------
 public void Save()
 {
-    // Nothing needed
 }
 
 // ---------------------------------------------------------------------------
@@ -93,20 +69,20 @@ public void Save()
 // ---------------------------------------------------------------------------
 public void Main(string argument, UpdateType updateSource)
 {
-    // Simplify code slightly
-    if (argument == null) argument = "";
-
     // ---------------------------------------------------------------------------
     // Decide whether to actually do anything, and update status every 10 seconds
     // ---------------------------------------------------------------------------
-    if (stayRunning && argument.Equals("")) {
-        TimeSpan timeSinceLastCheck = DateTime.Now - lastCheck;
-        if (timeSinceLastCheck.TotalSeconds >= refreshSpeed) {
-            lastCheck = DateTime.Now;
-        } else {
-            return;  // Nothing to do
-        }
-    }
+    /*            if (stayRunning && argument.Equals("")) {
+                            TimeSpan timeSinceLastCheck = DateTime.Now - lastCheck;
+                            if (timeSinceLastCheck.TotalSeconds >= refreshSpeed) {
+                                lastCheck = DateTime.Now;
+                            } else {
+                                return;  // Nothing to do
+                            }
+                        } */
+
+    if (counter > 0) {counter--; return; }
+    counter = 2;
 
     try {
         // ---------------------------------------------------------------------------
@@ -136,278 +112,63 @@ public void Main(string argument, UpdateType updateSource)
         }
         jdbg.Debug("Config: tag=" + mytag);
 
+        // Frame Skip
+        frameSkip = _ini.Get("config", "frameskip").ToInt16(1);
+        if (frameSkip < 1) {
+            Echo("frameSkip set invalidly - must be >= 1");
+            return;
+        }
+
+        // Frame Skip
+        xRotation = _ini.Get("config", "xrotation").ToInt16(1);
+        if (xRotation < -180 || xRotation > 180) {
+            Echo("xrotation set invalidly - must be between -180 .. +180");
+            return;
+        }
+        yRotation = _ini.Get("config", "yrotation").ToInt16(0);
+        if (yRotation < -180 || yRotation > 180) {
+            Echo("yRotation set invalidly - must be between -180 .. +180");
+            return;
+        }
+        zRotation = _ini.Get("config", "zrotation").ToInt16(0);
+        if (zRotation < -180 || zRotation > 180) {
+            Echo("zRotation set invalidly - must be between -180 .. +180");
+            return;
+        }
+
         // -----------------------------------
-        // Identify the connector to work with
+        // Identify the consoles to work with
         // -----------------------------------
-        IMyShipConnector myShipConnector = null;
-        List<IMyTerminalBlock> connectors = new List<IMyTerminalBlock>();
-        GridTerminalSystem.GetBlocksOfType(connectors, (IMyTerminalBlock x) => (
-                                                                               (x is IMyShipConnector) &&
+        List<IMyProjector> consoles = new List<IMyProjector>();
+        GridTerminalSystem.GetBlocksOfType(consoles, (IMyProjector x) => (
+                                                                               (x is IMyProjector) &&
                                                                                (x.CustomName.ToUpper().IndexOf("[" + mytag + "]") >= 0) &&
                                                                                (x.CubeGrid.Equals(Me.CubeGrid))
                                                                               ));
-        jdbg.Debug("Found " + connectors.Count + " connectors with the tag");
-        if (connectors.Count == 0) {
+        jdbg.Debug("Found " + consoles.Count + " consoles with the tag");
+        if (consoles.Count == 0) {
             jdbg.DebugAndEcho("ERROR: No connector with the tag [" + mytag + "]");
             return;
-        } else if (connectors.Count > 1) {
-            jdbg.DebugAndEcho("ERROR: Too many connectors with the tag [" + mytag + "]");
-            return;
-        } else {
-            jdbg.DebugAndEcho("Using connector " + connectors[0].CustomName);
-            myShipConnector = connectors[0] as IMyShipConnector;
         }
 
-        // -------------------------------------------
-        // Identify the lcd to update with docked info
-        // -------------------------------------------
-        List<IMyTerminalBlock> myDockedStatusLCDs = jlcd.GetLCDsWithTag(mytag);
-        if (myDockedStatusLCDs.Count == 0) {
-            jdbg.DebugAndEcho("Warning LCD with tag '" + mytag + "' does not exist, so no status display possible");
+        foreach (var thisLCD in consoles) {
+            jdbg.Debug("Block: " + thisLCD.CustomName);
+            jdbg.Debug("     : " + thisLCD.ProjectionRotation);
+
+            Vector3I rot = thisLCD.ProjectionRotation;
+            rot.X += xRotation; if (rot.X > 180) rot.X -= 360;
+            rot.Y += yRotation; if (rot.Y > 180) rot.Y -= 360;
+            rot.Z += zRotation; if (rot.Z > 180) rot.Z -= 360;
+            thisLCD.ProjectionRotation = rot;
+            jdbg.Debug(" ->  : " + thisLCD.ProjectionRotation);
+            thisLCD.UpdateOffsetAndRotation();
         }
 
-        // -------------------------------------------
-        // Identify the 4 button panel to use for input
-        // -------------------------------------------
-        IMyTerminalBlock my4ButtonPanel = null;
-        List<IMyTerminalBlock> but4panels = new List<IMyTerminalBlock>();
-        GridTerminalSystem.GetBlocksOfType(but4panels, (IMyTerminalBlock x) => (
-                                                                               (x is IMyTextSurfaceProvider) &&
-                                                                               (x.CustomName.ToUpper().IndexOf("[" + mytag + "]") >= 0) &&
-                                                                               (x.CubeGrid.Equals(Me.CubeGrid)) &&
-                                                                               (((IMyTextSurfaceProvider)x).SurfaceCount == 4)
-                                                                              ));
-        jdbg.Debug("Found " + but4panels.Count + " 4 button panels with the tag");
-        if (but4panels.Count == 0) {
-            jdbg.DebugAndEcho("ERROR: No 4 button panel with the tag [" + mytag + "]");
-            return;
-        } else if (but4panels.Count > 1) {
-            jdbg.DebugAndEcho("ERROR: Too many 4 button panels with the tag [" + mytag + "]");
-            return;
-        } else {
-            jdbg.DebugAndEcho("Using 4 button panel " + but4panels[0].CustomName);
-            my4ButtonPanel = but4panels[0] as IMyTerminalBlock;
-        }
-
-        // --------------------------------------------------------------
-        // Remove the connector and the 4 button panel from the LCD list!
-        // --------------------------------------------------------------
-        jdbg.Debug("LCD Count before: " + myDockedStatusLCDs.Count);
-        myDockedStatusLCDs.Remove(my4ButtonPanel);
-        jdbg.Debug("LCD Count mid: " + myDockedStatusLCDs.Count);
-        myDockedStatusLCDs.Remove(myShipConnector);
-        jdbg.Debug("LCD Count after: " + myDockedStatusLCDs.Count);
-
-        // ----------------------------------------------------------
-        // Identify the divider syntax to use (Expected: [] {} or  .)
-        // ----------------------------------------------------------
-        String divName = _ini.Get("config", "divider").ToString();
-        if ((divName != null) && (!divName.Equals(""))) divName = " .";
-
-        if (divName.Length != 2) {
-            jdbg.DebugAndEcho("Invalid divider - must be 2 'unique' chars");
-            return;
-        }
-
-        Char leftDiv = divName[0];
-        Char rightDiv = divName[1];
-
-        // ---------------------------------------------------------------------------
-        // vvv                   Now do the actual work                           vvvv
-        // ---------------------------------------------------------------------------
-
-        jdbg.Debug("Doing the work now");
-        // 1. See docked status has changed - if so update the LCD and connector data
-        String newName = "---";
-
-        if (!(myShipConnector.IsConnected)) {
-            jdbg.Debug("Nothing connected");
-            originalName = "";
-            isConfirm = false;
-
-            // To save processing time, just wipe the customData
-            myShipConnector.CustomData = "";
-            jdbg.Debug("Updating screens");
-            updateStatusLCD(myDockedStatusLCDs, "Nothing Connected");
-            update4But("---", my4ButtonPanel, isConfirm, true);
-            jdbg.DebugAndEcho("Nothing connected - ending");
-            return;
-        } else {
-
-            // If no custom data, set it
-            if ((originalName.Equals("")) ||
-                (myShipConnector.CustomData == null) ||
-                (myShipConnector.Equals("")) ||
-                (myShipConnector.CustomData.Length != 3)) {
-                jdbg.Debug("No custom data yet, looking it up from the docked ship");
-                newName = myShipConnector.OtherConnector.CustomName;
-                if (newName.Length < 5) newName = newName + "     ";
-
-                String nameLeft = newName;
-                if (leftDiv != ' ' && leftDiv == newName[0]) {
-                    nameLeft = newName.Substring(1);  // Strip first char
-                }
-
-                // If we match the right as well, we know the chars to use
-                if (rightDiv == newName[3]) {
-                    newName = newName.Substring(0, 3);
-                    originalName = newName;
-                } else {
-                    newName = "---";
-                    originalName = "???";
-                }
-                myShipConnector.CustomData = newName;
-                jdbg.Debug("Calculated result of " + newName);
-            } else {
-                newName = myShipConnector.CustomData;
-                jdbg.Debug("Read in custom data of " + newName);
-            }
-
-            jdbg.Debug("Updating screens");
-            updateStatusLCD(myDockedStatusLCDs, "Docked Ship: " + originalName);
-        }
-
-        // Poll refresh - Just update the buttons
-        if (argument.Equals("")) {
-            jdbg.Debug("No Parms");
-            update4But(newName, my4ButtonPanel, isConfirm, false);
-
-            // Expected button press
-        } else if (argument.StartsWith("B")) {
-            isConfirm = false;
-            jdbg.Debug("Handling button " + argument);
-            int idx = argument[1] - '1';
-            newName = handlePress(newName, idx);
-            jdbg.Debug("Calc name of " + newName);
-            update4But(newName, my4ButtonPanel, isConfirm, false);
-            myShipConnector.CustomData = newName;
-            jdbg.DebugAndEcho("Button handled... ending");
-            return;
-        } else if (argument.Equals("GO") && !isConfirm) {
-            jdbg.Debug("Was GO");
-            isConfirm = true;
-            update4But(newName, my4ButtonPanel, isConfirm, false);
-        } else if (argument.Equals("GO") && isConfirm) {
-            jdbg.Debug("Was GO but confirming!");
-            // Work out the CubeGrid of the connected ship
-            IMyCubeGrid processGrid = myShipConnector.OtherConnector.CubeGrid;
-            List<IMyTerminalBlock> blocks = new List<IMyTerminalBlock>();
-            GridTerminalSystem.GetBlocksOfType(blocks, (IMyTerminalBlock x) => (
-                                                                  x.CubeGrid.Equals(processGrid)
-                                                                               ));
-
-            int count = 0;
-            foreach (var thisblock in blocks) {
-                if (count < 5) jdbg.Debug("Processing block: " + thisblock.CustomName);
-
-                String currentName = thisblock.CustomName;
-                jdbg.Debug("Original: " + currentName);
-
-                // Remove any old tag
-                if ((leftDiv == ' ' || currentName.StartsWith("" + leftDiv)) && (currentName.IndexOf(rightDiv) >= 0)) {
-                    currentName = currentName.Substring(currentName.IndexOf(rightDiv) + 1);
-                    jdbg.Debug("Stripped: " + currentName);
-                }
-
-                if (argument != null && !newName.Equals("") && !newName.Equals("---")) {
-                    if (leftDiv != ' ') {
-                        currentName = "" + leftDiv + newName + rightDiv + currentName;
-                    } else {
-                        currentName = "" + newName + rightDiv + currentName;
-                    }
-                }
-                jdbg.Debug("NewName: " + currentName);
-                thisblock.CustomName = currentName;
-
-                count++;
-            }
-            jdbg.Debug("Processed " + count + " blocks in total");
-
-            originalName = newName;
-            isConfirm = false;
-            update4But(newName, my4ButtonPanel, isConfirm, false);
-            updateStatusLCD(myDockedStatusLCDs, "Docked Ship: " + originalName);
-        } else {
-            jdbg.DebugAndEcho("ERROR: Unexpected arg: " + argument);
-            return;
-        }
         jdbg.Alert("Completed", "GREEN", alertTag, thisScript);
     }
     catch (Exception ex) {
         jdbg.Alert("Exception - " + ex.ToString() + "\n" + ex.StackTrace, "RED", alertTag, thisScript);
     }
-}
-
-/* Update the status LCDs */
-void updateStatusLCD(List<IMyTerminalBlock> lcds, String text)
-{
-    jlcd.InitializeLCDs(lcds, TextAlignment.CENTER);
-    jlcd.SetupFont(lcds, 1, text.Length + 4, false);  // 4 is just to provide some level of indentation
-    jlcd.WriteToAllLCDs(lcds, text, false);
-}
-
-/* Update the button LCDs - Note this cannot use jlcd due to the multiple surfaces */
-void update4But(String prefix, IMyTerminalBlock my4butPanels, bool isConfirm, bool isDisconnected)
-{
-    jdbg.Debug("Updating buttons... prefix: " + prefix + " confirm?" + isConfirm + ", isDisc?" + isDisconnected);
-    jdbg.Debug("Panel: " + my4butPanels.CustomName);
-    jdbg.Debug("Displays: " + ((IMyTextSurfaceProvider)my4butPanels).SurfaceCount);
-    for (int i = 0; i < 3; i++) {
-        IMyTextSurface thisLCD = ((IMyTextSurfaceProvider)my4butPanels).GetSurface(i);
-        if (thisLCD != null) {
-            jdbg.Debug("Updating surface " + i + " with " + prefix[i]);
-            thisLCD.Font = "Monospace";
-            thisLCD.ContentType = ContentType.TEXT_AND_IMAGE;
-            thisLCD.Alignment = VRage.Game.GUI.TextPanel.TextAlignment.CENTER;
-            thisLCD.FontSize = 10.0F;
-            thisLCD.WriteText("" + prefix[i], false);
-        } else {
-            jdbg.Debug("Odd = 4 button panel doesnt have surface " + i);
-        }
-
-        // Now action button
-        thisLCD = ((IMyTextSurfaceProvider)my4butPanels).GetSurface(3);
-        if (thisLCD != null) {
-            String text = "GO?";
-            float fontsize = 9.0F;
-            if (prefix.Equals("---")) {
-                text = "Clear?";
-                fontsize = 4.0F;
-            }
-            if (isConfirm) {
-                text = "Really\nGO?";
-                fontsize = 4.0F;
-            }
-            if (isDisconnected) text = "N/A";
-            jdbg.Debug("Updating surface " + i + " with " + prefix[i]);
-            thisLCD.Font = "Monospace";
-            thisLCD.ContentType = ContentType.TEXT_AND_IMAGE;
-            thisLCD.Alignment = VRage.Game.GUI.TextPanel.TextAlignment.CENTER;
-            thisLCD.FontSize = fontsize;
-            thisLCD.WriteText(text, false);
-        }
-    }
-}
-
-/* Handle a button being pressed */
-String handlePress(String prefix, int index)
-{
-    String allChars = "ABDCEFGHIJKLMNOPQRSTUVWXYZ0123456789-";
-    char[] prefixChars = prefix.ToCharArray();
-    char whichChar = prefixChars[index];
-    jdbg.Debug("orig char is " + prefixChars[index]);
-    int idx = allChars.IndexOf(whichChar);
-
-    if (idx == -1) {
-        jdbg.DebugAndEcho("Unexpected data in customdata - ABORTING");
-        return prefix;
-    }
-
-    idx++;
-    if (idx == allChars.Length) idx = 0;
-    prefixChars[index] = allChars[idx];
-    jdbg.Debug("new char is " + prefixChars[index]);
-    return new String(prefixChars);
 }
 
 public class JCTRL
