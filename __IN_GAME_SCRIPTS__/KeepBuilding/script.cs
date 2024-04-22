@@ -6,6 +6,8 @@
  * up in batches to ensure you dont block up the assemblers. in addition it can output to an LCD the current status of
  * how it is coping.
  * 
+ * Source available via https://github.com/eddy0612/SpaceEngineerScripts
+ * 
  * Instructions
  * ------------
  * 1. Add a programmable block. In its custom data, add the following (but edit the numbers - see below)
@@ -971,7 +973,7 @@ public class JDBG
         List<IMyTerminalBlock> allBlocksWithLCDs = new List<IMyTerminalBlock>();
         mypgm.GridTerminalSystem.GetBlocksOfType(allBlocksWithLCDs, (IMyTerminalBlock x) => (
                                                                                   (x.CustomName != null) &&
-                                                                                  (x.CustomName.IndexOf("[" + alertTag + "]") >= 0) &&
+                                                                                  (x.CustomName.ToUpper().IndexOf("[" + alertTag.ToUpper() + "]") >= 0) &&
                                                                                   (x is IMyTextSurfaceProvider)
                                                                                  ));
         DebugAndEcho("Found " + allBlocksWithLCDs.Count + " lcds with '" + alertTag + "' to alert to");
@@ -1062,28 +1064,28 @@ public class JINV
     /* Components */
     Dictionary<String, String> componentsCompToBlueprint = new Dictionary<String, String>
     {
-        { "myobjectbuilder_component/bulletproofglass", "myobjectbuilder_blueprintdefinition/bulletproofglass"},
-        { "myobjectbuilder_component/canvas", "myobjectbuilder_blueprintdefinition/position0030_canvas"},
-        { "myobjectbuilder_component/computer", "myobjectbuilder_blueprintdefinition/computercomponent"},
-        { "myobjectbuilder_component/construction", "myobjectbuilder_blueprintdefinition/constructioncomponent"},
-        { "myobjectbuilder_component/detector", "myobjectbuilder_blueprintdefinition/detectorcomponent"},
-        { "myobjectbuilder_component/display", "myobjectbuilder_blueprintdefinition/display"},
-        { "myobjectbuilder_component/explosives", "myobjectbuilder_blueprintdefinition/explosivescomponent"},
-        { "myobjectbuilder_component/girder", "myobjectbuilder_blueprintdefinition/girdercomponent"},
-        { "myobjectbuilder_component/gravitygenerator", "myobjectbuilder_blueprintdefinition/gravitygeneratorcomponent"},
-        { "myobjectbuilder_component/interiorplate", "myobjectbuilder_blueprintdefinition/interiorplate"},
-        { "myobjectbuilder_component/largetube", "myobjectbuilder_blueprintdefinition/largetube"},
-        { "myobjectbuilder_component/medical", "myobjectbuilder_blueprintdefinition/medicalcomponent"},
-        { "myobjectbuilder_component/metalgrid", "myobjectbuilder_blueprintdefinition/metalgrid"},
-        { "myobjectbuilder_component/motor", "myobjectbuilder_blueprintdefinition/motorcomponent"},
-        { "myobjectbuilder_component/powercell", "myobjectbuilder_blueprintdefinition/powercell"},
-        { "myobjectbuilder_component/reactor", "myobjectbuilder_blueprintdefinition/reactorcomponent"},
-        { "myobjectbuilder_component/radiocommunication", "myobjectbuilder_blueprintdefinition/radiocommunicationcomponent"},
-        { "myobjectbuilder_component/smalltube", "myobjectbuilder_blueprintdefinition/smalltube"},
-        { "myobjectbuilder_component/solarcell", "myobjectbuilder_blueprintdefinition/solarcell"},
-        { "myobjectbuilder_component/steelplate", "myobjectbuilder_blueprintdefinition/steelplate"},
-        { "myobjectbuilder_component/superconductor", "myobjectbuilder_blueprintdefinition/superconductor"},
-        { "myobjectbuilder_component/thrust", "myobjectbuilder_blueprintdefinition/thrustcomponent"},
+        { "MyObjectBuilder_Component/BulletproofGlass", "MyObjectBuilder_BlueprintDefinition/BulletproofGlass"},
+        { "MyObjectBuilder_Component/Canvas", "MyObjectBuilder_BlueprintDefinition/Position0030_Canvas"},
+        { "MyObjectBuilder_Component/Computer", "MyObjectBuilder_BlueprintDefinition/ComputerComponent"},
+        { "MyObjectBuilder_Component/Construction", "MyObjectBuilder_BlueprintDefinition/ConstructionComponent"},
+        { "MyObjectBuilder_Component/Detector", "MyObjectBuilder_BlueprintDefinition/DetectorComponent"},
+        { "MyObjectBuilder_Component/Display", "MyObjectBuilder_BlueprintDefinition/Display"},
+        { "MyObjectBuilder_Component/Explosives", "MyObjectBuilder_BlueprintDefinition/ExplosivesComponent"},
+        { "MyObjectBuilder_Component/Girder", "MyObjectBuilder_BlueprintDefinition/GirderComponent"},
+        { "MyObjectBuilder_Component/GravityGenerator", "MyObjectBuilder_BlueprintDefinition/GravityGeneratorComponent"},
+        { "MyObjectBuilder_Component/InteriorPlate", "MyObjectBuilder_BlueprintDefinition/InteriorPlate"},
+        { "MyObjectBuilder_Component/LargeTube", "MyObjectBuilder_BlueprintDefinition/LargeTube"},
+        { "MyObjectBuilder_Component/Medical", "MyObjectBuilder_BlueprintDefinition/MedicalComponent"},
+        { "MyObjectBuilder_Component/MetalGrid", "MyObjectBuilder_BlueprintDefinition/MetalGrid"},
+        { "MyObjectBuilder_Component/Motor", "MyObjectBuilder_BlueprintDefinition/MotorComponent"},
+        { "MyObjectBuilder_Component/PowerCell", "MyObjectBuilder_BlueprintDefinition/PowerCell"},
+        { "MyObjectBuilder_Component/Reactor", "MyObjectBuilder_BlueprintDefinition/ReactorComponent"},
+        { "MyObjectBuilder_Component/RadioCommunication", "MyObjectBuilder_BlueprintDefinition/RadioCommunicationComponent"},
+        { "MyObjectBuilder_Component/SmallTube", "MyObjectBuilder_BlueprintDefinition/SmallTube"},
+        { "MyObjectBuilder_Component/SolarCell", "MyObjectBuilder_BlueprintDefinition/SolarCell"},
+        { "MyObjectBuilder_Component/SteelPlate", "MyObjectBuilder_BlueprintDefinition/SteelPlate"},
+        { "MyObjectBuilder_Component/Superconductor", "MyObjectBuilder_BlueprintDefinition/Superconductor"},
+        { "MyObjectBuilder_Component/Thrust", "MyObjectBuilder_BlueprintDefinition/ThrustComponent"},
     };
 
     /* Ammo */
@@ -1158,16 +1160,16 @@ public class JLCD
     };
 
     // Useful for direct code
-    public static char COLOUR_YELLOW = '';
-    public static char COLOUR_RED = '';
-    public static char COLOUR_ORANGE = '';
-    public static char COLOUR_GREEN = '';
-    public static char COLOUR_CYAN = '';
-    public static char COLOUR_PURPLE = '';
-    public static char COLOUR_BLUE = '';
-    public static char COLOUR_WHITE = '';
-    public static char COLOUR_BLACK = '';
-    public static char COLOUR_GREY = '';
+    public const char COLOUR_YELLOW = '';
+    public const char COLOUR_RED = '';
+    public const char COLOUR_ORANGE = '';
+    public const char COLOUR_GREEN = '';
+    public const char COLOUR_CYAN = '';
+    public const char COLOUR_PURPLE = '';
+    public const char COLOUR_BLUE = '';
+    public const char COLOUR_WHITE = '';
+    public const char COLOUR_BLACK = '';
+    public const char COLOUR_GREY = '';
 
     public JLCD(MyGridProgram pgm, JDBG dbg, bool suppressDebug)
     {
@@ -1185,6 +1187,21 @@ public class JLCD
         mypgm.GridTerminalSystem.GetBlocksOfType(allLCDs, (IMyTerminalBlock x) => (
                                                                                (x.CustomName != null) &&
                                                                                (x.CustomName.ToUpper().IndexOf("[" + tag.ToUpper() + "]") >= 0) &&
+                                                                               (x is IMyTextSurfaceProvider)
+                                                                              ));
+        jdbg.Debug("Found " + allLCDs.Count + " lcds to update with tag " + tag);
+        return allLCDs;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Get a list of the LCDs with a specific name
+    // ---------------------------------------------------------------------------
+    public List<IMyTerminalBlock> GetLCDsWithName(String tag)
+    {
+        List<IMyTerminalBlock> allLCDs = new List<IMyTerminalBlock>();
+        mypgm.GridTerminalSystem.GetBlocksOfType(allLCDs, (IMyTerminalBlock x) => (
+                                                                               (x.CustomName != null) &&
+                                                                               (x.CustomName.ToUpper().IndexOf(tag.ToUpper()) >= 0) &&
                                                                                (x is IMyTextSurfaceProvider)
                                                                               ));
         jdbg.Debug("Found " + allLCDs.Count + " lcds to update with tag " + tag);
@@ -1236,15 +1253,22 @@ public class JLCD
     // ---------------------------------------------------------------------------
     public void SetupFont(List<IMyTerminalBlock> allLCDs, int rows, int cols, bool mostlySpecial)
     {
-        SetupFontCalc(allLCDs, rows, cols, mostlySpecial, 0.05F, 0.05F);
+        _SetupFontCalc(allLCDs, ref rows, cols, mostlySpecial, 0.05F, 0.05F);
+    }
+    public int SetupFontWidthOnly(List<IMyTerminalBlock> allLCDs, int cols, bool mostlySpecial)
+    {
+        int rows = -1;
+        _SetupFontCalc(allLCDs, ref rows, cols, mostlySpecial, 0.05F, 0.05F);
+        return rows;
     }
     public void SetupFontCustom(List<IMyTerminalBlock> allLCDs, int rows, int cols, bool mostlySpecial, float size, float incr)
     {
-        SetupFontCalc(allLCDs, rows, cols, mostlySpecial, size,incr);
+        _SetupFontCalc(allLCDs, ref rows, cols, mostlySpecial, size,incr);
     }
 
-    public void SetupFontCalc(List<IMyTerminalBlock> allLCDs, int rows, int cols, bool mostlySpecial, float startSize, float startIncr)
+    private void _SetupFontCalc(List<IMyTerminalBlock> allLCDs, ref int rows, int cols, bool mostlySpecial, float startSize, float startIncr)
     {
+        int bestRows = rows;
         foreach (var thisLCD in allLCDs)
         {
             jdbg.Debug("Setting up font on screen: " + thisLCD.CustomName + " (" + rows + " x " + cols + ")");
@@ -1269,9 +1293,10 @@ public class JLCD
 
                 int displayrows = (int)Math.Floor(actualScreenSize.Y / thisSize.Y);
 
-                if ((thisSize.X < actualSize.X) && (displayrows > rows))
+                if ((thisSize.X < actualSize.X) && (rows == -1 || (displayrows > rows)))
                 {
                     size += incr;
+                    bestRows = displayrows;
                 }
                 else
                 {
@@ -1281,12 +1306,26 @@ public class JLCD
             thisSurface.FontSize = size - incr;
             jdbg.Debug("Calc size of " + thisSurface.FontSize);
 
+            /* If we were asked how many rows for given width, return it */
+            if (rows == -1) rows = bestRows;
+
             // BUG? Corner LCDs are a factor of 4 out - no idea why but try *4
             if (thisLCD.DefinitionDisplayNameText.Contains("Corner LCD")) {
                 jdbg.Debug("INFO: Avoiding bug, multiplying by 4: " + thisLCD.DefinitionDisplayNameText);
                 thisSurface.FontSize *= 4;
             }
         }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Update the programmable block with the script name
+    // ---------------------------------------------------------------------------
+    public void UpdateFullScreen(IMyTerminalBlock block, String text)
+    {
+        List<IMyTerminalBlock> lcds = new List<IMyTerminalBlock> { block };
+        InitializeLCDs(lcds, TextAlignment.CENTER);
+        SetupFont(lcds, 1, text.Length + 4, false);
+        WriteToAllLCDs(lcds, text, false);
     }
 
     // ---------------------------------------------------------------------------

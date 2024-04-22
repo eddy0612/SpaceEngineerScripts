@@ -1,114 +1,143 @@
 ﻿/*
- * /--------------------------------------------------------------------------------------------------
- * | Multiple game arcade machine emulator (Intel 8080)
- * |
- * | This script emulates the 8080 used in the arcade machines very early on, in the era of Space 
- * | Invaders. It can play multple games and (on my machine) hits pretty much original speed. 
- * | Unfortunately all arcade machines were subtely different so you do need to tell the emulator 
- * | which game you are running, and that is done through the filename as known to MAME.
- * |
- * | (Obviously) no sound support, and probably not a good idea to run this on a multiplayer server
- * | as it will consume cycles. Suggest you turn block off when player leaves the controls.
- * |
- * | Code available on github: https://github.com/eddy0612/SpaceEngineerScripts
- * |
- * | Q: Why did I do this? I wrote some simple in game scripts, and got bored of writing them one
- * |       by one, and started playing... Then I got addicted to getting as much running as I could
- * |       
- * |
+ * ## Intel 8080 Arcade Machine Emulator instructions
+ * 
+ * ### Multiple game arcade machine emulator (Intel 8080)
+ * 
+ * This script emulates the 8080 used in the arcade machines very early on, in the era of Space 
+ * Invaders. It can play multiple games and (on my machine) hits pretty much original speed. 
+ * Unfortunately all arcade machines were subtely different so you do need to tell the emulator 
+ * which game you are running, and that is done through the ROM filename (as known to MAME)
+ * 
+ * (Obviously) no sound support, and probably not a good idea to run this on a multiplayer server
+ *  as it will consume cycles. Suggest you turn the programmable block off when player leaves the
+ *  controls.
+ * 
+ * Code available on github: https://github.com/eddy0612/SpaceEngineerScripts
+ * 
+ * Q: Why did I do this? I wrote some simple in game scripts, and got bored of writing them one
+ *       by one, and started playing... Then I got addicted to getting as much running as I could
+ * 
+ * All feedback welcome, please use the discussion area
+ *        
+ * ```
  * +--------------------------------------------------------------------------------------------------
- * | THIS SCRIPT DOES NOT COME WITH ANY GAMES PREINSTALLED due to copyright. Instructions provided
- * | below, BUT you need to get the roms and their associated strings which requires (on windows)
- * | use command line (cmd.exe), and either
+ * | THIS SCRIPT DOES NOT COME WITH ANY GAMES PREINSTALLED due to copyright. 
+ * |
+ * | Instructions provided below, BUT you need to get the roms and their associated strings which 
+ * | requires (on windows) use of command line (cmd.exe), and one of
  * |   - python
  * |   - 2 utilities usually provided by eg cygwin - unzip and base64.
  * +--------------------------------------------------------------------------------------------------
- * |
- * | 1. Add script to programmable block named "[GAMEPGM] Block"
- * |    In the custom data field, add config:  
- * |       [config]
- * |		tag=GAME
- * |    Note: (The prefix `GAME` is used for these instructions, you can use what you like)
- * | 2. Add an LCD, and name it "[GAMESCREEN] LCD"
- * | 3. Add something that controls a ship in front of it, eg a cockpit or even better a helm - A 
- * |    good idea to place it where you can see the screen!. Name it "[GAMESEAT] Controller". Sit in 
- * |    that cockpit, and press <tab> until the HUD is clear.
- * | 4. While still in that seat, Press G and type 'GAME'. Drag the '[GAMEPGM] Block' down to the 
- * |    toolbar buttons, and chose the 'Run' option. In the popup, you can enter the parameter of the 
- * |    filename of the game you wish to start.  I set up one button per filename, but you only need
- * |    a single one to get it working.
- * | 5. Obtain the roms you can play (from the list below) from the internet. A search on MAME with 
- * |    filename is usually a good hit, see below
- * |    NOTE: You need the EXACT names listed below for this to work, similar files will not be
- * |    handled correctly and are unlikely to work
- * |
- * | EITHER Step 6 using python:
- * |		6. Download GetRomData.py (or paste in from bottom of these instructions)
- * |				 python3 invaders.zip | clip
- * | OR Step 6 using cygwin:
- * |		6. Using cygwin's unzip and base64, in a comment prompt, do the following, for example:
- * |				 unzip -p invaders.zip | base64 --wrap=0 | clip
- * |
- * |    This will put a textual form of the file into the clipboard. Now go to Space engineers, and 
- * |    create a block... Any block with a custom data will do but I generally use control panels as 
- * |    they are tiny. Name them [GAME] <filename>, eg "[GAME] invaders.zip". In the custom data, 
- * |    paste in what the above stored in the clipboard which is a long string. I've put the expected
- * |    first characters in the table below.
- * | 7. Launch a game by pressing the appropriate helm button, and you can change the one running as
- * |    well.
- * | 8. If things go wrong (eg wrong strings etc), you may need to click 'recompile' on the 
- * |    programmable block again to get things reset.
- * |
- * | Controls
- * | ========
- * |      A - LEFT			W - UP				Q - Add credit
- * |      D - RIGHT		S - DOWN			E - Player 1 start
- * |      SPACE - Fire		CROUCH - Button 2
- * |      
- * | Currently supports: (filename, name, first 10 chars expected, sample place to get it)
- * | - invaders.zip : Space Invaders			IMPJFiGEIH eg https://www.retrostic.com/roms/mame/space-invaders-space-invaders-m-41304
- * | - ballbomb.zip : Balloon Bomber		    AAAAwxgAAA eg https://www.retrostic.com/roms/mame/balloon-bomber-44465
- * | - lrescue.zip  : Lunar Rescue				Dw8PDw8PDw eg https://www.retrostic.com/roms/mame/lunar-rescue-43291#google_vignette
- * | - schaser.zip  : Space Chaser				Dw8PDw8PDw eg https://www.retrostic.com/roms/mame/space-chaser-47039
- * | - spacerng.zip : Space Ranger				CAgICAgICA eg https://www.retrostic.com/roms/mame/space-ranger-51087
- * | - vortex.zip   : Vortex					wicZKqd9Ks eg https://www.retrostic.com/roms/mame/vortex-50198
- * | - invrvnge.zip : Invaders Revenge			////////// eg https://www.retrostic.com/roms/mame/invader-s-revenge-46143
- * | - galxwars.zip : Galaxy Wars				CAgICAgICA eg https://www.retrostic.com/roms/mame/galaxy-wars-43764
- * | - rollingc.zip : Rolling Crash/Moon Base	88MAQNQYAA eg https://www.retrostic.com/roms/mame/rolling-crash-moon-base-49086
- * | - lupin3.zip   : Lupin III				AAAAw0AAAA eg https://www.retrostic.com/roms/mame/lupin-iii-44777
- * | - polaris.zip  : Polaris					AAAAw8YFAA eg https://www.retrostic.com/roms/mame/polaris-45374
- * | - indianbt.zip : Indian Battle			AAAAw+VfKw eg https://www.retrostic.com/roms/mame/indian-battle-46986
- * | - astropal.zip : Astropal					MaAglwDDtg eg https://www.retrostic.com/roms/mame/astropal-47538
- * | - galactic.zip : Galactica				AAAAw5sA// eg https://www.retrostic.com/roms/mame/galactica-batalha-espacial-45078
- * | - attackfc.zip : Attack Force				PgAyKyLDAA eg https://www.retrostic.com/roms/mame/attack-force-47625
- * |
- * | Credit:
- * |   - This is a majorly reworked version of code based on an emulator created by Pedro Cortés
- * |       (BluestormDNA) and found here: https://github.com/BluestormDNA/i8080-Space-Invaders
- * |     The CPU is only slighty modified but the rest was reworked to fit within Space Engineers
- * |       limitations and fixed/extended for the other games and colour.
- * |   - MAME source was reviewed to assist in getting the variety of games working
- * |          https://github.com/mamedev/mame
- * +--------------------------------------------------------------------------------------------------
- * | Extra options:
- * |   - Tag an LCD with eg. "[GAMEFPS] fps display" and it will be updated with an approx frames per
- * |       second figure
- * |   - Tag an LCD with eg. "[GAMENAME] name display" and it will be updated with the name of the
- * |       current game
- * |   - Set a limit on how many cycles the game can take up - default is 45000, mas is 49000. Less 
- * |       cycles = slower FPS.  Add to the [config] something like
- * |       speed=40000
- * |   - Work like an arcade machine.. Add to the [config] something like
- * |		cost=5
- * |		safetag=SAFE
- * |     Now, tag one cargo container near the machine with [GAMECOINS] Coin In, and another
- * |       (which is connected via a conveyor, ideally with a one way sorter to stop things being
- * |        removed!) as [SAFE] Coins Safe
- * |     If cost is >0 then 'q' will no longer act as coin in, instead drop the space credits as a single
- * |       stack into the "coins in" cargo container, and it should add a credit to the game, and move
- * |       the space credits out into the safe... 
- * +--------------------------------------------------------------------------------------------------
- * | "GetRomData.py" Contents:
+ * ```
+ * 
+ * ## Installation instructions
+ * 
+ * 1. Create empty programmable block named "[GAME.PGM] Block". Add this script to it, and modify the custom data to say:
+ * 
+ * ```
+ *     [config]
+ * 	tag=GAME
+ * ```
+ * 
+ * + Note: (The prefix `GAME` is used for these instructions, you can use what you like)
+ * 2. Add an LCD, and name it "[GAME.SCREEN] LCD"
+ * 3. Add something that controls a ship in front of it, eg a cockpit or even better a helm - A 
+ *    good idea to place it where you can see the screen!. Name it "[GAME.SEAT] Controller". Sit in 
+ *    that cockpit, and press <tab> until the HUD is clear.
+ * 4. While still in that seat, Press G and type 'GAME'. Drag the '[GAME.PGM] Block' down to the 
+ *    toolbar buttons, and chose the 'Run' option. In the popup, you can enter the parameter of the 
+ *    filename of the game you wish to start.  I set up one button per filename, but you only need
+ *    a single one to get it working.
+ * 5. Obtain the rom(s) you can play (from the list below) from the internet. A search on MAME with 
+ *    filename is usually a good hit, see below
+ * + NOTE: You need the EXACT names listed below for this to work, similar files will not be
+ *    handled correctly and will not work
+ * 
+ * EITHER Step 6 using python:
+ * 
+ * 6. Download GetRomData.py (or paste in from bottom of these instructions)
+ * 			 `python3 invaders.zip | clip`
+ * 
+ * OR Step 6 using cygwin:
+ * 
+ * 6. Using cygwin's unzip and base64, in a comment prompt, do the following, for example:
+ * 			 `unzip -p invaders.zip | base64 --wrap=0 | clip`
+ * 
+ * + This will put a textual form of the file into the clipboard.
+ * 
+ * 7. Now go to Space engineers, and create a block... Any block with a custom data will do but I 
+ * generally use control panels as they are tiny. Name them [GAME] <filename>, eg "[GAME] invaders.zip".
+ * + In the custom data, paste in what step 6 stored in the clipboard which is a long string. (I've put the 
+ * expected first few characters in the table below)
+ * 
+ * 8. Go to the programmable block, click recompile then run. 
+ * + Check for any error messages in the bottom right of the screen. If is ok to say no game configured
+ * 
+ * 9. Go back to the helm/cockpit and launch a game by pressing the appropriate helm button
+ * + You can switch between running games as well if you have more than one ROM
+ * 
+ * 10. If things go wrong at any point, you may need to click 'recompile' on the programmable block again to get things reset.
+ * 
+ * 
+ * ## Controls
+ * 
+ * ```
+ *       A - LEFT          W - UP				Q - Add credit
+ *       D - RIGHT         S - DOWN			E - Player 1 start
+ *       SPACE - Fire      CROUCH - Button 2
+ * ```
+ *       
+ * ## Currently supports: (filename, name, first 10 chars expected, sample place to get it)
+ * 
+ * | Filename | Game | First chars of string | example download location |
+ * | -- | -- | -- | -- |
+ * | invaders.zip | Space Invaders			| IMPJFiGEIH | https://www.retrostic.com/roms/mame/space-invaders-space-invaders-m-41304
+ * | ballbomb.zip | Balloon Bomber		    | AAAAwxgAAA | https://www.retrostic.com/roms/mame/balloon-bomber-44465
+ * | lrescue.zip  | Lunar Rescue			| Dw8PDw8PDw | https://www.retrostic.com/roms/mame/lunar-rescue-43291#google_vignette
+ * | schaser.zip  | Space Chaser			| Dw8PDw8PDw | https://www.retrostic.com/roms/mame/space-chaser-47039
+ * | spacerng.zip | Space Ranger			| CAgICAgICA | https://www.retrostic.com/roms/mame/space-ranger-51087
+ * | vortex.zip   | Vortex					| wicZKqd9Ks | https://www.retrostic.com/roms/mame/vortex-50198
+ * | invrvnge.zip | Invaders Revenge		| ////////// | https://www.retrostic.com/roms/mame/invader-s-revenge-46143
+ * | galxwars.zip | Galaxy Wars			| CAgICAgICA | https://www.retrostic.com/roms/mame/galaxy-wars-43764
+ * | rollingc.zip | Rolling Crash/Moon Base| 88MAQNQYAA | https://www.retrostic.com/roms/mame/rolling-crash-moon-base-49086
+ * | lupin3.zip   | Lupin III				| AAAAw0AAAA | https://www.retrostic.com/roms/mame/lupin-iii-44777
+ * | polaris.zip  | Polaris				| AAAAw8YFAA | https://www.retrostic.com/roms/mame/polaris-45374
+ * | indianbt.zip | Indian Battle			| AAAAw+VfKw | https://www.retrostic.com/roms/mame/indian-battle-46986
+ * | astropal.zip | Astropal				| MaAglwDDtg | https://www.retrostic.com/roms/mame/astropal-47538
+ * | galactic.zip | Galactica				| AAAAw5sA// | https://www.retrostic.com/roms/mame/galactica-batalha-espacial-45078
+ * | attackfc.zip | Attack Force			| PgAyKyLDAA | https://www.retrostic.com/roms/mame/attack-force-47625
+ * 
+ *  
+ * ### Credits:
+ *   - This is a majorly reworked version of code based on an emulator created by Pedro Cortés
+ *        (BluestormDNA) and found here: https://github.com/BluestormDNA/i8080-Space-Invaders
+ *      The CPU is only slighty modified but the rest was reworked to fit within Space Engineers
+ *        limitations and fixed/extended for the other games, graphics, cycle handling and colour.
+ *    - MAME source was reviewed to assist in getting the variety of games working
+ *           https://github.com/mamedev/mame
+ * 
+ * 
+ * ## Additional options / functionality
+ * 
+ *    - Tag an LCD with eg. "[GAME.FPS] fps display" and it will be updated with an approx frames per
+ *        second figure
+ *    - Tag an LCD with eg. "[GAME.NAME] name display" and it will be updated with the name of the
+ *        current game
+ *    - Set a limit on how many cycles the game can take up - default is 45000, mas is 49000. Less 
+ *        cycles means slower FPS.  Add to the [config] something like
+ *        speed=40000
+ *    - Work like an arcade machine.. Add to the [config] something like
+ * 		cost=5
+ * 		safetag=SAFE
+ *      Now, tag one cargo container near the machine with [GAME.COINS] Coin In, and another
+ *        (which is connected via a conveyor, ideally with a one way sorter to stop things being
+ *         removed!) as [SAFE] Coins Safe
+ *      If cost is >0 then 'q' will no longer act as coin in, instead drop the space credits as a single
+ *        stack into the "coins in" cargo container, and it should add a credit to the game, and move
+ *        the space credits out into the safe... 
+ *    
+ * #### GetRomData.py code (available at https://github.com/eddy0612/SpaceEngineerScripts/blob/master/ArcadeEmulation/GetRomData.py)
+ * ```
  * import os,base64
  * from zipfile import ZipFile
  * def extract_zip(input_zip):
@@ -119,47 +148,48 @@
  * total_data = bytearray()
  * for name,allbytes in zip_data.items(): total_data = total_data + allbytes
  * print( base64.b64encode(total_data).decode("utf-8"), end='', flush=True )
- * \--------------------------------------------------------------------------------------------------
+ * ```
  */
-bool debug=false;String mytag="GAME";String safetag="SAFE";JDBG jdbg=null;JLCD jlcd=null;List<IMyTerminalBlock>displays=
-null;List<IMyTerminalBlock>fpsdisplays=null;List<IMyTerminalBlock>namedisplays=null;IMyInventory coinInInv=null;IMyInventory
-coinOutInv=null;IMyShipController controller=null;Arcade8080Machine si=null;int Frame=0;int curSec=0;int curFrames=0;int
-lastFrames=0;int cost=0;DateTime inserted;DateTime lastCoinCheck;Program.GetRomData.Games currentGame=Program.GetRomData.Games.
-None;List<MyInventoryItem>itemList=new List<MyInventoryItem>();Program(){Echo("Start");jdbg=new JDBG(this,debug);jlcd=new
-JLCD(this,jdbg,true);MyIniParseResult result;MyIni _ini=new MyIni();if(!_ini.TryParse(Me.CustomData,out result))throw new
-Exception(result.ToString());mytag=_ini.Get("config","tag").ToString();if(mytag!=null){mytag=(mytag.Split(';')[0]).Trim().ToUpper
-();}else{Echo("ERROR: No tag configured\nPlease add [config] for tag=<substring>");return;}jdbg.Debug("Config: tag="+
-mytag);int maxFrames=_ini.Get("config","speed").ToInt32(45000);if(maxFrames>1000&&maxFrames<49000){Specifics.maxFrames=
-maxFrames;}int cost=_ini.Get("config","cost").ToInt32(0);if(cost>0){this.cost=cost;safetag=_ini.Get("config","safetag").ToString(
-"safe");}Echo("Using tag of "+mytag);Echo("Using cost of "+cost);Echo("Using speed of "+maxFrames);List<IMyTerminalBlock>
-Controllers=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(Controllers,(IMyTerminalBlock x)=>((x.CustomName!=null)
-&&(x.CustomName.IndexOf("["+mytag+"SEAT]")>=0)&&(x is IMyShipController)));Echo("Found "+Controllers.Count+" controllers")
-;if(Controllers.Count>0){foreach(var thisblock in Controllers){jdbg.Debug("- "+thisblock.CustomName);}if(Controllers.
-Count>1){Echo("ERROR: Too many controllers");return;}controller=(IMyShipController)Controllers[0];}else if(Controllers.Count
-==0){Echo("ERROR: No controllers");return;}if(cost>0){List<IMyTerminalBlock>CoinIn=new List<IMyTerminalBlock>();
-GridTerminalSystem.GetBlocksOfType(CoinIn,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf("["+mytag.ToUpper()
-+"COINS]")>=0)&&(x.HasInventory)));Echo("Found "+CoinIn.Count+" coin in");if(CoinIn.Count!=1){Echo(
-"ERROR: Game has space credit cost but no cargo container tagged ["+mytag+"COINS]");return;}else{coinInInv=CoinIn[0].GetInventory(0);}List<IMyTerminalBlock>CoinOut=new List<
-IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(CoinOut,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().
-IndexOf("["+safetag.ToUpper()+"]")>=0)&&(x.HasInventory)));Echo("Found "+CoinOut.Count+" coin out");if(CoinOut.Count!=1){Echo(
+String thisScript="ArcadeEmulation";bool debug=false;String mytag="GAME";String safetag="SAFE";JDBG jdbg=null;JLCD jlcd=
+null;List<IMyTerminalBlock>displays=null;List<IMyTerminalBlock>fpsdisplays=null;List<IMyTerminalBlock>namedisplays=null;
+IMyInventory coinInInv=null;IMyInventory coinOutInv=null;IMyShipController controller=null;Arcade8080Machine si=null;int Frame=0;int
+curSec=0;int curFrames=0;int lastFrames=0;int cost=0;DateTime inserted;DateTime lastCoinCheck;Program.GetRomData.Games
+currentGame=Program.GetRomData.Games.None;List<MyInventoryItem>itemList=new List<MyInventoryItem>();Program(){Echo("Start");jdbg=
+new JDBG(this,debug);jlcd=new JLCD(this,jdbg,true);jlcd.UpdateFullScreen(Me,thisScript);MyIniParseResult result;MyIni _ini=
+new MyIni();if(!_ini.TryParse(Me.CustomData,out result))throw new Exception(result.ToString());mytag=_ini.Get("config",
+"tag").ToString();if(mytag!=null){mytag=(mytag.Split(';')[0]).Trim().ToUpper();}else{Echo(
+"ERROR: No tag configured\nPlease add [config] for tag=<substring>");return;}jdbg.Debug("Config: tag="+mytag);int maxFrames=_ini.Get("config","speed").ToInt32(45000);if(maxFrames>1000&&
+maxFrames<49000){Specifics.maxFrames=maxFrames;}int cost=_ini.Get("config","cost").ToInt32(0);if(cost>0){this.cost=cost;safetag=
+_ini.Get("config","safetag").ToString("safe");}Echo("Using tag of "+mytag);Echo("Using cost of "+cost);Echo(
+"Using speed of "+maxFrames);List<IMyTerminalBlock>Controllers=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(
+Controllers,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf("["+mytag.ToUpper()+".SEAT]")>=0)&&(x is
+IMyShipController)));Echo("Found "+Controllers.Count+" controllers");if(Controllers.Count>0){foreach(var thisblock in Controllers){jdbg.
+Debug("- "+thisblock.CustomName);}if(Controllers.Count>1){Echo("ERROR: Too many controllers");return;}controller=(
+IMyShipController)Controllers[0];}else if(Controllers.Count==0){Echo("ERROR: No controllers tagged as ["+mytag+".SEAT]");return;}if(cost>
+0){List<IMyTerminalBlock>CoinIn=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(CoinIn,(IMyTerminalBlock
+x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf("["+mytag.ToUpper()+".COINS]")>=0)&&(x.HasInventory)));Echo(
+"Found "+CoinIn.Count+" coin in");if(CoinIn.Count!=1){Echo("ERROR: Game has space credit cost but no cargo container tagged ["+
+mytag+".COINS]");return;}else{coinInInv=CoinIn[0].GetInventory(0);}List<IMyTerminalBlock>CoinOut=new List<IMyTerminalBlock>()
+;GridTerminalSystem.GetBlocksOfType(CoinOut,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf(
+"["+safetag.ToUpper()+"]")>=0)&&(x.HasInventory)));Echo("Found "+CoinOut.Count+" coin out");if(CoinOut.Count!=1){Echo(
 "ERROR: Game has space credit cost but nowhere to move credit to - Needs a cargo container tagged ["+safetag+"]");return;}else{coinOutInv=CoinOut[0].GetInventory(0);}if(!(coinInInv.IsConnectedTo(coinOutInv)&&coinInInv.
 CanTransferItemTo(coinOutInv,new MyItemType("MyObjectBuilder_PhysicalObject","SpaceCredit")))){Echo(
 "ERROR: No connection/conveyor system between "+CoinIn[0].CustomName+" and "+CoinOut[0].CustomName);return;}Echo("All set up as arcade machine with cost of "+cost);}
-displays=jlcd.GetLCDsWithTag(mytag+"SCREEN");Echo("Found "+displays.Count+" displays");jlcd.SetupFontCustom(displays,Display.
+displays=jlcd.GetLCDsWithTag(mytag+".SCREEN");Echo("Found "+displays.Count+" displays");jlcd.SetupFontCustom(displays,Display.
 HEIGHT,Display.WIDTH,true,0.001F,0.001F);jlcd.InitializeLCDs(displays,TextAlignment.LEFT);fpsdisplays=jlcd.GetLCDsWithTag(
-mytag+"FPS");jlcd.InitializeLCDs(fpsdisplays,TextAlignment.CENTER);jlcd.SetupFontCustom(fpsdisplays,1,2,false,0.25F,0.25F);
-Echo("Found "+fpsdisplays.Count+" fpsdisplays");namedisplays=jlcd.GetLCDsWithTag(mytag+"NAME");jlcd.InitializeLCDs(
+mytag+".FPS");jlcd.InitializeLCDs(fpsdisplays,TextAlignment.CENTER);jlcd.SetupFontCustom(fpsdisplays,1,2,false,0.25F,0.25F);
+Echo("Found "+fpsdisplays.Count+" fpsdisplays");namedisplays=jlcd.GetLCDsWithTag(mytag+".NAME");jlcd.InitializeLCDs(
 namedisplays,TextAlignment.CENTER);jlcd.SetupFontCustom(namedisplays,1,8,false,0.25F,0.25F);Echo("Found "+namedisplays.Count+
 " namedisplays");Runtime.UpdateFrequency=UpdateFrequency.Update1;}void Save(){}void Main(string argument,UpdateType updateSource){if(
 argument==null){jdbg.Echo("Launched with empty parms"+argument);}else{jdbg.Echo("Launched with parms '"+argument+"'");}String
 errorMessage=null;if(argument==null||argument.Equals("")){if(currentGame==GetRomData.Games.None){errorMessage=
 "ERROR: No game configured - Please see instructions";}}else{List<IMyTerminalBlock>gameData=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(gameData,(
 IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf("["+mytag.ToUpper()+"]")>=0)&&(x.CustomName.ToUpper().
-IndexOf(argument.ToUpper())>=0)));jdbg.Debug("Found "+gameData.Count+" game block with contents  ["+mytag+"]");if(gameData.
-Count!=1){errorMessage="Could not find block with name '["+mytag+"] "+argument+"')";}else{String gameCode;gameCode=gameData[0
-].CustomData;argument=argument.ToLower().Replace(".zip","");if(Enum.TryParse(argument,true,out currentGame)){jdbg.Debug(
-"Recognized as "+currentGame);}else{errorMessage="ERROR: Invalid parameter: "+argument;}if(!GetRomData.checkRomData(currentGame,gameCode
-)){errorMessage="ERROR: Data does not match expected for that game "+currentGame;}if(errorMessage==null){jlcd.
+IndexOf(argument.ToUpper())>=0)));jdbg.Debug("Found "+gameData.Count+" game block with contents  ["+mytag+"] "+argument);if(
+gameData.Count!=1){errorMessage="Could not find block with name '["+mytag+"] "+argument+"')";}else{String gameCode;gameCode=
+gameData[0].CustomData;argument=argument.ToLower().Replace(".zip","");if(Enum.TryParse(argument,true,out currentGame)){jdbg.
+Debug("Recognized as "+currentGame);}else{errorMessage="ERROR: Invalid parameter: "+argument;}if(!GetRomData.checkRomData(
+currentGame,gameCode)){errorMessage="ERROR: Data does not match expected for that game "+currentGame;}if(errorMessage==null){jlcd.
 WriteToAllLCDs(namedisplays,""+currentGame.ToString().ToUpperInvariant(),false);jdbg.Debug("Creating CPU");Specifics specs=new
 Specifics();specs.mypgm=this;specs.controller=controller;specs.jdbg=jdbg;specs.jctrl=new JCTRL(this,jdbg,false);si=new
 Arcade8080Machine(specs,currentGame,gameCode,cost);Runtime.UpdateFrequency=UpdateFrequency.Update1;}}}if(errorMessage!=null){Echo(
@@ -497,76 +527,79 @@ Echo(str);Debug(str,false);}private void initializeDBGLCDs(){inDebug=true;debugL
 InitializeLCDs(debugLCDs,TextAlignment.LEFT);inDebug=false;}public void ClearDebugLCDs(){if(debug){if(debugLCDs==null){Echo(
 "First runC - working out debug panels");initializeDBGLCDs();}jlcd.WriteToAllLCDs(debugLCDs,"",false);}}public void Alert(String alertMsg,String colour,String
 alertTag,String thisScript){List<IMyTerminalBlock>allBlocksWithLCDs=new List<IMyTerminalBlock>();mypgm.GridTerminalSystem.
-GetBlocksOfType(allBlocksWithLCDs,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.IndexOf("["+alertTag+"]")>=0)&&(x is
-IMyTextSurfaceProvider)));DebugAndEcho("Found "+allBlocksWithLCDs.Count+" lcds with '"+alertTag+"' to alert to");String alertOutput=JLCD.
-solidcolor[colour]+" "+DateTime.Now.ToShortTimeString()+":"+thisScript+" "+alertMsg+"\n";DebugAndEcho("ALERT: "+alertMsg);if(
-allBlocksWithLCDs.Count>0){jlcd.WriteToAllLCDs(allBlocksWithLCDs,alertOutput,true);}}public void EchoCurrentInstructionCount(String tag){
-Echo(tag+" instruction count: "+mypgm.Runtime.CurrentInstructionCount+","+mypgm.Runtime.CurrentCallChainDepth);}public void
-EchoMaxInstructionCount(){Echo("Max instruction count: "+mypgm.Runtime.MaxInstructionCount+","+mypgm.Runtime.MaxCallChainDepth);}}class JINV{
-private JDBG jdbg=null;public enum BLUEPRINT_TYPES{BOTTLES,COMPONENTS,AMMO,TOOLS,OTHER,ORES};Dictionary<String,String>
-oreToIngot=new Dictionary<String,String>{{"MyObjectBuilder_Ore/Cobalt","MyObjectBuilder_Ingot/Cobalt"},{"MyObjectBuilder_Ore/Gold"
-,"MyObjectBuilder_Ingot/Gold"},{"MyObjectBuilder_Ore/Stone","MyObjectBuilder_Ingot/Stone"},{"MyObjectBuilder_Ore/Iron",
-"MyObjectBuilder_Ingot/Iron"},{"MyObjectBuilder_Ore/Magnesium","MyObjectBuilder_Ingot/Magnesium"},{"MyObjectBuilder_Ore/Nickel",
-"MyObjectBuilder_Ingot/Nickel"},{"MyObjectBuilder_Ore/Platinum","MyObjectBuilder_Ingot/Platinum"},{"MyObjectBuilder_Ore/Silicon",
-"MyObjectBuilder_Ingot/Silicon"},{"MyObjectBuilder_Ore/Silver","MyObjectBuilder_Ingot/Silver"},{"MyObjectBuilder_Ore/Uranium",
-"MyObjectBuilder_Ingot/Uranium"},};Dictionary<String,String>otherCompToBlueprint=new Dictionary<String,String>{{
-"MyObjectBuilder_BlueprintDefinition/Position0040_Datapad","MyObjectBuilder_Datapad/Datapad"},};Dictionary<String,String>toolsCompToBlueprint=new Dictionary<String,String>{{
-"MyObjectBuilder_PhysicalGunObject/AngleGrinderItem","MyObjectBuilder_BlueprintDefinition/Position0010_AngleGrinder"},{"MyObjectBuilder_PhysicalGunObject/AngleGrinder2Item"
-,"MyObjectBuilder_BlueprintDefinition/Position0020_AngleGrinder2"},{"MyObjectBuilder_PhysicalGunObject/AngleGrinder3Item"
-,"MyObjectBuilder_BlueprintDefinition/Position0030_AngleGrinder3"},{"MyObjectBuilder_PhysicalGunObject/AngleGrinder4Item"
-,"MyObjectBuilder_BlueprintDefinition/Position0040_AngleGrinder4"},{"MyObjectBuilder_PhysicalGunObject/WelderItem",
-"MyObjectBuilder_BlueprintDefinition/Position0090_Welder"},{"MyObjectBuilder_PhysicalGunObject/Welder2Item","MyObjectBuilder_BlueprintDefinition/Position0100_Welder2"},{
-"MyObjectBuilder_PhysicalGunObject/Welder3Item","MyObjectBuilder_BlueprintDefinition/Position0110_Welder3"},{"MyObjectBuilder_PhysicalGunObject/Welder4Item",
-"MyObjectBuilder_BlueprintDefinition/Position0120_Welder4"},{"MyObjectBuilder_PhysicalGunObject/HandDrillItem","MyObjectBuilder_BlueprintDefinition/Position0050_HandDrill"},{
-"MyObjectBuilder_PhysicalGunObject/HandDrill2Item","MyObjectBuilder_BlueprintDefinition/Position0060_HandDrill2"},{"MyObjectBuilder_PhysicalGunObject/HandDrill3Item",
-"MyObjectBuilder_BlueprintDefinition/Position0070_HandDrill3"},{"MyObjectBuilder_PhysicalGunObject/HandDrill4Item","MyObjectBuilder_BlueprintDefinition/Position0080_HandDrill4"},};
-Dictionary<String,String>bottlesCompToBlueprint=new Dictionary<String,String>{{"MyObjectBuilder_GasContainerObject/HydrogenBottle"
-,"MyObjectBuilder_BlueprintDefinition/Position0020_HydrogenBottle"},{"MyObjectBuilder_OxygenContainerObject/OxygenBottle"
-,"MyObjectBuilder_BlueprintDefinition/HydrogenBottlesRefill"},};Dictionary<String,String>componentsCompToBlueprint=new
-Dictionary<String,String>{{"myobjectbuilder_component/bulletproofglass","myobjectbuilder_blueprintdefinition/bulletproofglass"},{
-"myobjectbuilder_component/canvas","myobjectbuilder_blueprintdefinition/position0030_canvas"},{"myobjectbuilder_component/computer",
-"myobjectbuilder_blueprintdefinition/computercomponent"},{"myobjectbuilder_component/construction","myobjectbuilder_blueprintdefinition/constructioncomponent"},{
-"myobjectbuilder_component/detector","myobjectbuilder_blueprintdefinition/detectorcomponent"},{"myobjectbuilder_component/display",
-"myobjectbuilder_blueprintdefinition/display"},{"myobjectbuilder_component/explosives","myobjectbuilder_blueprintdefinition/explosivescomponent"},{
-"myobjectbuilder_component/girder","myobjectbuilder_blueprintdefinition/girdercomponent"},{"myobjectbuilder_component/gravitygenerator",
-"myobjectbuilder_blueprintdefinition/gravitygeneratorcomponent"},{"myobjectbuilder_component/interiorplate","myobjectbuilder_blueprintdefinition/interiorplate"},{
-"myobjectbuilder_component/largetube","myobjectbuilder_blueprintdefinition/largetube"},{"myobjectbuilder_component/medical",
-"myobjectbuilder_blueprintdefinition/medicalcomponent"},{"myobjectbuilder_component/metalgrid","myobjectbuilder_blueprintdefinition/metalgrid"},{
-"myobjectbuilder_component/motor","myobjectbuilder_blueprintdefinition/motorcomponent"},{"myobjectbuilder_component/powercell",
-"myobjectbuilder_blueprintdefinition/powercell"},{"myobjectbuilder_component/reactor","myobjectbuilder_blueprintdefinition/reactorcomponent"},{
-"myobjectbuilder_component/radiocommunication","myobjectbuilder_blueprintdefinition/radiocommunicationcomponent"},{"myobjectbuilder_component/smalltube",
-"myobjectbuilder_blueprintdefinition/smalltube"},{"myobjectbuilder_component/solarcell","myobjectbuilder_blueprintdefinition/solarcell"},{
-"myobjectbuilder_component/steelplate","myobjectbuilder_blueprintdefinition/steelplate"},{"myobjectbuilder_component/superconductor",
-"myobjectbuilder_blueprintdefinition/superconductor"},{"myobjectbuilder_component/thrust","myobjectbuilder_blueprintdefinition/thrustcomponent"},};Dictionary<String,String>
-ammoCompToBlueprint=new Dictionary<String,String>{{"MyObjectBuilder_AmmoMagazine/NATO_25x184mm",
-"MyObjectBuilder_BlueprintDefinition/Position0080_NATO_25x184mmMagazine"},{"MyObjectBuilder_AmmoMagazine/AutocannonClip","MyObjectBuilder_BlueprintDefinition/Position0090_AutocannonClip"},{
-"MyObjectBuilder_AmmoMagazine/Missile200mm","MyObjectBuilder_BlueprintDefinition/Position0100_Missile200mm"},{"MyObjectBuilder_AmmoMagazine/MediumCalibreAmmo",
-"MyObjectBuilder_BlueprintDefinition/Position0110_MediumCalibreAmmo"},{"MyObjectBuilder_AmmoMagazine/LargeCalibreAmmo","MyObjectBuilder_BlueprintDefinition/Position0120_LargeCalibreAmmo"},
-{"MyObjectBuilder_AmmoMagazine/SmallRailgunAmmo","MyObjectBuilder_BlueprintDefinition/Position0130_SmallRailgunAmmo"},{
-"MyObjectBuilder_AmmoMagazine/LargeRailgunAmmo","MyObjectBuilder_BlueprintDefinition/Position0140_LargeRailgunAmmo"},{
-"MyObjectBuilder_AmmoMagazine/SemiAutoPistolMagazine","MyObjectBuilder_BlueprintDefinition/Position0010_SemiAutoPistolMagazine"},{
-"MyObjectBuilder_AmmoMagazine/ElitePistolMagazine","MyObjectBuilder_BlueprintDefinition/Position0030_ElitePistolMagazine"},{
-"MyObjectBuilder_AmmoMagazine/FullAutoPistolMagazine","MyObjectBuilder_BlueprintDefinition/Position0020_FullAutoPistolMagazine"},{
-"MyObjectBuilder_AmmoMagazine/AutomaticRifleGun_Mag_20rd","MyObjectBuilder_BlueprintDefinition/Position0040_AutomaticRifleGun_Mag_20rd"},{
-"MyObjectBuilder_AmmoMagazine/UltimateAutomaticRifleGun_Mag_30rd","MyObjectBuilder_BlueprintDefinition/Position0070_UltimateAutomaticRifleGun_Mag_30rd"},{
-"MyObjectBuilder_AmmoMagazine/RapidFireAutomaticRifleGun_Mag_50rd","MyObjectBuilder_BlueprintDefinition/Position0050_RapidFireAutomaticRifleGun_Mag_50rd"},{
-"MyObjectBuilder_AmmoMagazine/PreciseAutomaticRifleGun_Mag_5rd","MyObjectBuilder_BlueprintDefinition/Position0060_PreciseAutomaticRifleGun_Mag_5rd"},{
-"MyObjectBuilder_AmmoMagazine/NATO_5p56x45mm",null},};public JINV(JDBG dbg){jdbg=dbg;}public void addBluePrints(BLUEPRINT_TYPES types,ref Dictionary<String,String>
-into){switch(types){case BLUEPRINT_TYPES.BOTTLES:into=into.Concat(bottlesCompToBlueprint).ToDictionary(x=>x.Key,x=>x.Value);
-break;case BLUEPRINT_TYPES.COMPONENTS:into=into.Concat(componentsCompToBlueprint).ToDictionary(x=>x.Key,x=>x.Value);break;
-case BLUEPRINT_TYPES.AMMO:into=into.Concat(ammoCompToBlueprint).ToDictionary(x=>x.Key,x=>x.Value);break;case BLUEPRINT_TYPES
-.TOOLS:into=into.Concat(toolsCompToBlueprint).ToDictionary(x=>x.Key,x=>x.Value);break;case BLUEPRINT_TYPES.OTHER:into=
-into.Concat(otherCompToBlueprint).ToDictionary(x=>x.Key,x=>x.Value);break;case BLUEPRINT_TYPES.ORES:into=into.Concat(
-oreToIngot).ToDictionary(x=>x.Key,x=>x.Value);break;}}}class JLCD{public MyGridProgram mypgm=null;public JDBG jdbg=null;bool
-suppressDebug=false;public static Dictionary<String,char>solidcolor=new Dictionary<String,char>{{"YELLOW",''},{"RED",''},{"ORANGE",
-''},{"GREEN",''},{"CYAN",''},{"PURPLE",''},{"BLUE",''},{"WHITE",''},{"BLACK",''},{"GREY",''}};public static char
-COLOUR_YELLOW='';public static char COLOUR_RED='';public static char COLOUR_ORANGE='';public static char COLOUR_GREEN='';public
-static char COLOUR_CYAN='';public static char COLOUR_PURPLE='';public static char COLOUR_BLUE='';public static char
-COLOUR_WHITE='';public static char COLOUR_BLACK='';public static char COLOUR_GREY='';public JLCD(MyGridProgram pgm,JDBG dbg,bool
-suppressDebug){this.mypgm=pgm;this.jdbg=dbg;this.suppressDebug=suppressDebug;}public List<IMyTerminalBlock>GetLCDsWithTag(String tag)
-{List<IMyTerminalBlock>allLCDs=new List<IMyTerminalBlock>();mypgm.GridTerminalSystem.GetBlocksOfType(allLCDs,(
-IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf("["+tag.ToUpper()+"]")>=0)&&(x is IMyTextSurfaceProvider)));
-jdbg.Debug("Found "+allLCDs.Count+" lcds to update with tag "+tag);return allLCDs;}public void InitializeLCDs(List<
+GetBlocksOfType(allBlocksWithLCDs,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf("["+alertTag.ToUpper()+
+"]")>=0)&&(x is IMyTextSurfaceProvider)));DebugAndEcho("Found "+allBlocksWithLCDs.Count+" lcds with '"+alertTag+
+"' to alert to");String alertOutput=JLCD.solidcolor[colour]+" "+DateTime.Now.ToShortTimeString()+":"+thisScript+" "+alertMsg+"\n";
+DebugAndEcho("ALERT: "+alertMsg);if(allBlocksWithLCDs.Count>0){jlcd.WriteToAllLCDs(allBlocksWithLCDs,alertOutput,true);}}public void
+EchoCurrentInstructionCount(String tag){Echo(tag+" instruction count: "+mypgm.Runtime.CurrentInstructionCount+","+mypgm.Runtime.
+CurrentCallChainDepth);}public void EchoMaxInstructionCount(){Echo("Max instruction count: "+mypgm.Runtime.MaxInstructionCount+","+mypgm.
+Runtime.MaxCallChainDepth);}}class JINV{private JDBG jdbg=null;public enum BLUEPRINT_TYPES{BOTTLES,COMPONENTS,AMMO,TOOLS,OTHER,
+ORES};Dictionary<String,String>oreToIngot=new Dictionary<String,String>{{"MyObjectBuilder_Ore/Cobalt",
+"MyObjectBuilder_Ingot/Cobalt"},{"MyObjectBuilder_Ore/Gold","MyObjectBuilder_Ingot/Gold"},{"MyObjectBuilder_Ore/Stone","MyObjectBuilder_Ingot/Stone"},
+{"MyObjectBuilder_Ore/Iron","MyObjectBuilder_Ingot/Iron"},{"MyObjectBuilder_Ore/Magnesium",
+"MyObjectBuilder_Ingot/Magnesium"},{"MyObjectBuilder_Ore/Nickel","MyObjectBuilder_Ingot/Nickel"},{"MyObjectBuilder_Ore/Platinum",
+"MyObjectBuilder_Ingot/Platinum"},{"MyObjectBuilder_Ore/Silicon","MyObjectBuilder_Ingot/Silicon"},{"MyObjectBuilder_Ore/Silver",
+"MyObjectBuilder_Ingot/Silver"},{"MyObjectBuilder_Ore/Uranium","MyObjectBuilder_Ingot/Uranium"},};Dictionary<String,String>otherCompToBlueprint=new
+Dictionary<String,String>{{"MyObjectBuilder_BlueprintDefinition/Position0040_Datapad","MyObjectBuilder_Datapad/Datapad"},};
+Dictionary<String,String>toolsCompToBlueprint=new Dictionary<String,String>{{"MyObjectBuilder_PhysicalGunObject/AngleGrinderItem",
+"MyObjectBuilder_BlueprintDefinition/Position0010_AngleGrinder"},{"MyObjectBuilder_PhysicalGunObject/AngleGrinder2Item",
+"MyObjectBuilder_BlueprintDefinition/Position0020_AngleGrinder2"},{"MyObjectBuilder_PhysicalGunObject/AngleGrinder3Item",
+"MyObjectBuilder_BlueprintDefinition/Position0030_AngleGrinder3"},{"MyObjectBuilder_PhysicalGunObject/AngleGrinder4Item",
+"MyObjectBuilder_BlueprintDefinition/Position0040_AngleGrinder4"},{"MyObjectBuilder_PhysicalGunObject/WelderItem","MyObjectBuilder_BlueprintDefinition/Position0090_Welder"},{
+"MyObjectBuilder_PhysicalGunObject/Welder2Item","MyObjectBuilder_BlueprintDefinition/Position0100_Welder2"},{"MyObjectBuilder_PhysicalGunObject/Welder3Item",
+"MyObjectBuilder_BlueprintDefinition/Position0110_Welder3"},{"MyObjectBuilder_PhysicalGunObject/Welder4Item","MyObjectBuilder_BlueprintDefinition/Position0120_Welder4"},{
+"MyObjectBuilder_PhysicalGunObject/HandDrillItem","MyObjectBuilder_BlueprintDefinition/Position0050_HandDrill"},{"MyObjectBuilder_PhysicalGunObject/HandDrill2Item",
+"MyObjectBuilder_BlueprintDefinition/Position0060_HandDrill2"},{"MyObjectBuilder_PhysicalGunObject/HandDrill3Item","MyObjectBuilder_BlueprintDefinition/Position0070_HandDrill3"},{
+"MyObjectBuilder_PhysicalGunObject/HandDrill4Item","MyObjectBuilder_BlueprintDefinition/Position0080_HandDrill4"},};Dictionary<String,String>bottlesCompToBlueprint=new
+Dictionary<String,String>{{"MyObjectBuilder_GasContainerObject/HydrogenBottle",
+"MyObjectBuilder_BlueprintDefinition/Position0020_HydrogenBottle"},{"MyObjectBuilder_OxygenContainerObject/OxygenBottle","MyObjectBuilder_BlueprintDefinition/HydrogenBottlesRefill"},};
+Dictionary<String,String>componentsCompToBlueprint=new Dictionary<String,String>{{"MyObjectBuilder_Component/BulletproofGlass",
+"MyObjectBuilder_BlueprintDefinition/BulletproofGlass"},{"MyObjectBuilder_Component/Canvas","MyObjectBuilder_BlueprintDefinition/Position0030_Canvas"},{
+"MyObjectBuilder_Component/Computer","MyObjectBuilder_BlueprintDefinition/ComputerComponent"},{"MyObjectBuilder_Component/Construction",
+"MyObjectBuilder_BlueprintDefinition/ConstructionComponent"},{"MyObjectBuilder_Component/Detector","MyObjectBuilder_BlueprintDefinition/DetectorComponent"},{
+"MyObjectBuilder_Component/Display","MyObjectBuilder_BlueprintDefinition/Display"},{"MyObjectBuilder_Component/Explosives",
+"MyObjectBuilder_BlueprintDefinition/ExplosivesComponent"},{"MyObjectBuilder_Component/Girder","MyObjectBuilder_BlueprintDefinition/GirderComponent"},{
+"MyObjectBuilder_Component/GravityGenerator","MyObjectBuilder_BlueprintDefinition/GravityGeneratorComponent"},{"MyObjectBuilder_Component/InteriorPlate",
+"MyObjectBuilder_BlueprintDefinition/InteriorPlate"},{"MyObjectBuilder_Component/LargeTube","MyObjectBuilder_BlueprintDefinition/LargeTube"},{
+"MyObjectBuilder_Component/Medical","MyObjectBuilder_BlueprintDefinition/MedicalComponent"},{"MyObjectBuilder_Component/MetalGrid",
+"MyObjectBuilder_BlueprintDefinition/MetalGrid"},{"MyObjectBuilder_Component/Motor","MyObjectBuilder_BlueprintDefinition/MotorComponent"},{
+"MyObjectBuilder_Component/PowerCell","MyObjectBuilder_BlueprintDefinition/PowerCell"},{"MyObjectBuilder_Component/Reactor",
+"MyObjectBuilder_BlueprintDefinition/ReactorComponent"},{"MyObjectBuilder_Component/RadioCommunication","MyObjectBuilder_BlueprintDefinition/RadioCommunicationComponent"},{
+"MyObjectBuilder_Component/SmallTube","MyObjectBuilder_BlueprintDefinition/SmallTube"},{"MyObjectBuilder_Component/SolarCell",
+"MyObjectBuilder_BlueprintDefinition/SolarCell"},{"MyObjectBuilder_Component/SteelPlate","MyObjectBuilder_BlueprintDefinition/SteelPlate"},{
+"MyObjectBuilder_Component/Superconductor","MyObjectBuilder_BlueprintDefinition/Superconductor"},{"MyObjectBuilder_Component/Thrust",
+"MyObjectBuilder_BlueprintDefinition/ThrustComponent"},};Dictionary<String,String>ammoCompToBlueprint=new Dictionary<String,String>{{
+"MyObjectBuilder_AmmoMagazine/NATO_25x184mm","MyObjectBuilder_BlueprintDefinition/Position0080_NATO_25x184mmMagazine"},{
+"MyObjectBuilder_AmmoMagazine/AutocannonClip","MyObjectBuilder_BlueprintDefinition/Position0090_AutocannonClip"},{"MyObjectBuilder_AmmoMagazine/Missile200mm",
+"MyObjectBuilder_BlueprintDefinition/Position0100_Missile200mm"},{"MyObjectBuilder_AmmoMagazine/MediumCalibreAmmo","MyObjectBuilder_BlueprintDefinition/Position0110_MediumCalibreAmmo"
+},{"MyObjectBuilder_AmmoMagazine/LargeCalibreAmmo","MyObjectBuilder_BlueprintDefinition/Position0120_LargeCalibreAmmo"},{
+"MyObjectBuilder_AmmoMagazine/SmallRailgunAmmo","MyObjectBuilder_BlueprintDefinition/Position0130_SmallRailgunAmmo"},{"MyObjectBuilder_AmmoMagazine/LargeRailgunAmmo",
+"MyObjectBuilder_BlueprintDefinition/Position0140_LargeRailgunAmmo"},{"MyObjectBuilder_AmmoMagazine/SemiAutoPistolMagazine",
+"MyObjectBuilder_BlueprintDefinition/Position0010_SemiAutoPistolMagazine"},{"MyObjectBuilder_AmmoMagazine/ElitePistolMagazine",
+"MyObjectBuilder_BlueprintDefinition/Position0030_ElitePistolMagazine"},{"MyObjectBuilder_AmmoMagazine/FullAutoPistolMagazine",
+"MyObjectBuilder_BlueprintDefinition/Position0020_FullAutoPistolMagazine"},{"MyObjectBuilder_AmmoMagazine/AutomaticRifleGun_Mag_20rd",
+"MyObjectBuilder_BlueprintDefinition/Position0040_AutomaticRifleGun_Mag_20rd"},{"MyObjectBuilder_AmmoMagazine/UltimateAutomaticRifleGun_Mag_30rd",
+"MyObjectBuilder_BlueprintDefinition/Position0070_UltimateAutomaticRifleGun_Mag_30rd"},{"MyObjectBuilder_AmmoMagazine/RapidFireAutomaticRifleGun_Mag_50rd",
+"MyObjectBuilder_BlueprintDefinition/Position0050_RapidFireAutomaticRifleGun_Mag_50rd"},{"MyObjectBuilder_AmmoMagazine/PreciseAutomaticRifleGun_Mag_5rd",
+"MyObjectBuilder_BlueprintDefinition/Position0060_PreciseAutomaticRifleGun_Mag_5rd"},{"MyObjectBuilder_AmmoMagazine/NATO_5p56x45mm",null},};public JINV(JDBG dbg){jdbg=dbg;}public void addBluePrints(
+BLUEPRINT_TYPES types,ref Dictionary<String,String>into){switch(types){case BLUEPRINT_TYPES.BOTTLES:into=into.Concat(
+bottlesCompToBlueprint).ToDictionary(x=>x.Key,x=>x.Value);break;case BLUEPRINT_TYPES.COMPONENTS:into=into.Concat(componentsCompToBlueprint).
+ToDictionary(x=>x.Key,x=>x.Value);break;case BLUEPRINT_TYPES.AMMO:into=into.Concat(ammoCompToBlueprint).ToDictionary(x=>x.Key,x=>x.
+Value);break;case BLUEPRINT_TYPES.TOOLS:into=into.Concat(toolsCompToBlueprint).ToDictionary(x=>x.Key,x=>x.Value);break;case
+BLUEPRINT_TYPES.OTHER:into=into.Concat(otherCompToBlueprint).ToDictionary(x=>x.Key,x=>x.Value);break;case BLUEPRINT_TYPES.ORES:into=
+into.Concat(oreToIngot).ToDictionary(x=>x.Key,x=>x.Value);break;}}}class JLCD{public MyGridProgram mypgm=null;public JDBG
+jdbg=null;bool suppressDebug=false;public static Dictionary<String,char>solidcolor=new Dictionary<String,char>{{"YELLOW",''
+},{"RED",''},{"ORANGE",''},{"GREEN",''},{"CYAN",''},{"PURPLE",''},{"BLUE",''},{"WHITE",''},{"BLACK",''},{"GREY",
+''}};public const char COLOUR_YELLOW='';public const char COLOUR_RED='';public const char COLOUR_ORANGE='';public const
+char COLOUR_GREEN='';public const char COLOUR_CYAN='';public const char COLOUR_PURPLE='';public const char COLOUR_BLUE=
+'';public const char COLOUR_WHITE='';public const char COLOUR_BLACK='';public const char COLOUR_GREY='';public JLCD(
+MyGridProgram pgm,JDBG dbg,bool suppressDebug){this.mypgm=pgm;this.jdbg=dbg;this.suppressDebug=suppressDebug;}public List<
+IMyTerminalBlock>GetLCDsWithTag(String tag){List<IMyTerminalBlock>allLCDs=new List<IMyTerminalBlock>();mypgm.GridTerminalSystem.
+GetBlocksOfType(allLCDs,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf("["+tag.ToUpper()+"]")>=0)&&(x is
+IMyTextSurfaceProvider)));jdbg.Debug("Found "+allLCDs.Count+" lcds to update with tag "+tag);return allLCDs;}public List<IMyTerminalBlock>
+GetLCDsWithName(String tag){List<IMyTerminalBlock>allLCDs=new List<IMyTerminalBlock>();mypgm.GridTerminalSystem.GetBlocksOfType(allLCDs
+,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf(tag.ToUpper())>=0)&&(x is
+IMyTextSurfaceProvider)));jdbg.Debug("Found "+allLCDs.Count+" lcds to update with tag "+tag);return allLCDs;}public void InitializeLCDs(List<
 IMyTerminalBlock>allLCDs,TextAlignment align){foreach(var thisLCD in allLCDs){jdbg.Debug("Setting up the font for "+thisLCD.CustomName);
 IMyTextSurface thisSurface=((IMyTextSurfaceProvider)thisLCD).GetSurface(0);if(thisSurface==null)continue;thisSurface.Font="Monospace";
 thisSurface.ContentType=ContentType.TEXT_AND_IMAGE;thisSurface.BackgroundColor=Color.Black;thisSurface.Alignment=align;}}public
@@ -574,39 +607,43 @@ void SetLCDFontColour(List<IMyTerminalBlock>allLCDs,Color colour){foreach(var th
 ){jdbg.Debug("Setting up the color for "+thisLCD.CustomName);((IMyTextPanel)thisLCD).FontColor=colour;}}}public void
 SetLCDRotation(List<IMyTerminalBlock>allLCDs,float Rotation){foreach(var thisLCD in allLCDs){if(thisLCD is IMyTextPanel){jdbg.Debug(
 "Setting up the rotation for "+thisLCD.CustomName);thisLCD.SetValueFloat("Rotate",Rotation);}}}public void SetupFont(List<IMyTerminalBlock>allLCDs,int
-rows,int cols,bool mostlySpecial){SetupFontCalc(allLCDs,rows,cols,mostlySpecial,0.05F,0.05F);}public void SetupFontCustom(
-List<IMyTerminalBlock>allLCDs,int rows,int cols,bool mostlySpecial,float size,float incr){SetupFontCalc(allLCDs,rows,cols,
-mostlySpecial,size,incr);}public void SetupFontCalc(List<IMyTerminalBlock>allLCDs,int rows,int cols,bool mostlySpecial,float
-startSize,float startIncr){foreach(var thisLCD in allLCDs){jdbg.Debug("Setting up font on screen: "+thisLCD.CustomName+" ("+rows+
-" x "+cols+")");IMyTextSurface thisSurface=((IMyTextSurfaceProvider)thisLCD).GetSurface(0);if(thisSurface==null)continue;
-float size=startSize;float incr=startIncr;StringBuilder teststr=new StringBuilder("".PadRight(cols,(mostlySpecial?solidcolor[
-"BLACK"]:'W')));Vector2 actualScreenSize=thisSurface.TextureSize;while(true){thisSurface.FontSize=size;Vector2 actualSize=
-thisSurface.TextureSize;Vector2 thisSize=thisSurface.MeasureStringInPixels(teststr,thisSurface.Font,size);int displayrows=(int)Math
-.Floor(actualScreenSize.Y/thisSize.Y);if((thisSize.X<actualSize.X)&&(displayrows>rows)){size+=incr;}else{break;}}
-thisSurface.FontSize=size-incr;jdbg.Debug("Calc size of "+thisSurface.FontSize);if(thisLCD.DefinitionDisplayNameText.Contains(
-"Corner LCD")){jdbg.Debug("INFO: Avoiding bug, multiplying by 4: "+thisLCD.DefinitionDisplayNameText);thisSurface.FontSize*=4;}}}
-public void WriteToAllLCDs(List<IMyTerminalBlock>allLCDs,String msg,bool append){foreach(var thisLCD in allLCDs){if(!this.
-suppressDebug)jdbg.Debug("Writing to display "+thisLCD.CustomName);IMyTextSurface thisSurface=((IMyTextSurfaceProvider)thisLCD).
-GetSurface(0);if(thisSurface==null)continue;thisSurface.WriteText(msg,append);}}public char ColorToChar(byte r,byte g,byte b){
-const double bitSpacing=255.0/7.0;return(char)(0xe100+((int)Math.Round(r/bitSpacing)<<6)+((int)Math.Round(g/bitSpacing)<<3)+(
-int)Math.Round(b/bitSpacing));}}class Memory{public byte[][]allProms=new byte[3][];public bool isColour=false;public static
-GetRomData.Games game;public Memory(){game=GetRomData.Games.None;allProms[0]=new byte[0x10000];}public void LoadRom(ref byte[]
-keyBits,ref int rotate,GetRomData.Games newgame,String gameData,ref byte backCol,ref bool needsProcessing,ref Display.
-paletteType palType,ref byte port_shift_result,ref byte port_shift_data,ref byte port_shift_offset,ref byte port_input){game=
-newgame;allProms=GetRomData.getRomData(game,gameData.Equals("")?GetRomData.getRomData(game):gameData,ref keyBits,ref rotate,ref
-backCol,ref needsProcessing,ref palType,ref port_shift_result,ref port_shift_data,ref port_shift_offset,ref port_input);if(
-allProms[1]!=null){isColour=true;}else{isColour=false;}}}class Specifics{public Arcade8080Machine am;public Display display;
-public JDBG jdbg;public JCTRL jctrl;public IMyShipController controller;public Program mypgm;public static int maxFrames=45000
-;bool space=false;bool left=false;bool right=false;bool crouch=false;bool up=false;bool down=false;bool q=false;bool e=
-false;public void CheckKeys(){if(left!=jctrl.IsLeft(controller)){left=!left;am.handleInput(am.keyBits[(int)GetRomData.
-KeyIndex.keyleft],left);}if(right!=jctrl.IsRight(controller)){right=!right;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.
-keyright],right);}if(up!=jctrl.IsUp(controller)){up=!up;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.keyup],up);}if(down!=
-jctrl.IsDown(controller)){down=!down;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.keydown],down);}if(space!=jctrl.
-IsSpace(controller)){space=!space;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.space],space);}if(crouch!=jctrl.IsCrouch(
-controller)){crouch=!crouch;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.crouch],crouch);}if(am.cost==0&&(q!=jctrl.
-IsRollLeft(controller))){q=!q;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.q],q);}if(e!=jctrl.IsRollRight(controller)){e=!e;
-am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.e],e);}}public void DebugAndEcho(String s){jdbg.DebugAndEcho(s);}public
-void Echo(String s){jdbg.Echo(s);}public int GetInstructionCount(){return mypgm.Runtime.CurrentInstructionCount;}public bool
-drawAndRenderFrame(ref int State){bool didComplete=display.generateFrameToDisplay(ref State);if(!didComplete)return false;mypgm.jlcd.
-WriteToAllLCDs(mypgm.displays,new String(DirectBitmap.Pixels),false);return true;}public void setRotation(int rotate){mypgm.jlcd.
-SetLCDRotation(mypgm.displays,(float)rotate);}}
+rows,int cols,bool mostlySpecial){_SetupFontCalc(allLCDs,ref rows,cols,mostlySpecial,0.05F,0.05F);}public int
+SetupFontWidthOnly(List<IMyTerminalBlock>allLCDs,int cols,bool mostlySpecial){int rows=-1;_SetupFontCalc(allLCDs,ref rows,cols,
+mostlySpecial,0.05F,0.05F);return rows;}public void SetupFontCustom(List<IMyTerminalBlock>allLCDs,int rows,int cols,bool
+mostlySpecial,float size,float incr){_SetupFontCalc(allLCDs,ref rows,cols,mostlySpecial,size,incr);}private void _SetupFontCalc(List<
+IMyTerminalBlock>allLCDs,ref int rows,int cols,bool mostlySpecial,float startSize,float startIncr){int bestRows=rows;foreach(var thisLCD
+in allLCDs){jdbg.Debug("Setting up font on screen: "+thisLCD.CustomName+" ("+rows+" x "+cols+")");IMyTextSurface
+thisSurface=((IMyTextSurfaceProvider)thisLCD).GetSurface(0);if(thisSurface==null)continue;float size=startSize;float incr=startIncr
+;StringBuilder teststr=new StringBuilder("".PadRight(cols,(mostlySpecial?solidcolor["BLACK"]:'W')));Vector2
+actualScreenSize=thisSurface.TextureSize;while(true){thisSurface.FontSize=size;Vector2 actualSize=thisSurface.TextureSize;Vector2
+thisSize=thisSurface.MeasureStringInPixels(teststr,thisSurface.Font,size);int displayrows=(int)Math.Floor(actualScreenSize.Y/
+thisSize.Y);if((thisSize.X<actualSize.X)&&(rows==-1||(displayrows>rows))){size+=incr;bestRows=displayrows;}else{break;}}
+thisSurface.FontSize=size-incr;jdbg.Debug("Calc size of "+thisSurface.FontSize);if(rows==-1)rows=bestRows;if(thisLCD.
+DefinitionDisplayNameText.Contains("Corner LCD")){jdbg.Debug("INFO: Avoiding bug, multiplying by 4: "+thisLCD.DefinitionDisplayNameText);
+thisSurface.FontSize*=4;}}}public void UpdateFullScreen(IMyTerminalBlock block,String text){List<IMyTerminalBlock>lcds=new List<
+IMyTerminalBlock>{block};InitializeLCDs(lcds,TextAlignment.CENTER);SetupFont(lcds,1,text.Length+4,false);WriteToAllLCDs(lcds,text,false)
+;}public void WriteToAllLCDs(List<IMyTerminalBlock>allLCDs,String msg,bool append){foreach(var thisLCD in allLCDs){if(!
+this.suppressDebug)jdbg.Debug("Writing to display "+thisLCD.CustomName);IMyTextSurface thisSurface=((IMyTextSurfaceProvider)
+thisLCD).GetSurface(0);if(thisSurface==null)continue;thisSurface.WriteText(msg,append);}}public char ColorToChar(byte r,byte g,
+byte b){const double bitSpacing=255.0/7.0;return(char)(0xe100+((int)Math.Round(r/bitSpacing)<<6)+((int)Math.Round(g/
+bitSpacing)<<3)+(int)Math.Round(b/bitSpacing));}}class Memory{public byte[][]allProms=new byte[3][];public bool isColour=false;
+public static GetRomData.Games game;public Memory(){game=GetRomData.Games.None;allProms[0]=new byte[0x10000];}public void
+LoadRom(ref byte[]keyBits,ref int rotate,GetRomData.Games newgame,String gameData,ref byte backCol,ref bool needsProcessing,ref
+Display.paletteType palType,ref byte port_shift_result,ref byte port_shift_data,ref byte port_shift_offset,ref byte port_input)
+{game=newgame;allProms=GetRomData.getRomData(game,gameData.Equals("")?GetRomData.getRomData(game):gameData,ref keyBits,
+ref rotate,ref backCol,ref needsProcessing,ref palType,ref port_shift_result,ref port_shift_data,ref port_shift_offset,ref
+port_input);if(allProms[1]!=null){isColour=true;}else{isColour=false;}}}class Specifics{public Arcade8080Machine am;public Display
+display;public JDBG jdbg;public JCTRL jctrl;public IMyShipController controller;public Program mypgm;public static int
+maxFrames=45000;bool space=false;bool left=false;bool right=false;bool crouch=false;bool up=false;bool down=false;bool q=false;
+bool e=false;public void CheckKeys(){if(left!=jctrl.IsLeft(controller)){left=!left;am.handleInput(am.keyBits[(int)GetRomData
+.KeyIndex.keyleft],left);}if(right!=jctrl.IsRight(controller)){right=!right;am.handleInput(am.keyBits[(int)GetRomData.
+KeyIndex.keyright],right);}if(up!=jctrl.IsUp(controller)){up=!up;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.keyup],up);}
+if(down!=jctrl.IsDown(controller)){down=!down;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.keydown],down);}if(space
+!=jctrl.IsSpace(controller)){space=!space;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.space],space);}if(crouch!=
+jctrl.IsCrouch(controller)){crouch=!crouch;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.crouch],crouch);}if(am.cost==0
+&&(q!=jctrl.IsRollLeft(controller))){q=!q;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.q],q);}if(e!=jctrl.
+IsRollRight(controller)){e=!e;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.e],e);}}public void DebugAndEcho(String s){jdbg.
+DebugAndEcho(s);}public void Echo(String s){jdbg.Echo(s);}public int GetInstructionCount(){return mypgm.Runtime.
+CurrentInstructionCount;}public bool drawAndRenderFrame(ref int State){bool didComplete=display.generateFrameToDisplay(ref State);if(!
+didComplete)return false;mypgm.jlcd.WriteToAllLCDs(mypgm.displays,new String(DirectBitmap.Pixels),false);return true;}public void
+setRotation(int rotate){mypgm.jlcd.SetLCDRotation(mypgm.displays,(float)rotate);}}

@@ -4,6 +4,8 @@
  * 
  * This is a very simple implementation of Breakout - move the bat and keep the ball alive. I wrote this when learning about how to update screens (and the lack of graphics)
  * 
+ * Source available via https://github.com/eddy0612/SpaceEngineerScripts
+ * 
  * Instructions
  * ------------
  * 1. Create a programmable block, name it something likr `[GAMEPGM]`. Add custom data as follows - the value of the tag can be anything but you need to use it consistently everywhere as a prefix
@@ -26,14 +28,18 @@
 
 
 // ----------------------------- CUT -------------------------------------
-//String thisScript = "Breakout_Game";
+String thisScript = "Breakout_Game";
 
 // Development time flags
 public bool debug = false;
 bool stayRunning = true;
-//String thisScript = "TestSpace";
 bool dontdie = false;
 bool allowspeed = false;
+
+// Private variables
+private JDBG jdbg = null;
+private JINV jinv = null;
+private JLCD jlcd = null;
 
 // My configuration
 /* Example custom data in programming block:
@@ -41,22 +47,15 @@ bool allowspeed = false;
 tag=GAME
         */
 
-const char cYELLOW = '';
-const char cRED = '';
-const char cORANGE = '';
-const char cGREEN = '';
-const char cCYAN = '';
-const char cPURPLE = '';
-const char cBLUE = '';
-const char cWHITE = '';
-const char cBLACK = '';
-const char cBALL = cBLUE;
+// Ball colour
+const char cBALL = JLCD.COLOUR_BLUE;
 
 // My configuration
 //int refreshSpeed = 5;                       // Default to 5 seconds if not provided
 String mytag = "IDONTCARE";
 //String alerttag = "ALERT";
 IMyShipController controller = null;
+List<IMyTerminalBlock> drawLCDs = null;
 IMyTextSurface lcdscreen = null;
 
 // Game config
@@ -93,6 +92,11 @@ int skipFrames = 0;
 // ---------------------------------------------------------------------------
 public Program()
 {
+    jdbg = new JDBG(this, debug);
+    jlcd = new JLCD(this, jdbg, false);
+    jinv = new JINV(jdbg);
+    jlcd.UpdateFullScreen(Me, thisScript);
+
     // Run every 100 ticks, but relies on internal check to only actually
     // perform on a defined frequency
     if (stayRunning)
@@ -113,51 +117,28 @@ public Program()
     if (mytag != null)
     {
         mytag = (mytag.Split(';')[0]).Trim();
-        Echo("Using tag of " + mytag);
+        jdbg.DebugAndEcho("Using tag of " + mytag);
     }
     else
     {
-        Echo("No tag configured\nPlease add [config] for tag=<substring>");
+        jdbg.DebugAndEcho("No tag configured\nPlease add [config] for tag=<substring>");
         return;
     }
 
     // ---------------------------------------------------------------------------
     // Find the screens to output to
     // ---------------------------------------------------------------------------
-    List<IMyTerminalBlock> drawLCDs = new List<IMyTerminalBlock>();
-    GridTerminalSystem.GetBlocksOfType(drawLCDs, (IMyTerminalBlock x) => (
-                                                                           (x.CustomName != null) &&
-                                                                           (x.CustomName.IndexOf("[" + mytag + "SCREEN]") >= 0) &&
-                                                                           (x is IMyTextSurfaceProvider)
-                                                                          ));
-    Echo("Found " + drawLCDs.Count + " screens");
-
-    if (drawLCDs.Count > 0)
-    {
-        foreach (var thisblock in drawLCDs)
-        {
-            IMyTextSurface thisLCD = ((IMyTextSurfaceProvider)thisblock).GetSurface(0);
-            Debug("- " + thisblock.CustomName);
-            if ((thisLCD != null) && (lcdscreen == null))
-            {
-                thisLCD.Font = "Monospace";
-                thisLCD.ContentType = ContentType.TEXT_AND_IMAGE;
-                thisLCD.TextPadding = 0;
-                thisLCD.BackgroundColor = Color.Black;
-                thisLCD.ChangeInterval = 1;
-                lcdscreen = thisLCD;
-            }
-        }
-        if (drawLCDs.Count > 1)
-        {
-            Echo("Too many screens");
-            return;
-        }
-    }
-    else if (drawLCDs.Count == 0)
-    {
-        Echo("No screen");
+    List<IMyTerminalBlock> drawLCDs = jlcd.GetLCDsWithTag("[" + mytag.ToUpper() + ".SCREEN]");
+    jdbg.DebugAndEcho("Found " + drawLCDs.Count + " screens");
+    if (drawLCDs.Count > 1) {
+        jdbg.DebugAndEcho("ERROR: Too many screens");
         return;
+    }  else if (drawLCDs.Count == 0) {
+        jdbg.DebugAndEcho("ERROR: No screen");
+        return;
+    } else {
+        jlcd.InitializeLCDs(drawLCDs, TextAlignment.CENTER);
+        lcdscreen = ((IMyTextSurfaceProvider)drawLCDs[0]).GetSurface(0);
     }
 
     // ---------------------------------------------------------------------------
@@ -166,25 +147,24 @@ public Program()
     List<IMyTerminalBlock> Controllers = new List<IMyTerminalBlock>();
     GridTerminalSystem.GetBlocksOfType(Controllers, (IMyTerminalBlock x) => (
                                                                            (x.CustomName != null) &&
-                                                                           (x.CustomName.IndexOf("[" + mytag + "SEAT]") >= 0) &&
+                                                                           (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + ".SEAT]") >= 0) &&
                                                                            (x is IMyShipController)
                                                                           ));
-    Echo("Found " + Controllers.Count + " controllers");
-
+    jdbg.DebugAndEcho("Found " + Controllers.Count + " controllers");
     if (Controllers.Count > 0) {
         foreach (var thisblock in Controllers)
         {
-            Debug("- " + thisblock.CustomName);
+            jdbg.Debug("- " + thisblock.CustomName);
         }
         if (Controllers.Count > 1)
         {
-            Echo("Too many controllers");
+            jdbg.DebugAndEcho("ERROR: Too many controllers");
             return;
         }
         controller = (IMyShipController) Controllers[0];
     }
     else if (Controllers.Count == 0) {
-        Echo("No controllers");
+        jdbg.DebugAndEcho("ERROR: No controllers");
         return;
     }
 
@@ -192,48 +172,14 @@ public Program()
     // Game initialization
     // ---------------------------------------------------------------------------
     colSizeChars = (cols + 1);  // Space for \n
-    brickColours = new char[]{ cRED, cORANGE, cYELLOW, cGREEN };
+    brickColours = new char[]{ JLCD.COLOUR_RED, JLCD.COLOUR_ORANGE, JLCD.COLOUR_YELLOW, JLCD.COLOUR_GREEN };
 
     // Work out the font size so we fill the screen
-    StringBuilder teststr = new StringBuilder("".PadRight(cols, cBLACK));
-
-    float size = 0.05F;
-    float incr = 0.05F;
-
-    float bestWidth = 0;
-
-    Echo("Calculating screen size");
-    Echo("Tex: " + lcdscreen.TextureSize.ToString());
-    Echo("Act: " + lcdscreen.SurfaceSize.ToString());
-    lcdscreen.FontSize += 0.5F;
-    Echo("Tex: " + lcdscreen.TextureSize.ToString());
-    Echo("Act: " + lcdscreen.SurfaceSize.ToString());
-
-    while (true)
-    {
-        lcdscreen.FontSize = size;
-        Vector2 actualSize = lcdscreen.TextureSize;
-
-        Vector2 thisSize = lcdscreen.MeasureStringInPixels(teststr, lcdscreen.Font, size);
-        Echo("with size " + size + " width is " + thisSize.X + " max " + actualSize.X);
-
-        if ((thisSize.X > bestWidth) && (thisSize.X < actualSize.X))
-        {
-            size += incr;
-        }
-        else
-        {
-            break;
-        }
-    }
-    lcdscreen.FontSize = size;
-    bestFontSize = size;
-    Vector2 actualScreenSize = lcdscreen.TextureSize;
-    Vector2 finalSize = lcdscreen.MeasureStringInPixels(teststr, lcdscreen.Font, size);
-    rows = (int)Math.Floor(actualScreenSize.Y / finalSize.Y);
+    rows = jlcd.SetupFontWidthOnly(drawLCDs, cols, true);
+    bestFontSize = lcdscreen.FontSize;
     batRow = rows - 2;
-    Echo("Screen is " + cols + " big");
-    thisScreen = new StringBuilder("".PadLeft((rows * colSizeChars), cBLACK));
+    jdbg.DebugAndEcho("Screen is " + cols + " big");
+    thisScreen = new StringBuilder("".PadLeft((rows * colSizeChars), JLCD.COLOUR_BLACK));
     DisplayGameOver();
 }
 
@@ -330,18 +276,7 @@ public void Main(string argument, UpdateType updateSource)
 // ---------------------------------------------------------------------------
 void DrawLCD(String screenContents)
 {
-    lcdscreen.WriteText(screenContents, false);  // false == clear screen
-}
-
-// ---------------------------------------------------------------------------
-// Simple wrapper to decide whether to output to the console or not
-// ---------------------------------------------------------------------------
-void Debug(String str)
-{
-    if (debug)
-    {
-        Echo("D:" + str);
-    }
+    jlcd.WriteToAllLCDs(drawLCDs, screenContents, false);
 }
 
 // ---------------------------------------------------------------------------
@@ -353,8 +288,8 @@ void moveBall()
     Vector2 newLocation = ball + (ballDirection * ballSpeed);
 
     // See if leaving screen, if so bounce back
-    //Debug("cols: " + cols + ", rows: " + rows);
-    //Debug("1:" + (int)oldLocation.X + "," + (int)oldLocation.Y + " -> " + (int)newLocation.X + "," + (int)newLocation.Y);
+    //jdbg.Debug("cols: " + cols + ", rows: " + rows);
+    //jdbg.Debug("1:" + (int)oldLocation.X + "," + (int)oldLocation.Y + " -> " + (int)newLocation.X + "," + (int)newLocation.Y);
     if ((newLocation.X < 0) || (newLocation.X >= cols))
     {
         ballDirection.X = -ballDirection.X;
@@ -390,23 +325,23 @@ void moveBall()
         }
         return;
     }
-    //Debug("2:" + (int)oldLocation.X + "," + (int)oldLocation.Y + " -> " + (int)newLocation.X + "," + (int)newLocation.Y);
+    //jdbg.Debug("2:" + (int)oldLocation.X + "," + (int)oldLocation.Y + " -> " + (int)newLocation.X + "," + (int)newLocation.Y);
 
 
     // If changed spot, remove old char and replace with new char
     int cx = (int)(newLocation.X);
     int cy = (int)(newLocation.Y);
-    //Debug("4:" + cx + "," + cy);
+    //jdbg.Debug("4:" + cx + "," + cy);
 
 
     // Whats at that spot on the screen?
     char newSpace = thisScreen[(cy * colSizeChars) + cx];
     switch (newSpace)
     {
-        case cBLACK: // Empty space - NOOP
+        case JLCD.COLOUR_BLACK: // Empty space - NOOP
         case cBALL:  // Didnt leave space - NOOP
             break;
-        case cWHITE: // Bounce off paddle
+        case JLCD.COLOUR_WHITE: // Bounce off paddle
             ballDirection.Y = -ballDirection.Y;
             newLocation.Y += (ballDirection.Y * ballSpeed);
 
@@ -440,7 +375,7 @@ void moveBall()
             // Remove it...
             for (int i = 0; i<brickLength; i++)
             {
-                thisScreen[(cy * colSizeChars) + brickStart + i] = cBLACK;
+                thisScreen[(cy * colSizeChars) + brickStart + i] = JLCD.COLOUR_BLACK;
             }
             bricksLeft -= 1;
 
@@ -504,11 +439,11 @@ void drawBat()
     {
         if ((j >= batStart) && (j <= batStart + batLength))
         {
-            thisScreen[(batRow * colSizeChars) + j] = cWHITE;
+            thisScreen[(batRow * colSizeChars) + j] = JLCD.COLOUR_WHITE;
         }
         else
         {
-            thisScreen[(batRow * colSizeChars) + j] = cBLACK;
+            thisScreen[(batRow * colSizeChars) + j] = JLCD.COLOUR_BLACK;
         }
     }
 }
@@ -543,7 +478,7 @@ void drawBall(Vector2 oldLocation, bool add, bool remove)
     if (remove)
     {
         // Remove it from the old location
-        thisScreen[((int)oldLocation.Y * colSizeChars) + (int)oldLocation.X] = cBLACK;
+        thisScreen[((int)oldLocation.Y * colSizeChars) + (int)oldLocation.X] = JLCD.COLOUR_BLACK;
     }
 
     if (add)
@@ -568,7 +503,7 @@ void initializeLevel(int lvlNumber)
     {
         for (int j = 0; j < cols; j++)
         {
-            thisScreen[idx++] = cBLACK;
+            thisScreen[idx++] = JLCD.COLOUR_BLACK;
         }
         thisScreen[idx++] = '\n';
     }
@@ -830,7 +765,7 @@ public class JDBG
         List<IMyTerminalBlock> allBlocksWithLCDs = new List<IMyTerminalBlock>();
         mypgm.GridTerminalSystem.GetBlocksOfType(allBlocksWithLCDs, (IMyTerminalBlock x) => (
                                                                                   (x.CustomName != null) &&
-                                                                                  (x.CustomName.IndexOf("[" + alertTag + "]") >= 0) &&
+                                                                                  (x.CustomName.ToUpper().IndexOf("[" + alertTag.ToUpper() + "]") >= 0) &&
                                                                                   (x is IMyTextSurfaceProvider)
                                                                                  ));
         DebugAndEcho("Found " + allBlocksWithLCDs.Count + " lcds with '" + alertTag + "' to alert to");
@@ -921,28 +856,28 @@ public class JINV
     /* Components */
     Dictionary<String, String> componentsCompToBlueprint = new Dictionary<String, String>
     {
-        { "myobjectbuilder_component/bulletproofglass", "myobjectbuilder_blueprintdefinition/bulletproofglass"},
-        { "myobjectbuilder_component/canvas", "myobjectbuilder_blueprintdefinition/position0030_canvas"},
-        { "myobjectbuilder_component/computer", "myobjectbuilder_blueprintdefinition/computercomponent"},
-        { "myobjectbuilder_component/construction", "myobjectbuilder_blueprintdefinition/constructioncomponent"},
-        { "myobjectbuilder_component/detector", "myobjectbuilder_blueprintdefinition/detectorcomponent"},
-        { "myobjectbuilder_component/display", "myobjectbuilder_blueprintdefinition/display"},
-        { "myobjectbuilder_component/explosives", "myobjectbuilder_blueprintdefinition/explosivescomponent"},
-        { "myobjectbuilder_component/girder", "myobjectbuilder_blueprintdefinition/girdercomponent"},
-        { "myobjectbuilder_component/gravitygenerator", "myobjectbuilder_blueprintdefinition/gravitygeneratorcomponent"},
-        { "myobjectbuilder_component/interiorplate", "myobjectbuilder_blueprintdefinition/interiorplate"},
-        { "myobjectbuilder_component/largetube", "myobjectbuilder_blueprintdefinition/largetube"},
-        { "myobjectbuilder_component/medical", "myobjectbuilder_blueprintdefinition/medicalcomponent"},
-        { "myobjectbuilder_component/metalgrid", "myobjectbuilder_blueprintdefinition/metalgrid"},
-        { "myobjectbuilder_component/motor", "myobjectbuilder_blueprintdefinition/motorcomponent"},
-        { "myobjectbuilder_component/powercell", "myobjectbuilder_blueprintdefinition/powercell"},
-        { "myobjectbuilder_component/reactor", "myobjectbuilder_blueprintdefinition/reactorcomponent"},
-        { "myobjectbuilder_component/radiocommunication", "myobjectbuilder_blueprintdefinition/radiocommunicationcomponent"},
-        { "myobjectbuilder_component/smalltube", "myobjectbuilder_blueprintdefinition/smalltube"},
-        { "myobjectbuilder_component/solarcell", "myobjectbuilder_blueprintdefinition/solarcell"},
-        { "myobjectbuilder_component/steelplate", "myobjectbuilder_blueprintdefinition/steelplate"},
-        { "myobjectbuilder_component/superconductor", "myobjectbuilder_blueprintdefinition/superconductor"},
-        { "myobjectbuilder_component/thrust", "myobjectbuilder_blueprintdefinition/thrustcomponent"},
+        { "MyObjectBuilder_Component/BulletproofGlass", "MyObjectBuilder_BlueprintDefinition/BulletproofGlass"},
+        { "MyObjectBuilder_Component/Canvas", "MyObjectBuilder_BlueprintDefinition/Position0030_Canvas"},
+        { "MyObjectBuilder_Component/Computer", "MyObjectBuilder_BlueprintDefinition/ComputerComponent"},
+        { "MyObjectBuilder_Component/Construction", "MyObjectBuilder_BlueprintDefinition/ConstructionComponent"},
+        { "MyObjectBuilder_Component/Detector", "MyObjectBuilder_BlueprintDefinition/DetectorComponent"},
+        { "MyObjectBuilder_Component/Display", "MyObjectBuilder_BlueprintDefinition/Display"},
+        { "MyObjectBuilder_Component/Explosives", "MyObjectBuilder_BlueprintDefinition/ExplosivesComponent"},
+        { "MyObjectBuilder_Component/Girder", "MyObjectBuilder_BlueprintDefinition/GirderComponent"},
+        { "MyObjectBuilder_Component/GravityGenerator", "MyObjectBuilder_BlueprintDefinition/GravityGeneratorComponent"},
+        { "MyObjectBuilder_Component/InteriorPlate", "MyObjectBuilder_BlueprintDefinition/InteriorPlate"},
+        { "MyObjectBuilder_Component/LargeTube", "MyObjectBuilder_BlueprintDefinition/LargeTube"},
+        { "MyObjectBuilder_Component/Medical", "MyObjectBuilder_BlueprintDefinition/MedicalComponent"},
+        { "MyObjectBuilder_Component/MetalGrid", "MyObjectBuilder_BlueprintDefinition/MetalGrid"},
+        { "MyObjectBuilder_Component/Motor", "MyObjectBuilder_BlueprintDefinition/MotorComponent"},
+        { "MyObjectBuilder_Component/PowerCell", "MyObjectBuilder_BlueprintDefinition/PowerCell"},
+        { "MyObjectBuilder_Component/Reactor", "MyObjectBuilder_BlueprintDefinition/ReactorComponent"},
+        { "MyObjectBuilder_Component/RadioCommunication", "MyObjectBuilder_BlueprintDefinition/RadioCommunicationComponent"},
+        { "MyObjectBuilder_Component/SmallTube", "MyObjectBuilder_BlueprintDefinition/SmallTube"},
+        { "MyObjectBuilder_Component/SolarCell", "MyObjectBuilder_BlueprintDefinition/SolarCell"},
+        { "MyObjectBuilder_Component/SteelPlate", "MyObjectBuilder_BlueprintDefinition/SteelPlate"},
+        { "MyObjectBuilder_Component/Superconductor", "MyObjectBuilder_BlueprintDefinition/Superconductor"},
+        { "MyObjectBuilder_Component/Thrust", "MyObjectBuilder_BlueprintDefinition/ThrustComponent"},
     };
 
     /* Ammo */
@@ -1017,16 +952,16 @@ public class JLCD
     };
 
     // Useful for direct code
-    public static char COLOUR_YELLOW = '';
-    public static char COLOUR_RED = '';
-    public static char COLOUR_ORANGE = '';
-    public static char COLOUR_GREEN = '';
-    public static char COLOUR_CYAN = '';
-    public static char COLOUR_PURPLE = '';
-    public static char COLOUR_BLUE = '';
-    public static char COLOUR_WHITE = '';
-    public static char COLOUR_BLACK = '';
-    public static char COLOUR_GREY = '';
+    public const char COLOUR_YELLOW = '';
+    public const char COLOUR_RED = '';
+    public const char COLOUR_ORANGE = '';
+    public const char COLOUR_GREEN = '';
+    public const char COLOUR_CYAN = '';
+    public const char COLOUR_PURPLE = '';
+    public const char COLOUR_BLUE = '';
+    public const char COLOUR_WHITE = '';
+    public const char COLOUR_BLACK = '';
+    public const char COLOUR_GREY = '';
 
     public JLCD(MyGridProgram pgm, JDBG dbg, bool suppressDebug)
     {
@@ -1044,6 +979,21 @@ public class JLCD
         mypgm.GridTerminalSystem.GetBlocksOfType(allLCDs, (IMyTerminalBlock x) => (
                                                                                (x.CustomName != null) &&
                                                                                (x.CustomName.ToUpper().IndexOf("[" + tag.ToUpper() + "]") >= 0) &&
+                                                                               (x is IMyTextSurfaceProvider)
+                                                                              ));
+        jdbg.Debug("Found " + allLCDs.Count + " lcds to update with tag " + tag);
+        return allLCDs;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Get a list of the LCDs with a specific name
+    // ---------------------------------------------------------------------------
+    public List<IMyTerminalBlock> GetLCDsWithName(String tag)
+    {
+        List<IMyTerminalBlock> allLCDs = new List<IMyTerminalBlock>();
+        mypgm.GridTerminalSystem.GetBlocksOfType(allLCDs, (IMyTerminalBlock x) => (
+                                                                               (x.CustomName != null) &&
+                                                                               (x.CustomName.ToUpper().IndexOf(tag.ToUpper()) >= 0) &&
                                                                                (x is IMyTextSurfaceProvider)
                                                                               ));
         jdbg.Debug("Found " + allLCDs.Count + " lcds to update with tag " + tag);
@@ -1095,15 +1045,22 @@ public class JLCD
     // ---------------------------------------------------------------------------
     public void SetupFont(List<IMyTerminalBlock> allLCDs, int rows, int cols, bool mostlySpecial)
     {
-        SetupFontCalc(allLCDs, rows, cols, mostlySpecial, 0.05F, 0.05F);
+        _SetupFontCalc(allLCDs, ref rows, cols, mostlySpecial, 0.05F, 0.05F);
+    }
+    public int SetupFontWidthOnly(List<IMyTerminalBlock> allLCDs, int cols, bool mostlySpecial)
+    {
+        int rows = -1;
+        _SetupFontCalc(allLCDs, ref rows, cols, mostlySpecial, 0.05F, 0.05F);
+        return rows;
     }
     public void SetupFontCustom(List<IMyTerminalBlock> allLCDs, int rows, int cols, bool mostlySpecial, float size, float incr)
     {
-        SetupFontCalc(allLCDs, rows, cols, mostlySpecial, size,incr);
+        _SetupFontCalc(allLCDs, ref rows, cols, mostlySpecial, size,incr);
     }
 
-    public void SetupFontCalc(List<IMyTerminalBlock> allLCDs, int rows, int cols, bool mostlySpecial, float startSize, float startIncr)
+    private void _SetupFontCalc(List<IMyTerminalBlock> allLCDs, ref int rows, int cols, bool mostlySpecial, float startSize, float startIncr)
     {
+        int bestRows = rows;
         foreach (var thisLCD in allLCDs)
         {
             jdbg.Debug("Setting up font on screen: " + thisLCD.CustomName + " (" + rows + " x " + cols + ")");
@@ -1128,9 +1085,10 @@ public class JLCD
 
                 int displayrows = (int)Math.Floor(actualScreenSize.Y / thisSize.Y);
 
-                if ((thisSize.X < actualSize.X) && (displayrows > rows))
+                if ((thisSize.X < actualSize.X) && (rows == -1 || (displayrows > rows)))
                 {
                     size += incr;
+                    bestRows = displayrows;
                 }
                 else
                 {
@@ -1140,12 +1098,26 @@ public class JLCD
             thisSurface.FontSize = size - incr;
             jdbg.Debug("Calc size of " + thisSurface.FontSize);
 
+            /* If we were asked how many rows for given width, return it */
+            if (rows == -1) rows = bestRows;
+
             // BUG? Corner LCDs are a factor of 4 out - no idea why but try *4
             if (thisLCD.DefinitionDisplayNameText.Contains("Corner LCD")) {
                 jdbg.Debug("INFO: Avoiding bug, multiplying by 4: " + thisLCD.DefinitionDisplayNameText);
                 thisSurface.FontSize *= 4;
             }
         }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Update the programmable block with the script name
+    // ---------------------------------------------------------------------------
+    public void UpdateFullScreen(IMyTerminalBlock block, String text)
+    {
+        List<IMyTerminalBlock> lcds = new List<IMyTerminalBlock> { block };
+        InitializeLCDs(lcds, TextAlignment.CENTER);
+        SetupFont(lcds, 1, text.Length + 4, false);
+        WriteToAllLCDs(lcds, text, false);
     }
 
     // ---------------------------------------------------------------------------

@@ -6,6 +6,8 @@
  * 
  * Note any block with [LOCKED] in the name is ignored.
  * 
+ * Source available via https://github.com/eddy0612/SpaceEngineerScripts
+ * 
  * Instructions
  * ------------
  * 1. Add programmable block, add script, click recompile/run - No config required
@@ -21,8 +23,8 @@ bool stayRunning = true;
 
 // Private variables
 private JDBG jdbg = null;
-//private JINV jinv = null;
-//private JLCD jlcd = null;
+private JINV jinv = null;
+private JLCD jlcd = null;
 
 // -------------------------------------------
 /* Example custom data in programming block:
@@ -35,65 +37,7 @@ private JDBG jdbg = null;
 // -------------------------------------------
 
 // -------------------------------------------
-Dictionary<String, String> compToBlueprint = new Dictionary<String, String>
-{
-    /* Components */
-    { "MyObjectBuilder_Component/BulletproofGlass", "MyObjectBuilder_BlueprintDefinition/BulletproofGlass"},
-    { "MyObjectBuilder_Component/Canvas", "MyObjectBuilder_BlueprintDefinition/Position0030_Canvas"},
-    { "MyObjectBuilder_Component/Computer", "MyObjectBuilder_BlueprintDefinition/ComputerComponent"},
-    { "MyObjectBuilder_Component/Construction", "MyObjectBuilder_BlueprintDefinition/ConstructionComponent"},
-    { "MyObjectBuilder_Component/Detector", "MyObjectBuilder_BlueprintDefinition/DetectorComponent"},
-    { "MyObjectBuilder_Component/Display", "MyObjectBuilder_BlueprintDefinition/Display"},
-    { "MyObjectBuilder_Component/Explosives", "MyObjectBuilder_BlueprintDefinition/ExplosivesComponent"},
-    { "MyObjectBuilder_Component/Girder", "MyObjectBuilder_BlueprintDefinition/GirderComponent"},
-    { "MyObjectBuilder_Component/GravityGenerator", "MyObjectBuilder_BlueprintDefinition/GravityGeneratorComponent"},
-    { "MyObjectBuilder_Component/InteriorPlate", "MyObjectBuilder_BlueprintDefinition/InteriorPlate"},
-    { "MyObjectBuilder_Component/LargeTube", "MyObjectBuilder_BlueprintDefinition/LargeTube"},
-    { "MyObjectBuilder_Component/Medical", "MyObjectBuilder_BlueprintDefinition/MedicalComponent"},
-    { "MyObjectBuilder_Component/MetalGrid", "MyObjectBuilder_BlueprintDefinition/MetalGrid"},
-    { "MyObjectBuilder_Component/Motor", "MyObjectBuilder_BlueprintDefinition/MotorComponent"},
-    { "MyObjectBuilder_Component/PowerCell", "MyObjectBuilder_BlueprintDefinition/PowerCell"},
-    { "MyObjectBuilder_Component/Reactor", "MyObjectBuilder_BlueprintDefinition/ReactorComponent"},
-    { "MyObjectBuilder_Component/RadioCommunication", "MyObjectBuilder_BlueprintDefinition/RadioCommunicationComponent"},
-    { "MyObjectBuilder_Component/SmallTube", "MyObjectBuilder_BlueprintDefinition/SmallTube"},
-    { "MyObjectBuilder_Component/SolarCell", "MyObjectBuilder_BlueprintDefinition/SolarCell"},
-    { "MyObjectBuilder_Component/SteelPlate", "MyObjectBuilder_BlueprintDefinition/SteelPlate"},
-    { "MyObjectBuilder_Component/Superconductor", "MyObjectBuilder_BlueprintDefinition/Superconductor"},
-    { "MyObjectBuilder_Component/Thrust", "MyObjectBuilder_BlueprintDefinition/ThrustComponent"},
-
-    /* Ammo */
-    { /*"Gatling",*/            "MyObjectBuilder_AmmoMagazine/NATO_25x184mm", "MyObjectBuilder_BlueprintDefinition/Position0080_NATO_25x184mmMagazine" },
-    { /*"Autocannon",*/         "MyObjectBuilder_AmmoMagazine/AutocannonClip", "MyObjectBuilder_BlueprintDefinition/Position0090_AutocannonClip" },
-    { /*"Rocket",*/             "MyObjectBuilder_AmmoMagazine/Missile200mm", "MyObjectBuilder_BlueprintDefinition/Position0100_Missile200mm" },
-    { /*"Assault_Cannon",*/     "MyObjectBuilder_AmmoMagazine/MediumCalibreAmmo", "MyObjectBuilder_BlueprintDefinition/Position0110_MediumCalibreAmmo" },
-    { /*"Artillery",*/          "MyObjectBuilder_AmmoMagazine/LargeCalibreAmmo", "MyObjectBuilder_BlueprintDefinition/Position0120_LargeCalibreAmmo" },
-    { /*"Small_Railgun",*/      "MyObjectBuilder_AmmoMagazine/SmallRailgunAmmo", "MyObjectBuilder_BlueprintDefinition/Position0130_SmallRailgunAmmo" },
-    { /*"Large_Railgun",*/      "MyObjectBuilder_AmmoMagazine/LargeRailgunAmmo", "MyObjectBuilder_BlueprintDefinition/Position0140_LargeRailgunAmmo" },
-    { /*"S-10_Pistol",*/        "MyObjectBuilder_AmmoMagazine/SemiAutoPistolMagazine", "MyObjectBuilder_BlueprintDefinition/Position0010_SemiAutoPistolMagazine" },
-    { /*"S-10E_Pistol",*/       "MyObjectBuilder_AmmoMagazine/ElitePistolMagazine", "MyObjectBuilder_BlueprintDefinition/Position0030_ElitePistolMagazine" },
-    { /*"S-20A_Pistol",*/       "MyObjectBuilder_AmmoMagazine/FullAutoPistolMagazine", "MyObjectBuilder_BlueprintDefinition/Position0020_FullAutoPistolMagazine" },
-    { /*"MR-20_Rifle",*/        "MyObjectBuilder_AmmoMagazine/AutomaticRifleGun_Mag_20rd", "MyObjectBuilder_BlueprintDefinition/Position0040_AutomaticRifleGun_Mag_20rd" },
-    { /*"MR-30E_Rifle",*/       "MyObjectBuilder_AmmoMagazine/UltimateAutomaticRifleGun_Mag_30rd", "MyObjectBuilder_BlueprintDefinition/Position0070_UltimateAutomaticRifleGun_Mag_30rd" },
-    { /*"MR-50A_Rifle",*/       "MyObjectBuilder_AmmoMagazine/RapidFireAutomaticRifleGun_Mag_50rd", "MyObjectBuilder_BlueprintDefinition/Position0050_RapidFireAutomaticRifleGun_Mag_50rd" },
-    { /*"MR-8P_Rifle",*/        "MyObjectBuilder_AmmoMagazine/PreciseAutomaticRifleGun_Mag_5rd", "MyObjectBuilder_BlueprintDefinition/Position0060_PreciseAutomaticRifleGun_Mag_5rd" },
-    { /*"5.56x45mm NATO magazine",*/ "MyObjectBuilder_AmmoMagazine/NATO_5p56x45mm", null }
-
-
-
-};
-
-Dictionary<String, char> solidcolor = new Dictionary<String, char>
-{
-    { "YELLOW", '' },
-    { "RED", '' },
-    { "ORANGE", '' },
-    { "GREEN", '' },
-    { "CYAN", '' },
-    { "PURPLE", ''},
-    { "BLUE", '' },
-    { "WHITE", ''},
-    { "BLACK", ''},
-};
+Dictionary<String, String> compToBlueprint = new Dictionary<String, String> { };
 
 // My configuration
 String alerttag = "ALERT"; // Wanr to alert LCDs
@@ -108,12 +52,20 @@ DateTime lastCheck = new DateTime(0);
 public Program()
 {
     jdbg = new JDBG(this, debug);
+    jlcd = new JLCD(this, jdbg, false);
+    jinv = new JINV(jdbg);
+    jlcd.UpdateFullScreen(Me, thisScript);
+
     // Run every 100 ticks, but relies on internal check to only actually
     // perform on a defined frequency
     if (stayRunning)
     {
         Runtime.UpdateFrequency = UpdateFrequency.Update100;
     }
+
+    // Grab a list of what we can restack
+    jinv.addBluePrints(JINV.BLUEPRINT_TYPES.COMPONENTS, ref compToBlueprint);
+    jinv.addBluePrints(JINV.BLUEPRINT_TYPES.AMMO, ref compToBlueprint);
 }
 
 // ---------------------------------------------------------------------------
@@ -151,15 +103,12 @@ public void Main(string argument, UpdateType updateSource)
         // We only get here if we are refreshing
         // ---------------------------------------------------------------------------
         // Dummy debug - so we do the lookup of lcds
-        Debug(thisScript + " running");
-        WriteToAllLCDs(debugLCDs, "", false);  // Clear the debug screens
+        jdbg.ClearDebugLCDs();
 
         // ---------------------------------------------------------------------------
         // We only get here if we are refreshing
         // ---------------------------------------------------------------------------
-        jdbg.Echo("Main from " + thisScript + " running..." + lastCheck.ToString());
-        Debug("Main from " + thisScript + " running..." + lastCheck.ToString());
-
+        jdbg.DebugAndEcho("Main from " + thisScript + " running..." + DateTime.Now.ToString());
 
         // ---------------------------------------------------------------------------
         // Get my custom data and parse to get the config - NoOP
@@ -175,7 +124,7 @@ public void Main(string argument, UpdateType updateSource)
                                                                                (x.CustomName.ToUpper().IndexOf("[LOCKED]") < 0) &&
                                                                                !(x is IMyRefinery)
                                                                               ));
-        Debug("Found " + allBlocks.Count + " blocks with inventories to work through");
+        jdbg.Debug("Found " + allBlocks.Count + " blocks with inventories to work through");
 
         //// Calculate current totals & move if necessary
         int actionsCount = 0;
@@ -185,7 +134,7 @@ public void Main(string argument, UpdateType updateSource)
             // Sum up produced items
             if (thisblock.HasInventory)
             {
-                //Debug("Processing block: " + thisblock.CustomName);
+                //jdbg.Debug("Processing block: " + thisblock.CustomName);
                 for (int invCount = 0; invCount < thisblock.InventoryCount; invCount++)
                 {
                     List<MyInventoryItem> allItemsInInventory = new List<MyInventoryItem>();
@@ -202,113 +151,33 @@ public void Main(string argument, UpdateType updateSource)
                         // Only track the components
                         if (!compToBlueprint.ContainsKey(name))
                         {
-                            //Debug("Not tracking for stacking: " + name);
+                            //jdbg.Debug("Not tracking for stacking: " + name);
                             continue;
                         }
 
                         // Dont worry on first hit
                         if (!foundYet.ContainsKey(name))
                         {
-                            //Debug(".. First: " + name);
+                            //jdbg.Debug(".. First: " + name);
                             foundYet[name] = true;
                             continue;
                         }
 
                         // If we get here, its a 2nd instance of something
-                        Debug("Found : '" + name + "' x " + allItemsInInventory[j].Amount.ToIntSafe() + " in " + thisblock.CustomName);
+                        jdbg.Debug("Found : '" + name + "' x " + allItemsInInventory[j].Amount.ToIntSafe() + " in " + thisblock.CustomName);
                         inv.TransferItemTo(inv, allItemsInInventory[j]);
                         actionsCount++;
                     }
                 }
             }
         }
-        Debug("Scanned " + itemsScanned + " items in " + allBlocks.Count + " inventories - " + actionsCount + " things moved");
+        jdbg.DebugAndEcho("Scanned " + itemsScanned + " items in " + allBlocks.Count + " inventories - " + actionsCount + " things moved");
 
-        Alert("Completed - " + actionsCount + " actions performed", "GREEN");
+        jdbg.Alert("Completed - " + actionsCount + " actions performed", "GREEN", alerttag, thisScript);
     }
     catch (Exception ex)
     {
-        Alert("Exception - " + ex.ToString() + "\n" + ex.StackTrace, "RED");
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Simple wrapper to write to a central alert
-// ---------------------------------------------------------------------------
-void Alert(String alertMsg, String colour)
-{
-    List<IMyTerminalBlock> allBlocksWithLCDs = new List<IMyTerminalBlock>();
-    GridTerminalSystem.GetBlocksOfType(allBlocksWithLCDs, (IMyTerminalBlock x) => (
-                                                                              (x.CustomName != null) &&
-                                                                              (x.CustomName.IndexOf("[" + alerttag + "]") >= 0) &&
-                                                                              (x is IMyTextSurfaceProvider)
-                                                                             ));
-
-    String alertOutput = DateTime.Now.ToShortTimeString() + " : " + solidcolor["YELLOW"] + " : " + thisScript + " in " + Me.CustomName + "\n";
-    alertOutput += "   " + alertMsg + "\n";
-    Echo("Found " + allBlocksWithLCDs.Count + " lcds with '" + alerttag + "' to alert to");
-    Debug("Found " + allBlocksWithLCDs.Count + " lcds with '" + alerttag + "' to alert to");
-    if (allBlocksWithLCDs.Count == 0)
-    {
-        Echo("ALERT: " + alertMsg);
-    }
-    else
-    {
-        WriteToAllLCDs(allBlocksWithLCDs, alertOutput, true);
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Simple wrapper to decide whether to output to the console or not
-// ---------------------------------------------------------------------------
-List<IMyTerminalBlock> debugLCDs = null;
-bool inDebug = false;
-void Debug(String str)
-{
-    if (debug)
-    {
-        bool wasInDebug = inDebug;
-        if (!wasInDebug) inDebug = true;
-
-        if (debugLCDs == null)
-        {
-            Echo("First run - working out debug panels");
-            debugLCDs = new List<IMyTerminalBlock>();
-            GridTerminalSystem.GetBlocksOfType(debugLCDs, (IMyTerminalBlock x) => (
-                                                                                   (x.CustomName != null) &&
-                                                                                   (x.CustomName.IndexOf("[debug]") >= 0) &&
-                                                                                   (x is IMyTextSurfaceProvider)
-                                                                                  ));
-            Echo("Found " + debugLCDs.Count + " lcds with 'debug' to debug to");
-            WriteToAllLCDs(debugLCDs, "", false);  // Clear the debug screens
-        }
-
-        Echo("D:" + str);
-        if (!wasInDebug)
-        {
-            WriteToAllLCDs(debugLCDs, str + "\n", true);
-        }
-        if (!wasInDebug) inDebug = false;
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Simple wrapper to write to LCDs
-// ---------------------------------------------------------------------------
-void WriteToAllLCDs(List<IMyTerminalBlock> allBlocksWithLCDs, String msg, bool append)
-{
-    if (allBlocksWithLCDs != null && allBlocksWithLCDs.Count > 0)
-    {
-        foreach (var thisblock in allBlocksWithLCDs)
-        {
-            IMyTextSurface thisLCD = ((IMyTextSurfaceProvider)thisblock).GetSurface(0);
-            if (thisLCD != null)
-            {
-                thisLCD.Font = "Monospace";
-                thisLCD.ContentType = ContentType.TEXT_AND_IMAGE;
-                thisLCD.WriteText(msg, append);
-            }
-        }
+        jdbg.Alert("Exception - " + ex.ToString() + "\n" + ex.StackTrace, "RED", alerttag, thisScript);
     }
 }
 
@@ -534,7 +403,7 @@ public class JDBG
         List<IMyTerminalBlock> allBlocksWithLCDs = new List<IMyTerminalBlock>();
         mypgm.GridTerminalSystem.GetBlocksOfType(allBlocksWithLCDs, (IMyTerminalBlock x) => (
                                                                                   (x.CustomName != null) &&
-                                                                                  (x.CustomName.IndexOf("[" + alertTag + "]") >= 0) &&
+                                                                                  (x.CustomName.ToUpper().IndexOf("[" + alertTag.ToUpper() + "]") >= 0) &&
                                                                                   (x is IMyTextSurfaceProvider)
                                                                                  ));
         DebugAndEcho("Found " + allBlocksWithLCDs.Count + " lcds with '" + alertTag + "' to alert to");
@@ -625,28 +494,28 @@ public class JINV
     /* Components */
     Dictionary<String, String> componentsCompToBlueprint = new Dictionary<String, String>
     {
-        { "myobjectbuilder_component/bulletproofglass", "myobjectbuilder_blueprintdefinition/bulletproofglass"},
-        { "myobjectbuilder_component/canvas", "myobjectbuilder_blueprintdefinition/position0030_canvas"},
-        { "myobjectbuilder_component/computer", "myobjectbuilder_blueprintdefinition/computercomponent"},
-        { "myobjectbuilder_component/construction", "myobjectbuilder_blueprintdefinition/constructioncomponent"},
-        { "myobjectbuilder_component/detector", "myobjectbuilder_blueprintdefinition/detectorcomponent"},
-        { "myobjectbuilder_component/display", "myobjectbuilder_blueprintdefinition/display"},
-        { "myobjectbuilder_component/explosives", "myobjectbuilder_blueprintdefinition/explosivescomponent"},
-        { "myobjectbuilder_component/girder", "myobjectbuilder_blueprintdefinition/girdercomponent"},
-        { "myobjectbuilder_component/gravitygenerator", "myobjectbuilder_blueprintdefinition/gravitygeneratorcomponent"},
-        { "myobjectbuilder_component/interiorplate", "myobjectbuilder_blueprintdefinition/interiorplate"},
-        { "myobjectbuilder_component/largetube", "myobjectbuilder_blueprintdefinition/largetube"},
-        { "myobjectbuilder_component/medical", "myobjectbuilder_blueprintdefinition/medicalcomponent"},
-        { "myobjectbuilder_component/metalgrid", "myobjectbuilder_blueprintdefinition/metalgrid"},
-        { "myobjectbuilder_component/motor", "myobjectbuilder_blueprintdefinition/motorcomponent"},
-        { "myobjectbuilder_component/powercell", "myobjectbuilder_blueprintdefinition/powercell"},
-        { "myobjectbuilder_component/reactor", "myobjectbuilder_blueprintdefinition/reactorcomponent"},
-        { "myobjectbuilder_component/radiocommunication", "myobjectbuilder_blueprintdefinition/radiocommunicationcomponent"},
-        { "myobjectbuilder_component/smalltube", "myobjectbuilder_blueprintdefinition/smalltube"},
-        { "myobjectbuilder_component/solarcell", "myobjectbuilder_blueprintdefinition/solarcell"},
-        { "myobjectbuilder_component/steelplate", "myobjectbuilder_blueprintdefinition/steelplate"},
-        { "myobjectbuilder_component/superconductor", "myobjectbuilder_blueprintdefinition/superconductor"},
-        { "myobjectbuilder_component/thrust", "myobjectbuilder_blueprintdefinition/thrustcomponent"},
+        { "MyObjectBuilder_Component/BulletproofGlass", "MyObjectBuilder_BlueprintDefinition/BulletproofGlass"},
+        { "MyObjectBuilder_Component/Canvas", "MyObjectBuilder_BlueprintDefinition/Position0030_Canvas"},
+        { "MyObjectBuilder_Component/Computer", "MyObjectBuilder_BlueprintDefinition/ComputerComponent"},
+        { "MyObjectBuilder_Component/Construction", "MyObjectBuilder_BlueprintDefinition/ConstructionComponent"},
+        { "MyObjectBuilder_Component/Detector", "MyObjectBuilder_BlueprintDefinition/DetectorComponent"},
+        { "MyObjectBuilder_Component/Display", "MyObjectBuilder_BlueprintDefinition/Display"},
+        { "MyObjectBuilder_Component/Explosives", "MyObjectBuilder_BlueprintDefinition/ExplosivesComponent"},
+        { "MyObjectBuilder_Component/Girder", "MyObjectBuilder_BlueprintDefinition/GirderComponent"},
+        { "MyObjectBuilder_Component/GravityGenerator", "MyObjectBuilder_BlueprintDefinition/GravityGeneratorComponent"},
+        { "MyObjectBuilder_Component/InteriorPlate", "MyObjectBuilder_BlueprintDefinition/InteriorPlate"},
+        { "MyObjectBuilder_Component/LargeTube", "MyObjectBuilder_BlueprintDefinition/LargeTube"},
+        { "MyObjectBuilder_Component/Medical", "MyObjectBuilder_BlueprintDefinition/MedicalComponent"},
+        { "MyObjectBuilder_Component/MetalGrid", "MyObjectBuilder_BlueprintDefinition/MetalGrid"},
+        { "MyObjectBuilder_Component/Motor", "MyObjectBuilder_BlueprintDefinition/MotorComponent"},
+        { "MyObjectBuilder_Component/PowerCell", "MyObjectBuilder_BlueprintDefinition/PowerCell"},
+        { "MyObjectBuilder_Component/Reactor", "MyObjectBuilder_BlueprintDefinition/ReactorComponent"},
+        { "MyObjectBuilder_Component/RadioCommunication", "MyObjectBuilder_BlueprintDefinition/RadioCommunicationComponent"},
+        { "MyObjectBuilder_Component/SmallTube", "MyObjectBuilder_BlueprintDefinition/SmallTube"},
+        { "MyObjectBuilder_Component/SolarCell", "MyObjectBuilder_BlueprintDefinition/SolarCell"},
+        { "MyObjectBuilder_Component/SteelPlate", "MyObjectBuilder_BlueprintDefinition/SteelPlate"},
+        { "MyObjectBuilder_Component/Superconductor", "MyObjectBuilder_BlueprintDefinition/Superconductor"},
+        { "MyObjectBuilder_Component/Thrust", "MyObjectBuilder_BlueprintDefinition/ThrustComponent"},
     };
 
     /* Ammo */
@@ -721,16 +590,16 @@ public class JLCD
     };
 
     // Useful for direct code
-    public static char COLOUR_YELLOW = '';
-    public static char COLOUR_RED = '';
-    public static char COLOUR_ORANGE = '';
-    public static char COLOUR_GREEN = '';
-    public static char COLOUR_CYAN = '';
-    public static char COLOUR_PURPLE = '';
-    public static char COLOUR_BLUE = '';
-    public static char COLOUR_WHITE = '';
-    public static char COLOUR_BLACK = '';
-    public static char COLOUR_GREY = '';
+    public const char COLOUR_YELLOW = '';
+    public const char COLOUR_RED = '';
+    public const char COLOUR_ORANGE = '';
+    public const char COLOUR_GREEN = '';
+    public const char COLOUR_CYAN = '';
+    public const char COLOUR_PURPLE = '';
+    public const char COLOUR_BLUE = '';
+    public const char COLOUR_WHITE = '';
+    public const char COLOUR_BLACK = '';
+    public const char COLOUR_GREY = '';
 
     public JLCD(MyGridProgram pgm, JDBG dbg, bool suppressDebug)
     {
@@ -748,6 +617,21 @@ public class JLCD
         mypgm.GridTerminalSystem.GetBlocksOfType(allLCDs, (IMyTerminalBlock x) => (
                                                                                (x.CustomName != null) &&
                                                                                (x.CustomName.ToUpper().IndexOf("[" + tag.ToUpper() + "]") >= 0) &&
+                                                                               (x is IMyTextSurfaceProvider)
+                                                                              ));
+        jdbg.Debug("Found " + allLCDs.Count + " lcds to update with tag " + tag);
+        return allLCDs;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Get a list of the LCDs with a specific name
+    // ---------------------------------------------------------------------------
+    public List<IMyTerminalBlock> GetLCDsWithName(String tag)
+    {
+        List<IMyTerminalBlock> allLCDs = new List<IMyTerminalBlock>();
+        mypgm.GridTerminalSystem.GetBlocksOfType(allLCDs, (IMyTerminalBlock x) => (
+                                                                               (x.CustomName != null) &&
+                                                                               (x.CustomName.ToUpper().IndexOf(tag.ToUpper()) >= 0) &&
                                                                                (x is IMyTextSurfaceProvider)
                                                                               ));
         jdbg.Debug("Found " + allLCDs.Count + " lcds to update with tag " + tag);
@@ -799,15 +683,22 @@ public class JLCD
     // ---------------------------------------------------------------------------
     public void SetupFont(List<IMyTerminalBlock> allLCDs, int rows, int cols, bool mostlySpecial)
     {
-        SetupFontCalc(allLCDs, rows, cols, mostlySpecial, 0.05F, 0.05F);
+        _SetupFontCalc(allLCDs, ref rows, cols, mostlySpecial, 0.05F, 0.05F);
+    }
+    public int SetupFontWidthOnly(List<IMyTerminalBlock> allLCDs, int cols, bool mostlySpecial)
+    {
+        int rows = -1;
+        _SetupFontCalc(allLCDs, ref rows, cols, mostlySpecial, 0.05F, 0.05F);
+        return rows;
     }
     public void SetupFontCustom(List<IMyTerminalBlock> allLCDs, int rows, int cols, bool mostlySpecial, float size, float incr)
     {
-        SetupFontCalc(allLCDs, rows, cols, mostlySpecial, size,incr);
+        _SetupFontCalc(allLCDs, ref rows, cols, mostlySpecial, size,incr);
     }
 
-    public void SetupFontCalc(List<IMyTerminalBlock> allLCDs, int rows, int cols, bool mostlySpecial, float startSize, float startIncr)
+    private void _SetupFontCalc(List<IMyTerminalBlock> allLCDs, ref int rows, int cols, bool mostlySpecial, float startSize, float startIncr)
     {
+        int bestRows = rows;
         foreach (var thisLCD in allLCDs)
         {
             jdbg.Debug("Setting up font on screen: " + thisLCD.CustomName + " (" + rows + " x " + cols + ")");
@@ -832,9 +723,10 @@ public class JLCD
 
                 int displayrows = (int)Math.Floor(actualScreenSize.Y / thisSize.Y);
 
-                if ((thisSize.X < actualSize.X) && (displayrows > rows))
+                if ((thisSize.X < actualSize.X) && (rows == -1 || (displayrows > rows)))
                 {
                     size += incr;
+                    bestRows = displayrows;
                 }
                 else
                 {
@@ -844,12 +736,26 @@ public class JLCD
             thisSurface.FontSize = size - incr;
             jdbg.Debug("Calc size of " + thisSurface.FontSize);
 
+            /* If we were asked how many rows for given width, return it */
+            if (rows == -1) rows = bestRows;
+
             // BUG? Corner LCDs are a factor of 4 out - no idea why but try *4
             if (thisLCD.DefinitionDisplayNameText.Contains("Corner LCD")) {
                 jdbg.Debug("INFO: Avoiding bug, multiplying by 4: " + thisLCD.DefinitionDisplayNameText);
                 thisSurface.FontSize *= 4;
             }
         }
+    }
+
+    // ---------------------------------------------------------------------------
+    // Update the programmable block with the script name
+    // ---------------------------------------------------------------------------
+    public void UpdateFullScreen(IMyTerminalBlock block, String text)
+    {
+        List<IMyTerminalBlock> lcds = new List<IMyTerminalBlock> { block };
+        InitializeLCDs(lcds, TextAlignment.CENTER);
+        SetupFont(lcds, 1, text.Length + 4, false);
+        WriteToAllLCDs(lcds, text, false);
     }
 
     // ---------------------------------------------------------------------------
