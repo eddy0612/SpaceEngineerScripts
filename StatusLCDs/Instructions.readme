@@ -11,17 +11,17 @@ Source available via https://github.com/eddy0612/SpaceEngineerScripts
 Installation Instructions
 =========================
 1. Set the programmable block customdata to identify the tag which links the refineries names and
-    the LCD status displays, er "Status"
+    the LCD status displays, eg "Status"
+```
+[config]
+tag=status
+```
 2. Add to the name of any refinery the tag "[Status:xxx]" where Status is the tag from above, and xx
     is either an Ore symbol (Fe for Iron etc) or the text to be in the display
 3. Add to the name of the LCD to display that refineries information, the same tag
 4. If you have a full LCD to display a one page sumamry, call it [Status:all]
 5. Add script to the programmable block, recompile and run.
 
-Example custom data 
-===================
-[Config]
-tag=Status
 
 Server Impact
 =============

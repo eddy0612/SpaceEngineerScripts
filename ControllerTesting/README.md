@@ -12,9 +12,9 @@ Instructions
 tag=controller
 ```
 
-2. Add to an LCD the tag of [controllerSCREEN] into its custom name
+2. Add to an LCD the tag of [controller.SCREEN] into its custom name
 
-3. Add to a controller/seat/helm the tag of [controllerSEAT] into its custom name
+3. Add to a controller/seat/helm the tag of [controller.SEAT] into its custom name
 
 4. Add script to programmable block, recompile/run
 

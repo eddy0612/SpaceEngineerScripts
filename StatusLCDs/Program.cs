@@ -67,6 +67,7 @@ namespace IngameScript
             jdbg = new JDBG(this, debug);
             jlcd = new JLCD(this, jdbg, false);
             jinv = new JINV(jdbg);
+            jlcd.UpdateFullScreen(Me, thisScript);
 
             // ---------------------------------------------------------------------------
             // Get my custom data and parse to get the config
@@ -76,7 +77,7 @@ namespace IngameScript
             if (!_ini.TryParse(Me.CustomData, out result))
                 throw new Exception(result.ToString());
 
-            // Get the value of the "LCD" key under the "config" section.
+            // Get the value of the "tag" key under the "config" section.
             String tag = _ini.Get("config", "tag").ToString();
             if (tag != null) {
                 Echo("Using tag of '[" + tag + ":...]'");
@@ -127,7 +128,7 @@ namespace IngameScript
                 GridTerminalSystem.GetBlocksOfType(refineries, (IMyTerminalBlock x) => (
                                                                                      (x.HasInventory) &&
                                                                                      (x.CubeGrid == Me.CubeGrid) &&
-                                                                                     (x.CustomName.ToUpper().Contains("[" + mytag + ":")) &&
+                                                                                     (x.CustomName.ToUpper().Contains("[" + mytag.ToUpper() + ":")) &&
                                                                                      (x is IMyRefinery)
                                                                                       ));
                 jdbg.Debug("Found " + refineries.Count + " blocks with inventories");
@@ -186,7 +187,7 @@ namespace IngameScript
                         List<IMyTerminalBlock> allLCDs = new List<IMyTerminalBlock>();
                         GridTerminalSystem.GetBlocksOfType(allLCDs, (IMyTerminalBlock x) => (
                                                                                                (x.CustomName != null) &&
-                                                                                               (x.CustomName.ToUpper().Contains("[" + lcdTag + "]")) 
+                                                                                               (x.CustomName.ToUpper().Contains("[" + lcdTag.ToUpper() + "]")) 
                                                                                               ));
                         jdbg.DebugAndEcho("but found " + allLCDs.Count);
 

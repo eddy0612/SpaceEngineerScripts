@@ -23,11 +23,9 @@ using VRage.Game.Components;
 using VRage.Game.GUI.TextPanel;
 using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI.Ingame.Utilities;
-using VRage.Game.ObjectBuilders.Definitions;
-using VRageMath;
 
-// TODO: Use JInv and JLCD for colours
-// TODO: ?use current grid only?
+// TODO: Use current grid only - Not convinced... but should we limit the block locate to those
+//      connected to the assembler chosen?
 
 namespace IngameScript
 {
@@ -106,20 +104,6 @@ namespace IngameScript
             //{ "MR-8P_Rifle",        "MyObjectBuilder_AmmoMagazine/PreciseAutomaticRifleGun_Mag_5rd" },
         };
 
-        Dictionary<String, char> solidcolor = new Dictionary<String, char>
-        {
-            { "YELLOW", '' },
-            { "RED", '' },
-            { "ORANGE", '' },
-            { "GREEN", '' },
-            { "CYAN", '' },
-            { "PURPLE", ''},
-            { "BLUE", '' },
-            { "WHITE", ''},
-            { "BLACK", ''},
-        };
-
-
         // My configuration
         int refreshSpeed = 5;                       // Default to 5 seconds if not provided
         int barSize = 15;
@@ -137,6 +121,7 @@ namespace IngameScript
             jdbg = new JDBG(this, debug);
             jlcd = new JLCD(this, jdbg, false);
             jinv = new JINV(jdbg);
+            jlcd.UpdateFullScreen(Me, thisScript);
 
             // Run every 100 ticks, but relies on internal check to only actually
             // perform on a defined frequency
@@ -179,11 +164,9 @@ namespace IngameScript
 
                 // ---------------------------------------------------------------------------
                 // We only get here if we are refreshing
-                // ---------------------------------------------------------------------------
+                // ---------------------------------------------------------------------------               
                 jdbg.ClearDebugLCDs();  // Clear the debug screens
-
-                jdbg.DebugAndEcho("Main Running..." + lastCheck.ToString());
-
+                jdbg.DebugAndEcho("Main Running..." + DateTime.Now.ToString());
 
                 // ---------------------------------------------------------------------------
                 // Get my custom data and parse to get the config
@@ -198,20 +181,20 @@ namespace IngameScript
                 if (mytag != null)
                 {
                     mytag = (mytag.Split(';')[0]).Trim();
-                    Echo("Using tag of " + mytag);
+                    jdbg.DebugAndEcho("Using tag of " + mytag);
                 }
                 else
                 {
-                    Echo("No tag configured\nPlease add [config] for tag=<substring>");
+                    jdbg.DebugAndEcho("No tag configured\nPlease add [config] for tag=<substring>");
                     return;
                 }
 
                 // Get the value of the "refreshSpeed" key under the "config" section.
                 int newrefreshSpeed = _ini.Get("config", "refreshSpeed").ToInt32();
-                Echo("New refresh speed will be " + newrefreshSpeed);
+                jdbg.DebugAndEcho("New refresh speed will be " + newrefreshSpeed);
                 if (newrefreshSpeed < 1)
                 {
-                    Echo("Invalid refresh speed or not defined - defaulting to 5 seconds");
+                    jdbg.DebugAndEcho("Invalid refresh speed or not defined - defaulting to 5 seconds");
                     refreshSpeed = 5;
                 }
                 else
@@ -224,7 +207,7 @@ namespace IngameScript
                 Echo("Bar Size will be " + newBarSize);
                 if (newBarSize < 1)
                 {
-                    Echo("Invalid bar size or not defined - defaulting to 25 seconds");
+                    jdbg.DebugAndEcho("Invalid bar size or not defined - defaulting to 25 seconds");
                     barSize = 25;
                 }
                 else
@@ -247,27 +230,27 @@ namespace IngameScript
                 var assemblers = new List<IMyAssembler>();
                 IMyAssembler qAssembler = null;
                 GridTerminalSystem.GetBlocksOfType<IMyAssembler>(assemblers, (IMyAssembler x) => (
-                                                                                                    x.CustomName.IndexOf("[" + mytag + "]") >= 0
+                                                                                                    x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + "]") >= 0
                                                                                                  ));
                 if (assemblers.Count == 0)
                 {
-                    Echo("No assembler found with [" + mytag + "] in the name - guessing");
+                    jdbg.DebugAndEcho("No assembler found with [" + mytag + "] in the name - guessing");
                     GridTerminalSystem.GetBlocksOfType<IMyAssembler>(assemblers, (IMyAssembler x) => (
                                                                                                         x.CanUseBlueprint(MyDefinitionId.Parse(CompToBlueprint[friendlyitemname["Gatling"]]))
                                                                                                      ));
                     if (assemblers.Count == 0)
                     {
-                        Echo("ERROR: Guess failed... aborting");
+                        jdbg.DebugAndEcho("ERROR: Guess failed... aborting");
                         return;
                     }
                 }
 
                 if (assemblers.Count > 1)
                 {
-                    Echo("Multiple assemblers found with [" + mytag + "] in the name - using first");
+                    jdbg.DebugAndEcho("Multiple assemblers found with [" + mytag + "] in the name - using first");
                 }
                 qAssembler = assemblers[0];
-                Echo("Will queue on " + qAssembler.CustomName);
+                jdbg.DebugAndEcho("Will queue on " + qAssembler.CustomName);
 
                 Dictionary<String, int> total_expected = new Dictionary<String, int>();
                 Dictionary<String, int> total_existing = new Dictionary<String, int>();
@@ -283,8 +266,8 @@ namespace IngameScript
                 List<IMyTerminalBlock> cargosToFill = new List<IMyTerminalBlock>();
                 GridTerminalSystem.GetBlocksOfType(cargosToFill, (IMyTerminalBlock x) => (
                                                                                           (x.CustomName != null) &&
-                                                                                          (x.CustomName.IndexOf("[" + mytag + "]") >= 0) &&
-                                                                                          /* We are going to fill locked as well : (x.CustomName.IndexOf("[LOCKED]") < 0) && */
+                                                                                          (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + "]") >= 0) &&
+                                                                                          /* We are going to fill locked as well : (x.CustomName.ToUpper().IndexOf("[LOCKED]") < 0) && */
                                                                                           (x.HasInventory) && 
                                                                                           !(x is IMyAssembler)
                                                                                          ));
@@ -298,13 +281,13 @@ namespace IngameScript
                     MyIni _blockini = new MyIni();
                     if (!_blockini.TryParse(thisblock.CustomData, out result))
                     {
-                        Echo("Block: " + thisblock.CustomName + " has invalid CustomData - ignoring");
+                        jdbg.DebugAndEcho("Block: " + thisblock.CustomName + " has invalid CustomData - ignoring");
                         continue;
                     }
 
                     if (!_blockini.ContainsSection("ammo"))
                     {
-                        Echo("Block: " + thisblock.CustomName + " has no ammo section... adding it");
+                        jdbg.DebugAndEcho("Block: " + thisblock.CustomName + " has no ammo section... adding it");
                         _blockini.AddSection("ammo");
                         Echo("Now populating it");
                         foreach (var ammoName in friendlyitemname)
@@ -530,7 +513,6 @@ namespace IngameScript
         {
             String result = name.PadRight(20);
 
-            //if (barUnder) result = result + "\n" + "".PadRight(2);
             result = result + ">"; // Could be [ or >
 
             String bar = "".PadRight(barSize);
@@ -552,17 +534,17 @@ namespace IngameScript
             var bari = 0;
             for (int i = 0; i < c_count; i++)
             {
-                barchars[bari] = solidcolor["CYAN"];
+                barchars[bari] = JLCD.solidcolor["CYAN"];
                 bari++;
             }
             for (int i = 0; i < q_count; i++)
             {
-                barchars[bari] = solidcolor["YELLOW"];
+                barchars[bari] = JLCD.solidcolor["YELLOW"];
                 bari++;
             }
             for (int i = bari; i < barSize; i++)
             {
-                barchars[i] = solidcolor["RED"];
+                barchars[i] = JLCD.solidcolor["RED"];
             }
             result = result + new string(barchars);
             result = result + "<"; // Could be ] or <

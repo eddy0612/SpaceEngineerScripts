@@ -14,7 +14,7 @@ namespace IngameScript
     {
 
         // ----------------------------- CUT -------------------------------------
-        //String thisScript = "Arcade8080Machine";
+        String thisScript = "ArcadeEmulation";
 
         // Development or user config time flags
         bool debug = false;
@@ -71,6 +71,8 @@ speed=40000
             Echo("Start");
             jdbg = new JDBG(this, debug);
             jlcd = new JLCD(this, jdbg, true);
+            jlcd.UpdateFullScreen(Me, thisScript);
+
 
             // ---------------------------------------------------------------------------
             // Get my custom data and parse to get the config
@@ -111,7 +113,7 @@ speed=40000
             List<IMyTerminalBlock> Controllers = new List<IMyTerminalBlock>();
             GridTerminalSystem.GetBlocksOfType(Controllers, (IMyTerminalBlock x) => (
                                                                                    (x.CustomName != null) &&
-                                                                                   (x.CustomName.IndexOf("[" + mytag + "SEAT]") >= 0) &&
+                                                                                   (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + ".SEAT]") >= 0) &&
                                                                                    (x is IMyShipController)
                                                                                   ));
             Echo("Found " + Controllers.Count + " controllers");
@@ -126,7 +128,7 @@ speed=40000
                 }
                 controller = (IMyShipController)Controllers[0];
             } else if (Controllers.Count == 0) {
-                Echo("ERROR: No controllers");
+                Echo("ERROR: No controllers tagged as [" + mytag + ".SEAT]");
                 return;
             }
 
@@ -137,12 +139,12 @@ speed=40000
                 List<IMyTerminalBlock> CoinIn = new List<IMyTerminalBlock>();
                 GridTerminalSystem.GetBlocksOfType(CoinIn, (IMyTerminalBlock x) => (
                                                                                        (x.CustomName != null) &&
-                                                                                       (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + "COINS]") >= 0) &&
+                                                                                       (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + ".COINS]") >= 0) &&
                                                                                        (x.HasInventory)
                                                                                       ));
                 Echo("Found " + CoinIn.Count + " coin in");
                 if (CoinIn.Count != 1) {
-                    Echo("ERROR: Game has space credit cost but no cargo container tagged [" + mytag + "COINS]");
+                    Echo("ERROR: Game has space credit cost but no cargo container tagged [" + mytag + ".COINS]");
                     return;
                 } else {
                     coinInInv = CoinIn[0].GetInventory(0);
@@ -181,7 +183,7 @@ speed=40000
             // Game init
             // ---------------------------------------------------------------------------
             // Get all the LCDs we are going to output to
-            displays = jlcd.GetLCDsWithTag(mytag + "SCREEN");
+            displays = jlcd.GetLCDsWithTag(mytag + ".SCREEN");
             Echo("Found " + displays.Count + " displays");
 
             // Note width/height reversed as screen is rotated 90%
@@ -191,13 +193,13 @@ speed=40000
             jlcd.InitializeLCDs(displays, TextAlignment.LEFT);
 
             // Tollerate an fps LCD
-            fpsdisplays = jlcd.GetLCDsWithTag(mytag + "FPS");
+            fpsdisplays = jlcd.GetLCDsWithTag(mytag + ".FPS");
             jlcd.InitializeLCDs(fpsdisplays, TextAlignment.CENTER);
             jlcd.SetupFontCustom(fpsdisplays, 1, 2, false, 0.25F, 0.25F);
             Echo("Found " + fpsdisplays.Count + " fpsdisplays");
 
             // Tollerate an fps LCD
-            namedisplays = jlcd.GetLCDsWithTag(mytag + "NAME");
+            namedisplays = jlcd.GetLCDsWithTag(mytag + ".NAME");
             jlcd.InitializeLCDs(namedisplays, TextAlignment.CENTER);
             jlcd.SetupFontCustom(namedisplays, 1, 8, false, 0.25F, 0.25F);
             Echo("Found " + namedisplays.Count + " namedisplays");
@@ -239,7 +241,7 @@ speed=40000
                                                                                        (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + "]") >= 0) &&
                                                                                        (x.CustomName.ToUpper().IndexOf(argument.ToUpper()) >= 0)
                                                                                       ));
-                jdbg.Debug("Found " + gameData.Count + " game block with contents  [" + mytag + "]");
+                jdbg.Debug("Found " + gameData.Count + " game block with contents  [" + mytag + "] " + argument);
                 if (gameData.Count != 1) {
                     errorMessage = "Could not find block with name '[" + mytag + "] " + argument + "')";
                 } else {

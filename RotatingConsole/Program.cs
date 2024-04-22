@@ -159,7 +159,7 @@ namespace IngameScript
                 List<IMyProjector> consoles = new List<IMyProjector>();
                 GridTerminalSystem.GetBlocksOfType(consoles, (IMyProjector x) => (
                                                                                        (x is IMyProjector) &&
-                                                                                       (x.CustomName.ToUpper().IndexOf("[" + mytag + "]") >= 0) &&
+                                                                                       (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + "]") >= 0) &&
                                                                                        (x.CubeGrid.Equals(Me.CubeGrid))
                                                                                       ));
                 jdbg.Debug("Found " + consoles.Count + " consoles with the tag");

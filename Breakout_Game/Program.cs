@@ -26,6 +26,7 @@ using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI.Ingame.Utilities;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
+using static IngameScript.Program;
 
 // TODO: Use JLCD for display/font selection and colours
 
@@ -35,14 +36,18 @@ namespace IngameScript
     {
 
         // ----------------------------- CUT -------------------------------------
-        //String thisScript = "Breakout_Game";
+        String thisScript = "Breakout_Game";
 
         // Development time flags
         public bool debug = false;
         bool stayRunning = true;
-        //String thisScript = "TestSpace";
         bool dontdie = false;
         bool allowspeed = false;
+
+        // Private variables
+        private JDBG jdbg = null;
+        private JINV jinv = null;
+        private JLCD jlcd = null;
 
         // My configuration
         /* Example custom data in programming block:
@@ -50,22 +55,15 @@ namespace IngameScript
 tag=GAME
         */
 
-        const char cYELLOW = '';
-        const char cRED = '';
-        const char cORANGE = '';
-        const char cGREEN = '';
-        const char cCYAN = '';
-        const char cPURPLE = '';
-        const char cBLUE = '';
-        const char cWHITE = '';
-        const char cBLACK = '';
-        const char cBALL = cBLUE;
+        // Ball colour
+        const char cBALL = JLCD.COLOUR_BLUE;
 
         // My configuration
         //int refreshSpeed = 5;                       // Default to 5 seconds if not provided
         String mytag = "IDONTCARE";
         //String alerttag = "ALERT";
         IMyShipController controller = null;
+        List<IMyTerminalBlock> drawLCDs = null;
         IMyTextSurface lcdscreen = null;
 
         // Game config
@@ -102,6 +100,11 @@ tag=GAME
         // ---------------------------------------------------------------------------
         public Program()
         {
+            jdbg = new JDBG(this, debug);
+            jlcd = new JLCD(this, jdbg, false);
+            jinv = new JINV(jdbg);
+            jlcd.UpdateFullScreen(Me, thisScript);
+
             // Run every 100 ticks, but relies on internal check to only actually
             // perform on a defined frequency
             if (stayRunning)
@@ -122,51 +125,28 @@ tag=GAME
             if (mytag != null)
             {
                 mytag = (mytag.Split(';')[0]).Trim();
-                Echo("Using tag of " + mytag);
+                jdbg.DebugAndEcho("Using tag of " + mytag);
             }
             else
             {
-                Echo("No tag configured\nPlease add [config] for tag=<substring>");
+                jdbg.DebugAndEcho("No tag configured\nPlease add [config] for tag=<substring>");
                 return;
             }
 
             // ---------------------------------------------------------------------------
             // Find the screens to output to
             // ---------------------------------------------------------------------------
-            List<IMyTerminalBlock> drawLCDs = new List<IMyTerminalBlock>();
-            GridTerminalSystem.GetBlocksOfType(drawLCDs, (IMyTerminalBlock x) => (
-                                                                                   (x.CustomName != null) &&
-                                                                                   (x.CustomName.IndexOf("[" + mytag + "SCREEN]") >= 0) &&
-                                                                                   (x is IMyTextSurfaceProvider)
-                                                                                  ));
-            Echo("Found " + drawLCDs.Count + " screens");
-
-            if (drawLCDs.Count > 0)
-            {
-                foreach (var thisblock in drawLCDs)
-                {
-                    IMyTextSurface thisLCD = ((IMyTextSurfaceProvider)thisblock).GetSurface(0);
-                    Debug("- " + thisblock.CustomName);
-                    if ((thisLCD != null) && (lcdscreen == null))
-                    {
-                        thisLCD.Font = "Monospace";
-                        thisLCD.ContentType = ContentType.TEXT_AND_IMAGE;
-                        thisLCD.TextPadding = 0;
-                        thisLCD.BackgroundColor = Color.Black;
-                        thisLCD.ChangeInterval = 1;
-                        lcdscreen = thisLCD;
-                    }
-                }
-                if (drawLCDs.Count > 1)
-                {
-                    Echo("Too many screens");
-                    return;
-                }
-            }
-            else if (drawLCDs.Count == 0)
-            {
-                Echo("No screen");
+            List<IMyTerminalBlock> drawLCDs = jlcd.GetLCDsWithTag("[" + mytag.ToUpper() + ".SCREEN]");
+            jdbg.DebugAndEcho("Found " + drawLCDs.Count + " screens");
+            if (drawLCDs.Count > 1) {
+                jdbg.DebugAndEcho("ERROR: Too many screens");
                 return;
+            }  else if (drawLCDs.Count == 0) {
+                jdbg.DebugAndEcho("ERROR: No screen");
+                return;
+            } else {
+                jlcd.InitializeLCDs(drawLCDs, TextAlignment.CENTER);
+                lcdscreen = ((IMyTextSurfaceProvider)drawLCDs[0]).GetSurface(0);
             }
 
             // ---------------------------------------------------------------------------
@@ -175,25 +155,24 @@ tag=GAME
             List<IMyTerminalBlock> Controllers = new List<IMyTerminalBlock>();
             GridTerminalSystem.GetBlocksOfType(Controllers, (IMyTerminalBlock x) => (
                                                                                    (x.CustomName != null) &&
-                                                                                   (x.CustomName.IndexOf("[" + mytag + "SEAT]") >= 0) &&
+                                                                                   (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + ".SEAT]") >= 0) &&
                                                                                    (x is IMyShipController)
                                                                                   ));
-            Echo("Found " + Controllers.Count + " controllers");
-
+            jdbg.DebugAndEcho("Found " + Controllers.Count + " controllers");
             if (Controllers.Count > 0) {
                 foreach (var thisblock in Controllers)
                 {
-                    Debug("- " + thisblock.CustomName);
+                    jdbg.Debug("- " + thisblock.CustomName);
                 }
                 if (Controllers.Count > 1)
                 {
-                    Echo("Too many controllers");
+                    jdbg.DebugAndEcho("ERROR: Too many controllers");
                     return;
                 }
                 controller = (IMyShipController) Controllers[0];
             }
             else if (Controllers.Count == 0) {
-                Echo("No controllers"); 
+                jdbg.DebugAndEcho("ERROR: No controllers"); 
                 return;
             }
 
@@ -201,48 +180,14 @@ tag=GAME
             // Game initialization
             // ---------------------------------------------------------------------------
             colSizeChars = (cols + 1);  // Space for \n
-            brickColours = new char[]{ cRED, cORANGE, cYELLOW, cGREEN };
+            brickColours = new char[]{ JLCD.COLOUR_RED, JLCD.COLOUR_ORANGE, JLCD.COLOUR_YELLOW, JLCD.COLOUR_GREEN };
 
             // Work out the font size so we fill the screen
-            StringBuilder teststr = new StringBuilder("".PadRight(cols, cBLACK));
-
-            float size = 0.05F;
-            float incr = 0.05F;
-
-            float bestWidth = 0;
-
-            Echo("Calculating screen size");
-            Echo("Tex: " + lcdscreen.TextureSize.ToString());
-            Echo("Act: " + lcdscreen.SurfaceSize.ToString());
-            lcdscreen.FontSize += 0.5F;
-            Echo("Tex: " + lcdscreen.TextureSize.ToString());
-            Echo("Act: " + lcdscreen.SurfaceSize.ToString());
-
-            while (true)
-            {
-                lcdscreen.FontSize = size;
-                Vector2 actualSize = lcdscreen.TextureSize;
-
-                Vector2 thisSize = lcdscreen.MeasureStringInPixels(teststr, lcdscreen.Font, size);
-                Echo("with size " + size + " width is " + thisSize.X + " max " + actualSize.X);
-
-                if ((thisSize.X > bestWidth) && (thisSize.X < actualSize.X))
-                {
-                    size += incr;
-                }
-                else
-                {
-                    break;
-                }
-            }
-            lcdscreen.FontSize = size;
-            bestFontSize = size;
-            Vector2 actualScreenSize = lcdscreen.TextureSize;
-            Vector2 finalSize = lcdscreen.MeasureStringInPixels(teststr, lcdscreen.Font, size);
-            rows = (int)Math.Floor(actualScreenSize.Y / finalSize.Y);
+            rows = jlcd.SetupFontWidthOnly(drawLCDs, cols, true);
+            bestFontSize = lcdscreen.FontSize;
             batRow = rows - 2;
-            Echo("Screen is " + cols + " big");
-            thisScreen = new StringBuilder("".PadLeft((rows * colSizeChars), cBLACK));
+            jdbg.DebugAndEcho("Screen is " + cols + " big");
+            thisScreen = new StringBuilder("".PadLeft((rows * colSizeChars), JLCD.COLOUR_BLACK));
             DisplayGameOver();
         }
 
@@ -339,18 +284,7 @@ tag=GAME
         // ---------------------------------------------------------------------------
         void DrawLCD(String screenContents)
         {
-            lcdscreen.WriteText(screenContents, false);  // false == clear screen
-        }
-
-        // ---------------------------------------------------------------------------
-        // Simple wrapper to decide whether to output to the console or not
-        // ---------------------------------------------------------------------------
-        void Debug(String str)
-        {
-            if (debug)
-            {
-                Echo("D:" + str);
-            }
+            jlcd.WriteToAllLCDs(drawLCDs, screenContents, false);
         }
 
         // ---------------------------------------------------------------------------
@@ -362,8 +296,8 @@ tag=GAME
             Vector2 newLocation = ball + (ballDirection * ballSpeed);
 
             // See if leaving screen, if so bounce back
-            //Debug("cols: " + cols + ", rows: " + rows);
-            //Debug("1:" + (int)oldLocation.X + "," + (int)oldLocation.Y + " -> " + (int)newLocation.X + "," + (int)newLocation.Y);
+            //jdbg.Debug("cols: " + cols + ", rows: " + rows);
+            //jdbg.Debug("1:" + (int)oldLocation.X + "," + (int)oldLocation.Y + " -> " + (int)newLocation.X + "," + (int)newLocation.Y);
             if ((newLocation.X < 0) || (newLocation.X >= cols))
             {
                 ballDirection.X = -ballDirection.X;
@@ -399,23 +333,23 @@ tag=GAME
                 }
                 return;
             }
-            //Debug("2:" + (int)oldLocation.X + "," + (int)oldLocation.Y + " -> " + (int)newLocation.X + "," + (int)newLocation.Y);
+            //jdbg.Debug("2:" + (int)oldLocation.X + "," + (int)oldLocation.Y + " -> " + (int)newLocation.X + "," + (int)newLocation.Y);
 
 
             // If changed spot, remove old char and replace with new char
             int cx = (int)(newLocation.X);
             int cy = (int)(newLocation.Y);
-            //Debug("4:" + cx + "," + cy);
+            //jdbg.Debug("4:" + cx + "," + cy);
 
 
             // Whats at that spot on the screen?
             char newSpace = thisScreen[(cy * colSizeChars) + cx];
             switch (newSpace)
             {
-                case cBLACK: // Empty space - NOOP
+                case JLCD.COLOUR_BLACK: // Empty space - NOOP
                 case cBALL:  // Didnt leave space - NOOP
                     break;
-                case cWHITE: // Bounce off paddle
+                case JLCD.COLOUR_WHITE: // Bounce off paddle
                     ballDirection.Y = -ballDirection.Y;
                     newLocation.Y += (ballDirection.Y * ballSpeed);
 
@@ -449,7 +383,7 @@ tag=GAME
                     // Remove it...
                     for (int i = 0; i<brickLength; i++)
                     {
-                        thisScreen[(cy * colSizeChars) + brickStart + i] = cBLACK;
+                        thisScreen[(cy * colSizeChars) + brickStart + i] = JLCD.COLOUR_BLACK;
                     }
                     bricksLeft -= 1;
 
@@ -513,11 +447,11 @@ tag=GAME
             {
                 if ((j >= batStart) && (j <= batStart + batLength))
                 {
-                    thisScreen[(batRow * colSizeChars) + j] = cWHITE;
+                    thisScreen[(batRow * colSizeChars) + j] = JLCD.COLOUR_WHITE;
                 }
                 else
                 {
-                    thisScreen[(batRow * colSizeChars) + j] = cBLACK;
+                    thisScreen[(batRow * colSizeChars) + j] = JLCD.COLOUR_BLACK;
                 }
             }
         }
@@ -552,7 +486,7 @@ tag=GAME
             if (remove)
             {
                 // Remove it from the old location
-                thisScreen[((int)oldLocation.Y * colSizeChars) + (int)oldLocation.X] = cBLACK;
+                thisScreen[((int)oldLocation.Y * colSizeChars) + (int)oldLocation.X] = JLCD.COLOUR_BLACK;
             }
 
             if (add)
@@ -577,7 +511,7 @@ tag=GAME
             {
                 for (int j = 0; j < cols; j++)
                 {
-                    thisScreen[idx++] = cBLACK;
+                    thisScreen[idx++] = JLCD.COLOUR_BLACK;
                 }
                 thisScreen[idx++] = '\n';
             }

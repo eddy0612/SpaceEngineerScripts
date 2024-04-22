@@ -24,7 +24,7 @@ namespace IngameScript
 {
     partial class Program : MyGridProgram
     {
-        //String thisScript = "ControllerTesting";
+        String thisScript = "ControllerTesting";
 
         // Development or user config time flags
         bool debug = true;  
@@ -44,6 +44,7 @@ namespace IngameScript
             jdbg = new JDBG(this, debug);
             jlcd = new JLCD(this, jdbg, false);
             jctrl = new JCTRL(this, jdbg, false);
+            jlcd.UpdateFullScreen(Me, thisScript);
 
             // ---------------------------------------------------------------------------
             // Get my custom data and parse to get the config
@@ -70,7 +71,7 @@ namespace IngameScript
             List<IMyTerminalBlock> Controllers = new List<IMyTerminalBlock>();
             GridTerminalSystem.GetBlocksOfType(Controllers, (IMyTerminalBlock x) => (
                                                                                    (x.CustomName != null) &&
-                                                                                   (x.CustomName.IndexOf("[" + mytag + "SEAT]") >= 0) &&
+                                                                                   (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + ".SEAT]") >= 0) &&
                                                                                    (x is IMyShipController)
                                                                                   ));
             Echo("Found " + Controllers.Count + " controllers");
@@ -80,28 +81,27 @@ namespace IngameScript
                     jdbg.Debug("- " + thisblock.CustomName);
                 }
                 if (Controllers.Count > 1) {
-                    Echo("Too many controllers");
+                    jdbg.DebugAndEcho("ERROR: Too many controllers");
                     return;
                 }
                 controller = (IMyShipController)Controllers[0];
             } else if (Controllers.Count == 0) {
-                Echo("No controllers");
+                jdbg.DebugAndEcho("ERROR: No controllers");
                 return;
             }
 
             // Get all the LCDs we are going to output to
-            displays = jlcd.GetLCDsWithTag(mytag + "SCREEN");
+            displays = jlcd.GetLCDsWithTag(mytag + ".SCREEN");
             Echo("Found " + displays.Count + " displays");
 
-            // Note width/height reversed as screen is rotated 90%
-            jlcd.SetupFontCustom(displays, 40, 80, false, 0.001F, 0.001F);
+            // Set a reasonable font
+            jlcd.SetupFontCustom(displays, 20, 40, false, 0.001F, 0.001F);
 
             // Initialize the LCDs
             jlcd.InitializeLCDs(displays, TextAlignment.LEFT);
 
             // Run every tick
             Runtime.UpdateFrequency = UpdateFrequency.Update1;
-
         }
 
         public void Save()
@@ -183,7 +183,6 @@ namespace IngameScript
                 screen += "\n";
             }
             jlcd.WriteToAllLCDs(displays, screen, false);
-
         }
     }
 }

@@ -31,7 +31,7 @@ All feedback welcome, please use the discussion area
 
 ## Installation instructions
 
-1. Create empty programmable block named "[GAMEPGM] Block". Add this script to it, and modify the custom data to say:
+1. Create empty programmable block named "[GAME.PGM] Block". Add this script to it, and modify the custom data to say:
 
 ```
     [config]
@@ -39,11 +39,11 @@ All feedback welcome, please use the discussion area
 ```
 
 + Note: (The prefix `GAME` is used for these instructions, you can use what you like)
-2. Add an LCD, and name it "[GAMESCREEN] LCD"
+2. Add an LCD, and name it "[GAME.SCREEN] LCD"
 3. Add something that controls a ship in front of it, eg a cockpit or even better a helm - A 
-   good idea to place it where you can see the screen!. Name it "[GAMESEAT] Controller". Sit in 
+   good idea to place it where you can see the screen!. Name it "[GAME.SEAT] Controller". Sit in 
    that cockpit, and press <tab> until the HUD is clear.
-4. While still in that seat, Press G and type 'GAME'. Drag the '[GAMEPGM] Block' down to the 
+4. While still in that seat, Press G and type 'GAME'. Drag the '[GAME.PGM] Block' down to the 
    toolbar buttons, and chose the 'Run' option. In the popup, you can enter the parameter of the 
    filename of the game you wish to start.  I set up one button per filename, but you only need
    a single one to get it working.
@@ -118,9 +118,9 @@ expected first few characters in the table below)
 
 ## Additional options / functionality
 
-   - Tag an LCD with eg. "[GAMEFPS] fps display" and it will be updated with an approx frames per
+   - Tag an LCD with eg. "[GAME.FPS] fps display" and it will be updated with an approx frames per
        second figure
-   - Tag an LCD with eg. "[GAMENAME] name display" and it will be updated with the name of the
+   - Tag an LCD with eg. "[GAME.NAME] name display" and it will be updated with the name of the
        current game
    - Set a limit on how many cycles the game can take up - default is 45000, mas is 49000. Less 
        cycles means slower FPS.  Add to the [config] something like
@@ -128,7 +128,7 @@ expected first few characters in the table below)
    - Work like an arcade machine.. Add to the [config] something like
 		cost=5
 		safetag=SAFE
-     Now, tag one cargo container near the machine with [GAMECOINS] Coin In, and another
+     Now, tag one cargo container near the machine with [GAME.COINS] Coin In, and another
        (which is connected via a conveyor, ideally with a one way sorter to stop things being
         removed!) as [SAFE] Coins Safe
      If cost is >0 then 'q' will no longer act as coin in, instead drop the space credits as a single

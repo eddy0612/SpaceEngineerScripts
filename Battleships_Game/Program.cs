@@ -139,6 +139,7 @@ namespace IngameScript
             jlcd = new JLCD(this, jdbg, true);
             jinv = new JINV(jdbg);
             jctrl = new JCTRL(this, jdbg, true);
+            jlcd.UpdateFullScreen(Me, thisScript);
 
             // ---------------------------------------------------------------------------
             // Get my custom data and parse to get the config
@@ -162,33 +163,33 @@ namespace IngameScript
             // We need to find one or two seats tagSEAT(2) and one or two LCDs tagSCREEN(2)
             // If only one seat or one LCD, then will play in single player
             // ---------------------------------------------------------------------------
-            p1LCDs = jlcd.GetLCDsWithTag(mytag + "SCREEN");
+            p1LCDs = jlcd.GetLCDsWithTag(mytag + ".SCREEN");
             if (p1LCDs.Count == 0) {
-                Echo("ERROR: No screen found. Please tag a screen with " + mytag + "SCREEN");
-                throw new Exception("No screens found with tag " + mytag + "SCREEN");
+                Echo("ERROR: No screen found. Please tag a screen with " + mytag + ".SCREEN");
+                throw new Exception("No screens found with tag " + mytag + ".SCREEN");
             }
-            p2LCDs = jlcd.GetLCDsWithTag(mytag + "SCREEN2");
+            p2LCDs = jlcd.GetLCDsWithTag(mytag + ".SCREEN2");
             if (p2LCDs.Count == 0) {
                 jdbg.DebugAndEcho("No screen found for player 2 - setting as one player game only");
                 canBeTwoPlayer = false;
             }
             jdbg.DebugAndEcho("Found " + p1LCDs.Count + " p1 LCDs and " + p2LCDs.Count + " p2 LCDs");
 
-            List<IMyTerminalBlock> p1CTRLs = jctrl.GetCTRLsWithTag(mytag + "SEAT");
+            List<IMyTerminalBlock> p1CTRLs = jctrl.GetCTRLsWithTag(mytag + ".SEAT");
             if (p1CTRLs.Count != 1) {
-                Echo("ERROR: " + p1CTRLs.Count + " controllers found for player 1. Please tag a seat with " + mytag + "SEAT");
-                throw new Exception("Could not identify controller for p1 with tag " + mytag + "SEAT");
+                Echo("ERROR: " + p1CTRLs.Count + " controllers found for player 1. Please tag a seat with " + mytag + ".SEAT");
+                throw new Exception("Could not identify controller for p1 with tag " + mytag + ".SEAT");
             } else {
                 p1Ctrl = (IMyShipController)p1CTRLs[0];
             }
 
-            List<IMyTerminalBlock> p2CTRLs = jctrl.GetCTRLsWithTag(mytag + "SEAT2");
+            List<IMyTerminalBlock> p2CTRLs = jctrl.GetCTRLsWithTag(mytag + ".SEAT2");
             if (p2CTRLs.Count == 0) {
                 jdbg.DebugAndEcho("No seat found for player 2 - setting as one player game only");
                 canBeTwoPlayer = false;
             } else if (p2CTRLs.Count > 1) {
-                Echo("ERROR: " + p1CTRLs.Count + " controllers found for player 1. Please tag only 1 seat with " + mytag + "SEAT2");
-                throw new Exception("Could not identify controller for p2 with tag " + mytag + "SEAT2");
+                Echo("ERROR: " + p1CTRLs.Count + " controllers found for player 1. Please tag only 1 seat with " + mytag + ".SEAT2");
+                throw new Exception("Could not identify controller for p2 with tag " + mytag + ".SEAT2");
             } else {
                 p2Ctrl = (IMyShipController)p2CTRLs[0];
             }

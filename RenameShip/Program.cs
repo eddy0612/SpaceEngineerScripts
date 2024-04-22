@@ -118,7 +118,7 @@ namespace IngameScript
                 List<IMyTerminalBlock> connectors = new List<IMyTerminalBlock>();
                 GridTerminalSystem.GetBlocksOfType(connectors, (IMyTerminalBlock x) => (
                                                                                        (x is IMyShipConnector) &&
-                                                                                       (x.CustomName.ToUpper().IndexOf("[" + mytag + "]") >= 0) &&
+                                                                                       (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + "]") >= 0) &&
                                                                                        (x.CubeGrid.Equals(Me.CubeGrid))
                                                                                       ));
                 jdbg.Debug("Found " + connectors.Count + " connectors with the tag");
@@ -148,7 +148,7 @@ namespace IngameScript
                 List<IMyTerminalBlock> but4panels = new List<IMyTerminalBlock>();
                 GridTerminalSystem.GetBlocksOfType(but4panels, (IMyTerminalBlock x) => (
                                                                                        (x is IMyTextSurfaceProvider) &&
-                                                                                       (x.CustomName.ToUpper().IndexOf("[" + mytag + "]") >= 0) &&
+                                                                                       (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + "]") >= 0) &&
                                                                                        (x.CubeGrid.Equals(Me.CubeGrid)) &&
                                                                                        (((IMyTextSurfaceProvider)x).SurfaceCount == 4)
                                                                                       ));

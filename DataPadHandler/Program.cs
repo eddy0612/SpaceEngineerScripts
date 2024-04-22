@@ -23,7 +23,6 @@ using VRage.Game.ModAPI.Ingame.Utilities;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
 
-
 namespace IngameScript
 {
     partial class Program : MyGridProgram

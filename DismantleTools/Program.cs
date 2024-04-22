@@ -79,6 +79,7 @@ handdrill=2
             jdbg = new JDBG(this, debug);
             jlcd = new JLCD(this, jdbg, false);
             jinv = new JINV(jdbg);
+            jlcd.UpdateFullScreen(Me, thisScript);
 
             // Run every 100 ticks, but relies on internal check to only actually
             // perform on a defined frequency
@@ -208,7 +209,7 @@ handdrill=2
                 List<IMyTerminalBlock> allInventories = new List<IMyTerminalBlock>();
                 GridTerminalSystem.GetBlocksOfType(allInventories, (IMyTerminalBlock x) => (x.HasInventory &&
                                                                                      (x.CustomName.ToUpper().IndexOf("[LOCKED]") < 0) &&
-                                                                                     (x.CustomName.ToUpper().IndexOf("[" + disasmtag + "]") < 0)
+                                                                                     (x.CustomName.ToUpper().IndexOf("[" + disasmtag.ToUpper() + "]") < 0)
                                                                                       ));
                 jdbg.Debug("Found " + allInventories.Count + " blocks with inventories to investigate");
                 

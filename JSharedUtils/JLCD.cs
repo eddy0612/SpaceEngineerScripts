@@ -32,16 +32,16 @@ namespace IngameScript
             };
 
             // Useful for direct code
-            public static char COLOUR_YELLOW = '';
-            public static char COLOUR_RED = '';
-            public static char COLOUR_ORANGE = '';
-            public static char COLOUR_GREEN = '';
-            public static char COLOUR_CYAN = '';
-            public static char COLOUR_PURPLE = '';
-            public static char COLOUR_BLUE = '';
-            public static char COLOUR_WHITE = '';
-            public static char COLOUR_BLACK = '';
-            public static char COLOUR_GREY = '';
+            public const char COLOUR_YELLOW = '';
+            public const char COLOUR_RED = '';
+            public const char COLOUR_ORANGE = '';
+            public const char COLOUR_GREEN = '';
+            public const char COLOUR_CYAN = '';
+            public const char COLOUR_PURPLE = '';
+            public const char COLOUR_BLUE = '';
+            public const char COLOUR_WHITE = '';
+            public const char COLOUR_BLACK = '';
+            public const char COLOUR_GREY = '';
 
             public JLCD(MyGridProgram pgm, JDBG dbg, bool suppressDebug)
             {
@@ -125,15 +125,22 @@ namespace IngameScript
             // ---------------------------------------------------------------------------
             public void SetupFont(List<IMyTerminalBlock> allLCDs, int rows, int cols, bool mostlySpecial)
             {
-                SetupFontCalc(allLCDs, rows, cols, mostlySpecial, 0.05F, 0.05F);
+                _SetupFontCalc(allLCDs, ref rows, cols, mostlySpecial, 0.05F, 0.05F);
+            }
+            public int SetupFontWidthOnly(List<IMyTerminalBlock> allLCDs, int cols, bool mostlySpecial)
+            {
+                int rows = -1;
+                _SetupFontCalc(allLCDs, ref rows, cols, mostlySpecial, 0.05F, 0.05F);
+                return rows;
             }
             public void SetupFontCustom(List<IMyTerminalBlock> allLCDs, int rows, int cols, bool mostlySpecial, float size, float incr)
             {
-                SetupFontCalc(allLCDs, rows, cols, mostlySpecial, size,incr);
+                _SetupFontCalc(allLCDs, ref rows, cols, mostlySpecial, size,incr);
             }
 
-            public void SetupFontCalc(List<IMyTerminalBlock> allLCDs, int rows, int cols, bool mostlySpecial, float startSize, float startIncr)
+            private void _SetupFontCalc(List<IMyTerminalBlock> allLCDs, ref int rows, int cols, bool mostlySpecial, float startSize, float startIncr)
             {
+                int bestRows = rows;
                 foreach (var thisLCD in allLCDs)
                 {
                     jdbg.Debug("Setting up font on screen: " + thisLCD.CustomName + " (" + rows + " x " + cols + ")");
@@ -158,9 +165,10 @@ namespace IngameScript
 
                         int displayrows = (int)Math.Floor(actualScreenSize.Y / thisSize.Y);
 
-                        if ((thisSize.X < actualSize.X) && (displayrows > rows))
+                        if ((thisSize.X < actualSize.X) && (rows == -1 || (displayrows > rows)))
                         {
                             size += incr;
+                            bestRows = displayrows;
                         }
                         else
                         {
@@ -169,6 +177,9 @@ namespace IngameScript
                     }
                     thisSurface.FontSize = size - incr;
                     jdbg.Debug("Calc size of " + thisSurface.FontSize);
+
+                    /* If we were asked how many rows for given width, return it */
+                    if (rows == -1) rows = bestRows;
 
                     // BUG? Corner LCDs are a factor of 4 out - no idea why but try *4
                     if (thisLCD.DefinitionDisplayNameText.Contains("Corner LCD")) {

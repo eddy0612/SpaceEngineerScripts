@@ -103,7 +103,7 @@ namespace IngameScript
                 List<IMyTerminalBlock> allBlocksWithLCDs = new List<IMyTerminalBlock>();
                 mypgm.GridTerminalSystem.GetBlocksOfType(allBlocksWithLCDs, (IMyTerminalBlock x) => (
                                                                                           (x.CustomName != null) &&
-                                                                                          (x.CustomName.IndexOf("[" + alertTag + "]") >= 0) &&
+                                                                                          (x.CustomName.ToUpper().IndexOf("[" + alertTag.ToUpper() + "]") >= 0) &&
                                                                                           (x is IMyTextSurfaceProvider)
                                                                                          ));
                 DebugAndEcho("Found " + allBlocksWithLCDs.Count + " lcds with '" + alertTag + "' to alert to");

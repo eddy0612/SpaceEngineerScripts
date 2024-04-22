@@ -95,6 +95,7 @@ format=short  (or long)
             jdbg = new JDBG(this, debug);
             jlcd = new JLCD(this, jdbg, false);
             jinv = new JINV(jdbg);
+            jlcd.UpdateFullScreen(Me, thisScript);
 
             // Run every 100 ticks, but relies on internal check to only actually
             // perform on a defined frequency
