@@ -8,16 +8,19 @@
  * 
  * Instructions
  * ------------
- * 1. Create a programmable block, name it something likr `[GAMEPGM]`. Add custom data as follows - the value of the tag can be anything but you need to use it consistently everywhere as a prefix
+ * 1. Create a programmable block, name it something like `[GAME.PGM]`. Add custom data as follows - the value of the tag can be anything but you need to use it consistently everywhere as a prefix
  * 
  * ```
  * [config]
  * tag=game
  * ```
  * 
- * 2. Create an LCD, change its name to `[GAMESCREEN] Player1 lcd`  (only the tag [..] bit is important)
- * 3. In front of that add either a helm or cockpit, but in such a way that when in the cockpit you can see the whole screen. Change its name to `[GAMESEAT] Player1`
+ * 2. Create an LCD, change its name to `[GAME.SCREEN] Player1 lcd`  (only the tag [..] bit is important)
+ * 3. In front of that add either a helm or cockpit, but in such a way that when in the cockpit you can see the whole screen. Change its 
+ *        name to `[GAME.SEAT] Player1`
  * 4. Add the script to the programmable block, recompile and run.
+ * 5. Configure the helms buttons, drag the GAME programmable block down, select run and enter `START` as thge parameter
+ * 6. Launch the game by pressing that button
  * 
  * Controls
  * --------
@@ -96,13 +99,7 @@ public Program()
     jlcd = new JLCD(this, jdbg, false);
     jinv = new JINV(jdbg);
     jlcd.UpdateFullScreen(Me, thisScript);
-
-    // Run every 100 ticks, but relies on internal check to only actually
-    // perform on a defined frequency
-    if (stayRunning)
-    {
-        Runtime.UpdateFrequency = UpdateFrequency.Update1;
-    }
+    jdbg.ClearDebugLCDs();
 
     // ---------------------------------------------------------------------------
     // Get my custom data and parse to get the config
@@ -128,7 +125,7 @@ public Program()
     // ---------------------------------------------------------------------------
     // Find the screens to output to
     // ---------------------------------------------------------------------------
-    List<IMyTerminalBlock> drawLCDs = jlcd.GetLCDsWithTag("[" + mytag.ToUpper() + ".SCREEN]");
+    drawLCDs = jlcd.GetLCDsWithTag(mytag.ToUpper() + ".SCREEN");
     jdbg.DebugAndEcho("Found " + drawLCDs.Count + " screens");
     if (drawLCDs.Count > 1) {
         jdbg.DebugAndEcho("ERROR: Too many screens");
@@ -181,6 +178,12 @@ public Program()
     jdbg.DebugAndEcho("Screen is " + cols + " big");
     thisScreen = new StringBuilder("".PadLeft((rows * colSizeChars), JLCD.COLOUR_BLACK));
     DisplayGameOver();
+
+    // Run every 100 ticks, but relies on internal check to only actually
+    // perform on a defined frequency
+    if (stayRunning) {
+        Runtime.UpdateFrequency = UpdateFrequency.Update1;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -495,7 +498,7 @@ void initializeLevel(int lvlNumber)
 {
     lives = 3;
     lcdscreen.FontSize = bestFontSize;
-    lcdscreen.Alignment = TextAlignment.LEFT;
+    lcdscreen.Alignment = TextAlignment.CENTER;
 
     // Clear the screen completely
     int idx = 0;
@@ -528,7 +531,6 @@ void initializeLevel(int lvlNumber)
             col++; // Spacer which is black from above
         }
     }
-
     initializeBatAndBall(lvlNumber);
 }
 
