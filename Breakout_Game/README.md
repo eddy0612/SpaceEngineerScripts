@@ -18,6 +18,8 @@ tag=game
 3. In front of that add either a helm or cockpit, but in such a way that when in the cockpit you can see the whole screen. Change its 
        name to `[GAME.SEAT] Player1`
 4. Add the script to the programmable block, recompile and run.
+5. Configure the helms buttons, drag the GAME programmable block down, select run and enter `START` as the parameter
+6. Launch the game by pressing that button
 
 Controls
 --------

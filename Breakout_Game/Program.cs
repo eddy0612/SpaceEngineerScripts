@@ -1,5 +1,4 @@
-﻿using EmptyKeys.UserInterface.Generated.DataTemplatesStoreBlock_Bindings;
-using Sandbox.Engine.Platform;
+﻿using Sandbox.Engine.Platform;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI.Ingame;
 using Sandbox.ModAPI.Interfaces;
@@ -26,9 +25,6 @@ using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI.Ingame.Utilities;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRageMath;
-using static IngameScript.Program;
-
-// TODO: Use JLCD for display/font selection and colours
 
 namespace IngameScript
 {
@@ -104,13 +100,7 @@ tag=GAME
             jlcd = new JLCD(this, jdbg, false);
             jinv = new JINV(jdbg);
             jlcd.UpdateFullScreen(Me, thisScript);
-
-            // Run every 100 ticks, but relies on internal check to only actually
-            // perform on a defined frequency
-            if (stayRunning)
-            {
-                Runtime.UpdateFrequency = UpdateFrequency.Update1; 
-            }
+            jdbg.ClearDebugLCDs();
 
             // ---------------------------------------------------------------------------
             // Get my custom data and parse to get the config
@@ -136,7 +126,7 @@ tag=GAME
             // ---------------------------------------------------------------------------
             // Find the screens to output to
             // ---------------------------------------------------------------------------
-            List<IMyTerminalBlock> drawLCDs = jlcd.GetLCDsWithTag("[" + mytag.ToUpper() + ".SCREEN]");
+            drawLCDs = jlcd.GetLCDsWithTag(mytag.ToUpper() + ".SCREEN");
             jdbg.DebugAndEcho("Found " + drawLCDs.Count + " screens");
             if (drawLCDs.Count > 1) {
                 jdbg.DebugAndEcho("ERROR: Too many screens");
@@ -189,6 +179,12 @@ tag=GAME
             jdbg.DebugAndEcho("Screen is " + cols + " big");
             thisScreen = new StringBuilder("".PadLeft((rows * colSizeChars), JLCD.COLOUR_BLACK));
             DisplayGameOver();
+
+            // Run every 100 ticks, but relies on internal check to only actually
+            // perform on a defined frequency
+            if (stayRunning) {
+                Runtime.UpdateFrequency = UpdateFrequency.Update1;
+            }
         }
 
         // ---------------------------------------------------------------------------
@@ -503,7 +499,7 @@ tag=GAME
         {
             lives = 3;
             lcdscreen.FontSize = bestFontSize;
-            lcdscreen.Alignment = TextAlignment.LEFT;
+            lcdscreen.Alignment = TextAlignment.CENTER;
 
             // Clear the screen completely
             int idx = 0;
@@ -536,7 +532,6 @@ tag=GAME
                     col++; // Spacer which is black from above
                 }
             }
-
             initializeBatAndBall(lvlNumber);
         }
 
