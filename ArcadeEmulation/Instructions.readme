@@ -48,23 +48,40 @@ All feedback welcome, please use the discussion area
    filename of the game you wish to start.  I set up one button per filename, but you only need
    a single one to get it working.
 5. Obtain the rom(s) you can play (from the list below) from the internet. A search on MAME with 
-   filename is usually a good hit, see below
+   filename is usually a good hit, see below. Remember what directory you saved the ROM under,
+   which on windows is usually something like `c:\users\myuserid\downloads`
 + NOTE: You need the EXACT names listed below for this to work, similar files will not be
    handled correctly and will not work
 
-EITHER Step 6 using python:
+-------------------------------------
+EITHER Step 6 using python...
+   You need to have manually installed python first from https://www.python.org/downloads/windows/
+   (Pick the Windows Installer (64-bit) one, and run the installer)
 
-6. Download GetRomData.py (or paste in from bottom of these instructions) and then for each game:
-			 `python3 GetRomData.py invaders.zip | clip`
+6. Download GetRomData.py (or paste in from bottom of these instructions) and save it in the same
+   directory as you saved the rom under. 
+   
++  At this point you need to use a command prompt. Launch cmd.exe... you should get a black windowed 
+    screen. In there type `cd /d "path_to_rom"` eg `cd /d "c:\users\myuser\downloads"`
++  Then for each game, run one of the following.. If the command fails, try the other one. 
+     
+			 python3 GetRomData.py invaders.zip    OR
+			 python GetRomData.py invaders.zip
 
-+ This will put a textual form of the file into the clipboard... go to step 7
++ This will create a text file alongside the zip file with the contents you need later on, eg `invaders.zip.txt`
++ Copy the contents of this text file to the clipboard, which can be simply done in the command prompt by
+      issuing `clip < invaders.zip.txt` or whatever the ROM name was.
  
-OR Step 6 using cygwin:
+-------------------------------------
+OR Step 6 using cygwin: 
 
 6. Using cygwin's unzip and base64, in a comment prompt, do the following, for example:
-			 `unzip -p invaders.zip | base64 --wrap=0 | clip`
+			 `unzip -p invaders.zip | base64 --wrap=0 > invaders.zip.txt`
 
-+ This will put a textual form of the file into the clipboard.
++ This will create a text file alongside the zip file with the contents you need later on, eg `invaders.zip.txt`
++ Copy the contents of this text file to the clipboard, which can be simply done in the command prompt by
+      issuing `clip < invaders.zip.txt` or whatever the ROM name was.
+-------------------------------------
 
 7. Now go to Space engineers, and create a block... Any block with a custom data will do but I 
 generally use control panels as they are tiny. Name them `[GAME] filename>`, eg `[GAME] invaders.zip`.
@@ -139,7 +156,7 @@ expected first few characters in the table below)
    
 #### GetRomData.py code (available at https://github.com/eddy0612/SpaceEngineerScripts/blob/master/ArcadeEmulation/GetRomData.py)
 ```
-import os,base64
+import sys,os,base64
 from zipfile import ZipFile
 def extract_zip(input_zip):
     input_zip=ZipFile(input_zip)
@@ -148,5 +165,10 @@ zip_name = os.sys.argv[1]
 zip_data = extract_zip(zip_name)
 total_data = bytearray()
 for name,allbytes in zip_data.items(): total_data = total_data + allbytes
-print( base64.b64encode(total_data).decode("utf-8"), end='', flush=True )
+f = open(str(os.sys.argv[1]) + ".txt", "w")
+f.write(base64.b64encode(total_data).decode("utf-8"))
+f.close()
+print( "File " + str(os.sys.argv[1]) + ".zip created")
+print( "On windows you can send to clipboard by issuing:")
+print( "  clip < \""+ str(os.sys.argv[1]) + ".zip\"")
 ```
