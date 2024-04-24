@@ -124,7 +124,7 @@ expected first few characters in the table below)
        second figure
    - Tag an LCD with eg. "[GAME.NAME] name display" and it will be updated with the name of the
        current game
-   - Set a limit on how many cycles the game can take up - default is 45000, mas is 49000. Less 
+   - Set a limit on how many cycles the game can take up - default is 45000, max is 49000. Less 
        cycles means slower FPS.  Add to the [config] something like
        speed=40000
    - Work like an arcade machine.. Add to the [config] something like
