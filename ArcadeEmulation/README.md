@@ -54,9 +54,11 @@ All feedback welcome, please use the discussion area
 
 EITHER Step 6 using python:
 
-6. Download GetRomData.py (or paste in from bottom of these instructions)
-			 `python3 invaders.zip | clip`
+6. Download GetRomData.py (or paste in from bottom of these instructions) and then for each game:
+			 `python3 GetRomData.py invaders.zip | clip`
 
++ This will put a textual form of the file into the clipboard.
+ 
 OR Step 6 using cygwin:
 
 6. Using cygwin's unzip and base64, in a comment prompt, do the following, for example:
