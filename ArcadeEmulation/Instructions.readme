@@ -54,9 +54,11 @@ All feedback welcome, please use the discussion area
 
 EITHER Step 6 using python:
 
-6. Download GetRomData.py (or paste in from bottom of these instructions)
-			 `python3 invaders.zip | clip`
+6. Download GetRomData.py (or paste in from bottom of these instructions) and then for each game:
+			 `python3 GetRomData.py invaders.zip | clip`
 
++ This will put a textual form of the file into the clipboard... go to step 7
+ 
 OR Step 6 using cygwin:
 
 6. Using cygwin's unzip and base64, in a comment prompt, do the following, for example:
@@ -65,7 +67,7 @@ OR Step 6 using cygwin:
 + This will put a textual form of the file into the clipboard.
 
 7. Now go to Space engineers, and create a block... Any block with a custom data will do but I 
-generally use control panels as they are tiny. Name them [GAME] <filename>, eg "[GAME] invaders.zip".
+generally use control panels as they are tiny. Name them `[GAME] filename>`, eg `[GAME] invaders.zip`.
 + In the custom data, paste in what step 6 stored in the clipboard which is a long string. (I've put the 
 expected first few characters in the table below)
 
