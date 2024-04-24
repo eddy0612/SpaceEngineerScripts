@@ -73,7 +73,9 @@ EITHER Step 6 using python...
       issuing `clip < invaders.zip.txt` or whatever the ROM name was.
  
 -------------------------------------
-OR Step 6 using cygwin: 
+OR Step 6 using cygwin... 
+   You need to have manually installed cygwin first from https://www.cygwin.com/install.html
+   (Pick the Windows x86_64 one, and run the installer)
 
 6. Using cygwin's unzip and base64, in a comment prompt, do the following, for example:
 			 `unzip -p invaders.zip | base64 --wrap=0 > invaders.zip.txt`

@@ -72,8 +72,7 @@ EITHER Step 6 using python...
 + Copy the contents of this text file to the clipboard, which can be simply done in the command prompt by
       issuing `clip < invaders.zip.txt` or whatever the ROM name was.
  
--------------------------------------
-OR Step 6 using cygwin: 
+OR Step 6 using cygwin:
 
 6. Using cygwin's unzip and base64, in a comment prompt, do the following, for example:
 			 `unzip -p invaders.zip | base64 --wrap=0 > invaders.zip.txt`
