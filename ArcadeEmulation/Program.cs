@@ -38,6 +38,7 @@ namespace IngameScript
         int Frame = 0;
         int curSec = 0;
         int curFrames = 0;
+        int actFrames = 0;
         int lastFrames = 0;
         int cost = 0;
         DateTime inserted;
@@ -95,6 +96,11 @@ speed=40000
             int maxFrames = _ini.Get("config", "speed").ToInt32(45000);
             if (maxFrames > 1000 && maxFrames < 49000) {
                 Specifics.maxFrames = maxFrames;
+            }
+
+            int renderframe = _ini.Get("config", "renderframe").ToInt32(1);
+            if (renderframe > 0 && renderframe < 60) {
+                Specifics.skipFrames = renderframe;
             }
 
             int cost = _ini.Get("config", "cost").ToInt32(0);
@@ -195,7 +201,7 @@ speed=40000
             // Tollerate an fps LCD
             fpsdisplays = jlcd.GetLCDsWithTag(mytag + ".FPS");
             jlcd.InitializeLCDs(fpsdisplays, TextAlignment.CENTER);
-            jlcd.SetupFontCustom(fpsdisplays, 1, 2, false, 0.25F, 0.25F);
+            jlcd.SetupFontCustom(fpsdisplays, 1, 8, false, 0.25F, 0.25F);
             Echo("Found " + fpsdisplays.Count + " fpsdisplays");
 
             // Tollerate an fps LCD
@@ -291,9 +297,14 @@ speed=40000
             int now = DateTime.UtcNow.Second;
             if (now != curSec) {
                 lastFrames = curFrames;
-                jlcd.WriteToAllLCDs(fpsdisplays, "" + lastFrames, false);
+                if (Specifics.skipFrames > 1) {
+                    jlcd.WriteToAllLCDs(fpsdisplays, "" + actFrames + " of " + lastFrames, false);
+                } else {
+                    jlcd.WriteToAllLCDs(fpsdisplays, "" + lastFrames, false);
+                }
                 curSec = now;
                 curFrames = 0;
+                actFrames = 0;
             }
 
             jdbg.Echo("Frame " + Frame++ + ", fps: " + lastFrames);
@@ -340,7 +351,7 @@ speed=40000
 
             // Run the CPU as normal for whatever is level of this cycle
             try {
-                si.part_exe(ref curFrames);
+                si.part_exe(ref curFrames, ref actFrames);
             }
             catch (Exception ex) {
                 jdbg.DebugAndEcho("Exception: " + ex.ToString());

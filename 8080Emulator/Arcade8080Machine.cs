@@ -55,7 +55,7 @@ namespace IngameScript
 
             int State = -3; // ( -3 == loaded, -2 == midfixup, -1 == begin, 0 == cpupart1, 1 == cpupart2, 2 == drawscreen )
 
-            public void part_exe(ref int curFrames)
+            public void part_exe(ref int curFrames, ref int actFrames)
             {
                 specifics.Echo("Called with state " + State);
 
@@ -88,12 +88,11 @@ namespace IngameScript
                     if (State >= 2) {
                         // Drawing the screen can take up to 11000 cycles
                         if (specifics.GetInstructionCount() < Specifics.maxFrames) {
-                            bool finished = specifics.drawAndRenderFrame(ref State);
+                            bool finished = specifics.drawAndRenderFrame(ref State, ref actFrames);
                             if (finished) {
                                 curFrames++;
                                 State = -1;
                                 specifics.Echo("Moved to state " + State + " - " + specifics.GetInstructionCount());
-                                if (seenBegin) return; // Throttle at 1 frame per tick max
                             } else {
                                 return;
                             }
@@ -104,6 +103,7 @@ namespace IngameScript
 
                     /* Throttle at 60fps support */
                     if (State == -1) {
+                        if (seenBegin) return; // Throttle at 1 frame per tick max
                         seenBegin = true;
                         State = 0;
                         specifics.Echo("Moved to state " + State + " - " + specifics.GetInstructionCount());

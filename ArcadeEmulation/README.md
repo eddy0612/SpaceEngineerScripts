@@ -7,16 +7,17 @@ Invaders. It can play multiple games and (on my machine) hits pretty much origin
 Unfortunately all arcade machines were subtely different so you do need to tell the emulator 
 which game you are running, and that is done through the ROM filename (as known to MAME)
 
-(Obviously) no sound support, and probably not a good idea to run this on a multiplayer server
- as it will consume cycles. Suggest you turn the programmable block off when player leaves the
- controls.
+This is a very intensive script and updates an LCD at up to 60 frames per second, and is
+not a good idea to run this on a multiplayer server. I also suggest you turn the programmable 
+block off when player leaves the controls as well for example. The games play without sound
+as there was no way to play such sounds in a programmable block presently.
 
 Code available on github: https://github.com/eddy0612/SpaceEngineerScripts
 
 Q: Why did I do this? I wrote some simple in game scripts, and got bored of writing them one
       by one, and started playing... Then I got addicted to getting as much running as I could
 
-All feedback welcome, please use the discussion area
+All feedback welcome, please use the discussion area of my github repo
        
 ```
 +--------------------------------------------------------------------------------------------------
@@ -143,12 +144,16 @@ expected first few characters in the table below)
        second figure
    - Tag an LCD with eg. "[GAME.NAME] name display" and it will be updated with the name of the
        current game
+   - Reduce the (very heavy) LCD panel impact by only drawing every other frame for example
+       Add to the [config] something like the following (Not supplied or value of 1 means 
+       draw every frame, 2 means every 2nd frame, 3 means every third etc:
+       `renderframe=2`
    - Set a limit on how many cycles the game can take up - default is 45000, max is 49000. Less 
        cycles means slower FPS.  Add to the [config] something like
-       speed=40000
+       `speed=40000`
    - Work like an arcade machine.. Add to the [config] something like
-		cost=5
-		safetag=SAFE
+		`cost=5`
+		`safetag=SAFE`
      Now, tag one cargo container near the machine with [GAME.COINS] Coin In, and another
        (which is connected via a conveyor, ideally with a one way sorter to stop things being
         removed!) as [SAFE] Coins Safe

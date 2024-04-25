@@ -24,6 +24,8 @@ namespace IngameScript
             public Program mypgm;
 
             public static int maxFrames = 45000;
+            public static int skipFrames = 0;
+            public static int skipFramesLeft = 0;
 
             bool space = false; // fire
             bool left = false;
@@ -84,13 +86,23 @@ namespace IngameScript
                 return mypgm.Runtime.CurrentInstructionCount;
             }
 
-            public bool drawAndRenderFrame(ref int State)
+            public bool drawAndRenderFrame(ref int State, ref int actualDraws)
             {
-                bool didComplete = display.generateFrameToDisplay(ref State);
-                if (!didComplete) return false;
+                bool didComplete = true;
+                if (skipFramesLeft <= 1) {
+                    didComplete = display.generateFrameToDisplay(ref State);
 
-                /* We built it ok! */
-                mypgm.jlcd.WriteToAllLCDs(mypgm.displays, new String(DirectBitmap.Pixels), false);
+                    if (!didComplete) return false;
+
+                    /* We built it ok! */
+                    actualDraws++;
+                    mypgm.jlcd.WriteToAllLCDs(mypgm.displays, new String(DirectBitmap.Pixels), false);
+                    skipFramesLeft = skipFrames;
+
+                } else {
+                    skipFramesLeft--;
+                }
+
                 return true;
             }
 
