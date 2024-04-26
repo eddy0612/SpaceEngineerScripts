@@ -269,6 +269,7 @@ namespace IngameScript
                 }
 
                 // Poll refresh - Just update the buttons
+                if (argument != null && !argument.Equals("")) argument = argument.ToUpper();
                 if (argument.Equals("")) {
                     jdbg.Debug("No Parms");
                     update4But(newName, ordered4butpanels, isConfirm, false);
