@@ -1,9 +1,12 @@
-﻿using Sandbox.ModAPI.Ingame;
+﻿using Sandbox.Game;
+using Sandbox.ModAPI.Ingame;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using VRage.Game.GUI.TextPanel;
 using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI.Ingame.Utilities;
+using static IngameScript.Program;
 
 namespace IngameScript
 {
@@ -34,6 +37,7 @@ namespace IngameScript
         int refreshSpeed = 10;
         String originalName = "";
         bool isConfirm = false;
+        int maxSize = 4;
 
         // Internals
         DateTime lastCheck = new DateTime(0);
@@ -142,42 +146,61 @@ namespace IngameScript
                 }
 
                 // -------------------------------------------
-                // Identify the 4 button panel to use for input
+                // Identify the 4 button panels to use for input
                 // -------------------------------------------
-                IMyTerminalBlock my4ButtonPanel = null;
-                List<IMyTerminalBlock> but4panels = new List<IMyTerminalBlock>();
-                GridTerminalSystem.GetBlocksOfType(but4panels, (IMyTerminalBlock x) => (
-                                                                                       (x is IMyTextSurfaceProvider) &&
-                                                                                       (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + "]") >= 0) &&
-                                                                                       (x.CubeGrid.Equals(Me.CubeGrid)) &&
-                                                                                       (((IMyTextSurfaceProvider)x).SurfaceCount == 4)
-                                                                                      ));
-                jdbg.Debug("Found " + but4panels.Count + " 4 button panels with the tag");
-                if (but4panels.Count == 0) {
-                    jdbg.DebugAndEcho("ERROR: No 4 button panel with the tag [" + mytag + "]");
+                //IMyTerminalBlock my4ButtonPanel = null;
+                List<IMyTerminalBlock> ordered4butpanels = new List<IMyTerminalBlock>();
+
+                bool finished = false;
+                int counter = 1;
+                do {
+                    List <IMyTerminalBlock> but4panels = new List<IMyTerminalBlock>();
+                    String lookforTag = "[" + mytag.ToUpper() +
+                                               ((counter > 1) ? ":" + counter : "") + "]";
+
+                    GridTerminalSystem.GetBlocksOfType(but4panels, (IMyTerminalBlock x) => (
+                                                                                           (x is IMyTextSurfaceProvider) &&
+                                                                                           (x.CustomName.ToUpper().IndexOf(lookforTag) >= 0) &&
+                                                                                           (x.CubeGrid.Equals(Me.CubeGrid)) &&
+                                                                                           (((IMyTextSurfaceProvider)x).SurfaceCount == 4)
+                                                                                          ));
+                    jdbg.Debug("Found " + but4panels.Count + " 4 button panels with the tag " + lookforTag);
+                    if (but4panels.Count == 0) {
+                        jdbg.DebugAndEcho("No 4 button panel with the tag " + lookforTag);
+                        finished = true;
+                    } else if (but4panels.Count > 1) {
+                        jdbg.DebugAndEcho("ERROR: Too many 4 button panels with the tag " + lookforTag);
+                        finished = true;
+                        return;
+                    } else {
+                        jdbg.DebugAndEcho("... which is " + but4panels[0].CustomName);
+                        finished = false;
+                        ordered4butpanels.Add(but4panels[0]);
+                    }
+                    counter++;
+                } while (finished == false);
+
+                if (counter == 1) {
+                    jdbg.DebugAndEcho("ERROR: No suitable 4 button panel found - aborting");
                     return;
-                } else if (but4panels.Count > 1) {
-                    jdbg.DebugAndEcho("ERROR: Too many 4 button panels with the tag [" + mytag + "]");
-                    return;
-                } else {
-                    jdbg.DebugAndEcho("Using 4 button panel " + but4panels[0].CustomName);
-                    my4ButtonPanel = but4panels[0] as IMyTerminalBlock;
                 }
 
                 // --------------------------------------------------------------
                 // Remove the connector and the 4 button panel from the LCD list!
                 // --------------------------------------------------------------
                 jdbg.Debug("LCD Count before: " + myDockedStatusLCDs.Count);
-                myDockedStatusLCDs.Remove(my4ButtonPanel);
-                jdbg.Debug("LCD Count mid: " + myDockedStatusLCDs.Count);
+                foreach (var thisPanel in ordered4butpanels) {
+                    myDockedStatusLCDs.Remove(thisPanel);
+                }
+                jdbg.Debug("LCD Count removed 4buts: " + myDockedStatusLCDs.Count);
                 myDockedStatusLCDs.Remove(myShipConnector);
-                jdbg.Debug("LCD Count after: " + myDockedStatusLCDs.Count);
+                jdbg.Debug("LCD Count removed connector: " + myDockedStatusLCDs.Count);
 
                 // ----------------------------------------------------------
                 // Identify the divider syntax to use (Expected: [] {} or  .)
                 // ----------------------------------------------------------
-                String divName = _ini.Get("config", "divider").ToString();
-                if ((divName != null) && (!divName.Equals(""))) divName = " .";
+                String divName = _ini.Get("config", "divider").ToString(" .");
+                if ((divName == null) || (divName.Equals(""))) divName = " .";
 
                 if (divName.Length != 2) {
                     jdbg.DebugAndEcho("Invalid divider - must be 2 'unique' chars");
@@ -190,10 +213,11 @@ namespace IngameScript
                 // ---------------------------------------------------------------------------
                 // vvv                   Now do the actual work                           vvvv
                 // ---------------------------------------------------------------------------
+                maxSize = (ordered4butpanels.Count * 4) - 1;
 
                 jdbg.Debug("Doing the work now");
                 // 1. See docked status has changed - if so update the LCD and connector data
-                String newName = "---";
+                String newName = "";
 
                 if (!(myShipConnector.IsConnected)) {
                     jdbg.Debug("Nothing connected");
@@ -204,7 +228,7 @@ namespace IngameScript
                     myShipConnector.CustomData = "";
                     jdbg.Debug("Updating screens");
                     updateStatusLCD(myDockedStatusLCDs, "Nothing Connected");
-                    update4But("---", my4ButtonPanel, isConfirm, true);
+                    update4But("".PadRight(maxSize, '-'), ordered4butpanels, isConfirm, true);
                     jdbg.DebugAndEcho("Nothing connected - ending");
                     return;
                 } else {
@@ -212,11 +236,10 @@ namespace IngameScript
                     // If no custom data, set it
                     if ((originalName.Equals("")) ||
                         (myShipConnector.CustomData == null) ||
-                        (myShipConnector.Equals("")) ||
-                        (myShipConnector.CustomData.Length != 3)) {
+                        (myShipConnector.CustomData.Equals(""))) {
+
                         jdbg.Debug("No custom data yet, looking it up from the docked ship");
                         newName = myShipConnector.OtherConnector.CustomName;
-                        if (newName.Length < 5) newName = newName + "     ";
 
                         String nameLeft = newName;
                         if (leftDiv != ' ' && leftDiv == newName[0]) {
@@ -224,13 +247,16 @@ namespace IngameScript
                         }
 
                         // If we match the right as well, we know the chars to use
-                        if (rightDiv == newName[3]) {
-                            newName = newName.Substring(0, 3);
+                        if (newName.IndexOf(rightDiv) >= 0) {
+                            newName = newName.Substring(0, newName.IndexOf(rightDiv));
                             originalName = newName;
                         } else {
-                            newName = "---";
+                            newName = "";
                             originalName = "???";
                         }
+
+                        if (newName.Length > maxSize) newName = newName.Substring(0, maxSize);
+
                         myShipConnector.CustomData = newName;
                         jdbg.Debug("Calculated result of " + newName);
                     } else {
@@ -245,23 +271,26 @@ namespace IngameScript
                 // Poll refresh - Just update the buttons
                 if (argument.Equals("")) {
                     jdbg.Debug("No Parms");
-                    update4But(newName, my4ButtonPanel, isConfirm, false);
+                    update4But(newName, ordered4butpanels, isConfirm, false);
 
                     // Expected button press
                 } else if (argument.StartsWith("B")) {
                     isConfirm = false;
                     jdbg.Debug("Handling button " + argument);
-                    int idx = argument[1] - '1';
+                    String number = argument.Substring(1);
+                    int idx = int.Parse(number);
                     newName = handlePress(newName, idx);
                     jdbg.Debug("Calc name of " + newName);
-                    update4But(newName, my4ButtonPanel, isConfirm, false);
+                    update4But(newName, ordered4butpanels, isConfirm, false);
                     myShipConnector.CustomData = newName;
                     jdbg.DebugAndEcho("Button handled... ending");
                     return;
+
                 } else if (argument.Equals("GO") && !isConfirm) {
                     jdbg.Debug("Was GO");
                     isConfirm = true;
-                    update4But(newName, my4ButtonPanel, isConfirm, false);
+                    update4But(newName, ordered4butpanels, isConfirm, false);
+
                 } else if (argument.Equals("GO") && isConfirm) {
                     jdbg.Debug("Was GO but confirming!");
                     // Work out the CubeGrid of the connected ship
@@ -300,7 +329,7 @@ namespace IngameScript
 
                     originalName = newName;
                     isConfirm = false;
-                    update4But(newName, my4ButtonPanel, isConfirm, false);
+                    update4But(newName, ordered4butpanels, isConfirm, false);
                     updateStatusLCD(myDockedStatusLCDs, "Docked Ship: " + originalName);
                 } else {
                     jdbg.DebugAndEcho("ERROR: Unexpected arg: " + argument);
@@ -322,53 +351,66 @@ namespace IngameScript
         }
 
         /* Update the button LCDs - Note this cannot use jlcd due to the multiple surfaces */
-        void update4But(String prefix, IMyTerminalBlock my4butPanels, bool isConfirm, bool isDisconnected)
+        void update4But(String prefix, List<IMyTerminalBlock> ordered4butPanels, bool isConfirm, bool isDisconnected)
         {
             jdbg.Debug("Updating buttons... prefix: " + prefix + " confirm?" + isConfirm + ", isDisc?" + isDisconnected);
-            jdbg.Debug("Panel: " + my4butPanels.CustomName);
-            jdbg.Debug("Displays: " + ((IMyTextSurfaceProvider)my4butPanels).SurfaceCount);
-            for (int i = 0; i < 3; i++) {
-                IMyTextSurface thisLCD = ((IMyTextSurfaceProvider)my4butPanels).GetSurface(i);
-                if (thisLCD != null) {
-                    jdbg.Debug("Updating surface " + i + " with " + prefix[i]);
-                    thisLCD.Font = "Monospace";
-                    thisLCD.ContentType = ContentType.TEXT_AND_IMAGE;
-                    thisLCD.Alignment = VRage.Game.GUI.TextPanel.TextAlignment.CENTER;
-                    thisLCD.FontSize = 10.0F;
-                    thisLCD.WriteText("" + prefix[i], false);
-                } else {
-                    jdbg.Debug("Odd = 4 button panel doesnt have surface " + i);
-                }
 
-                // Now action button
-                thisLCD = ((IMyTextSurfaceProvider)my4butPanels).GetSurface(3);
-                if (thisLCD != null) {
-                    String text = "GO?";
-                    float fontsize = 9.0F;
-                    if (prefix.Equals("---")) {
-                        text = "Clear?";
-                        fontsize = 4.0F;
+            int count = 0;
+            prefix = prefix.PadRight(ordered4butPanels.Count * 4, ' ');
+            foreach (var my4butPanels in ordered4butPanels) {
+
+                jdbg.Debug("Panel: " + my4butPanels.CustomName);
+                jdbg.Debug("Displays: " + ((IMyTextSurfaceProvider)my4butPanels).SurfaceCount);
+                for (int i = 0; i < 4; i++) {
+
+                    // Final panel cant use the last button
+                    if (i < 3 || (count < (ordered4butPanels.Count - 1))) {
+
+                        IMyTextSurface thisLCD = ((IMyTextSurfaceProvider)my4butPanels).GetSurface(i);
+                        if (thisLCD != null) {
+                            jdbg.Debug("Updating surface " + i + " with " + prefix[i + (count * 4)]);
+                            thisLCD.Font = "Monospace";
+                            thisLCD.ContentType = ContentType.TEXT_AND_IMAGE;
+                            thisLCD.Alignment = VRage.Game.GUI.TextPanel.TextAlignment.CENTER;
+                            thisLCD.FontSize = 10.0F;
+                            thisLCD.WriteText("" + prefix[i + (count * 4)], false);
+                        } else {
+                            jdbg.Debug("Odd = 4 button panel doesnt have surface " + i);
+                        }
+                    } else {
+                        // Now action button
+                        IMyTextSurface thisLCD = ((IMyTextSurfaceProvider)my4butPanels).GetSurface(3);
+                        if (thisLCD != null) {
+                            String text = "GO?";
+                            float fontsize = 9.0F;
+                            if (prefix.Equals("".PadRight(ordered4butPanels.Count * 4, ' '))) {
+                                text = "Clear?";
+                                fontsize = 4.0F;
+                            }
+                            if (isConfirm) {
+                                text = "Really\nGO?";
+                                fontsize = 4.0F;
+                            }
+                            if (isDisconnected) text = "N/A";
+                            jdbg.Debug("Updating surface " + i + " with :" + text);
+                            thisLCD.Font = "Monospace";
+                            thisLCD.ContentType = ContentType.TEXT_AND_IMAGE;
+                            thisLCD.Alignment = VRage.Game.GUI.TextPanel.TextAlignment.CENTER;
+                            thisLCD.FontSize = fontsize;
+                            thisLCD.WriteText(text, false);
+                        }
                     }
-                    if (isConfirm) {
-                        text = "Really\nGO?";
-                        fontsize = 4.0F;
-                    }
-                    if (isDisconnected) text = "N/A";
-                    jdbg.Debug("Updating surface " + i + " with " + prefix[i]);
-                    thisLCD.Font = "Monospace";
-                    thisLCD.ContentType = ContentType.TEXT_AND_IMAGE;
-                    thisLCD.Alignment = VRage.Game.GUI.TextPanel.TextAlignment.CENTER;
-                    thisLCD.FontSize = fontsize;
-                    thisLCD.WriteText(text, false);
                 }
+                count = count + 1;
             }
         }
 
         /* Handle a button being pressed */
         String handlePress(String prefix, int index)
         {
-            String allChars = "ABDCEFGHIJKLMNOPQRSTUVWXYZ0123456789-";
-            char[] prefixChars = prefix.ToCharArray();
+            jdbg.Debug("Handle press of " + index + " with prefix " + prefix + "(" + prefix.Length + ")");
+            String allChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_ ";
+            char[] prefixChars = prefix.PadRight(maxSize, ' ').ToCharArray();
             char whichChar = prefixChars[index];
             jdbg.Debug("orig char is " + prefixChars[index]);
             int idx = allChars.IndexOf(whichChar);
@@ -382,7 +424,7 @@ namespace IngameScript
             if (idx == allChars.Length) idx = 0;
             prefixChars[index] = allChars[idx];
             jdbg.Debug("new char is " + prefixChars[index]);
-            return new String(prefixChars);
+            return new String(prefixChars).Trim();
         }
 
         // ----------------------------- CUT -------------------------------------

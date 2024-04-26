@@ -17,25 +17,33 @@ tag=rename
 
 2. Add a connector and tag it with the tag above in square brackets, eg `[rename] Rename Connector`
 3. Add an LCD where the name of the ship currently docked will be displayed, and tag it again, eg `[rename] Status LCD`
-4. Add a 4 button panel which is where the button pressed will change the prefix and say go, and tag it eg `[rename] Rename buttons`
-- Go into the button setup and drag the programmable block onto each button in turn, and use the Run action
-- When it asks for a parameter: 
-	- Button one's parameter is "B1" (without the quotes)
-	- Button twos parameter is "B2" (without the quotes)
-	- Button three's parameter is "B3" (without the quotes)
-	- Button four's parameter is "GO" (without the quotes)
+4. Add a series of 4 button panels which is where the button pressed will change the prefix and say go.
+     Tag the first as eg `[rename] Rename buttons`, and subsequent ones eg `[rename:2] Rename buttons`, 
+     `[rename:3] Rename buttons` etc. You can add as many as you like, and it dictates the largest prefix you can set.
+
+	One 4 button panel: You can set a prefix of 3 characters + have a 'GO' button
+	Two 4 button panels: You can set a prefix of 7 characters + have a 'GO' button
+	Three 4 button panels: You can set a prefix of 11 characters + have a 'GO' button etc
+
+- For each button panel, go into the button setup and drag the programmable block onto each button in turn, and use the Run action
+	- When it asks for a parameter, the parameter is "B" followed by the character index of the name you wish to change,
+	  counting from 0 eg
+		- First button parameter is "B0"    <== Remember you are counting from 0
+		- Second button parameter is "B1"
+		- Third button parameter is "B2"
+	- The final button on the right most button panel parameter is "GO" (without the quotes)
 5. Add the script to the programmable block, click recompile/run
 
 Usage
 -----
-Dock a ship - if the connector of the ship already has a prefix, that will be displayed on the LCD
-and the text over the 4 button pannel will display it, otherwise it will display unknown and the buttons
+Dock a ship - if the connector of the ship already has a prefix, that will be displayed on the status LCD
+and the text over the 4 buttons pannel will display it, otherwise it will display unknown and the buttons
 start blank
 
-Use the buttons to select an up to 3 character prefix. Press a button rotates that letter by one - if you need
+Use the buttons to select a character prefix. Press a button rotates that letter by one - if you need
 to go backwards you have to wait for it to fully rotate!
 
-Once you have the buttons showing the prefix you want, press the 4th button and it will apply it - EVERY block in the grid connected
+Once you have the buttons showing the prefix you want, press the GO button and it will apply it - EVERY block in the grid connected
 to the connector will be renamed
 
 Extra options
