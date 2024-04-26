@@ -41,6 +41,7 @@ namespace IngameScript
 
         // Internals
         DateTime lastCheck = new DateTime(0);
+        bool justCleared = false;
 
         // ---------------------------------------------------------------------------
         // Constructor
@@ -230,13 +231,14 @@ namespace IngameScript
                     updateStatusLCD(myDockedStatusLCDs, "Nothing Connected");
                     update4But("".PadRight(maxSize, '-'), ordered4butpanels, isConfirm, true);
                     jdbg.DebugAndEcho("Nothing connected - ending");
+                    justCleared = false;
                     return;
                 } else {
 
                     // If no custom data, set it
-                    if ((originalName.Equals("")) ||
+                    if (!justCleared && ((originalName.Equals("")) ||
                         (myShipConnector.CustomData == null) ||
-                        (myShipConnector.CustomData.Equals(""))) {
+                        (myShipConnector.CustomData.Equals("")))) {
 
                         jdbg.Debug("No custom data yet, looking it up from the docked ship");
                         newName = myShipConnector.OtherConnector.CustomName;
@@ -285,12 +287,21 @@ namespace IngameScript
                     update4But(newName, ordered4butpanels, isConfirm, false);
                     myShipConnector.CustomData = newName;
                     jdbg.DebugAndEcho("Button handled... ending");
+                    justCleared = false;
                     return;
+
+                } else if (argument.Equals("CLEAR")) {
+                    jdbg.Debug("CLEAR");
+                    newName = "";
+                    update4But(newName, ordered4butpanels, isConfirm, false);
+                    myShipConnector.CustomData = newName;
+                    justCleared = true;
 
                 } else if (argument.Equals("GO") && !isConfirm) {
                     jdbg.Debug("Was GO");
                     isConfirm = true;
                     update4But(newName, ordered4butpanels, isConfirm, false);
+                    justCleared = false;
 
                 } else if (argument.Equals("GO") && isConfirm) {
                     jdbg.Debug("Was GO but confirming!");
@@ -326,6 +337,7 @@ namespace IngameScript
 
                         count++;
                     }
+                    justCleared = false;
                     jdbg.Debug("Processed " + count + " blocks in total");
 
                     originalName = newName;

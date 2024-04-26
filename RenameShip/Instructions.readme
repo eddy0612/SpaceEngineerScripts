@@ -32,6 +32,8 @@ tag=rename
 		- Second button parameter is "B1"
 		- Third button parameter is "B2"
 	- The final button on the right most button panel parameter is "GO" (without the quotes)
+	- If you like, you can also use a button which runs argument "CLEAR" (or use a spearate stand alone button)
+	      which is used to remove the whole name
 5. Add the script to the programmable block, click recompile/run
 
 Usage
