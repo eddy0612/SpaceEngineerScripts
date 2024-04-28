@@ -97,6 +97,7 @@ namespace IngameScript
                     thisSurface.ContentType = ContentType.TEXT_AND_IMAGE;
                     thisSurface.BackgroundColor = Color.Black;
                     thisSurface.Alignment = align;
+                    thisSurface.TextPadding = 0;
                 }
             }
 
@@ -182,7 +183,7 @@ namespace IngameScript
                     if (rows == -1) rows = bestRows;
 
                     // BUG? Corner LCDs are a factor of 4 out - no idea why but try *4
-                    if (thisLCD.DefinitionDisplayNameText.Contains("Corner LCD")) {
+                    if (thisLCD.DefinitionDisplayNameText.Contains("Corner LCD")) { 
                         jdbg.Debug("INFO: Avoiding bug, multiplying by 4: " + thisLCD.DefinitionDisplayNameText);
                         thisSurface.FontSize *= 4;
                     }

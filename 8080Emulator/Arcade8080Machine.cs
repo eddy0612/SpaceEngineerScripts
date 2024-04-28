@@ -21,6 +21,7 @@ namespace IngameScript
             bool needsProcessing = false;
             int processIndex = 0;
             public int cost = 0;
+            public bool showStates = false;
 
             public Arcade8080Machine(Specifics specs, GetRomData.Games gameType, String gameData, int cost)
             {
@@ -44,7 +45,7 @@ namespace IngameScript
                 iobus = new Bus(keyBits, port_shift_result, port_shift_data, port_shift_offset, port_input);
                 cpu = new Cpu(memory, iobus);
 
-                display = new Display(memory, specifics);
+                display = new Display(memory, specifics, this);
                 display.palType = palType;
                 display.rotate = rotate270;
                 Display.backGroundCol = backCol;
@@ -53,12 +54,10 @@ namespace IngameScript
                 State = -3;
             }
 
-            int State = -3; // ( -3 == loaded, -2 == midfixup, -1 == begin, 0 == cpupart1, 1 == cpupart2, 2 == drawscreen )
+            public int State = -3; // ( -3 == loaded, -2 == midfixup, -1 == begin, 0 == cpupart1, 1 == cpupart2, 2 == drawscreen )
 
             public void part_exe(ref int curFrames, ref int actFrames)
             {
-                specifics.Echo("Called with state " + State);
-
                 // Do we need to process the rom?
                 if (State == -3) {
                     if (needsProcessing) {
@@ -92,7 +91,7 @@ namespace IngameScript
                             if (finished) {
                                 curFrames++;
                                 State = -1;
-                                specifics.Echo("Moved to state " + State + " - " + specifics.GetInstructionCount());
+                                if (showStates) specifics.Echo("Moved to state " + State + " - " + specifics.GetInstructionCount());
                             } else {
                                 return;
                             }
@@ -106,7 +105,7 @@ namespace IngameScript
                         if (seenBegin) return; // Throttle at 1 frame per tick max
                         seenBegin = true;
                         State = 0;
-                        specifics.Echo("Moved to state " + State + " - " + specifics.GetInstructionCount());
+                        if (showStates) specifics.Echo("Moved to state " + State + " - " + specifics.GetInstructionCount());
                     }
 
                     // Get here, its cpu time
@@ -123,11 +122,11 @@ namespace IngameScript
                         if (State == 0) {
                             cpu.handleInterrupt(1);
                             State = 1;
-                            specifics.Echo("Moved to state " + State + " - " + specifics.GetInstructionCount());
+                            if (showStates) specifics.Echo("Moved to state " + State + " - " + specifics.GetInstructionCount());
                         } else {
                             cpu.handleInterrupt(2);
                             State = 2;
-                            specifics.Echo("Moved to state " + State + " - " + specifics.GetInstructionCount());
+                            if (showStates) specifics.Echo("Moved to state " + State + " - " + specifics.GetInstructionCount());
                         }
                     }
                 }

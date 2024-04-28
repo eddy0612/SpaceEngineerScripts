@@ -45,6 +45,7 @@ namespace IngameScript
         DateTime lastCoinCheck;
         Program.GetRomData.Games currentGame = Program.GetRomData.Games.None;
         List<MyInventoryItem> itemList = new List<MyInventoryItem>();
+        String notOkToPlay = null;
 
         // -------------------------------------------
         /* Example custom data in programming block: 
@@ -73,7 +74,7 @@ speed=40000
             jdbg = new JDBG(this, debug);
             jlcd = new JLCD(this, jdbg, true);
             jlcd.UpdateFullScreen(Me, thisScript);
-
+            notOkToPlay = null;
 
             // ---------------------------------------------------------------------------
             // Get my custom data and parse to get the config
@@ -88,7 +89,8 @@ speed=40000
             if (mytag != null) {
                 mytag = (mytag.Split(';')[0]).Trim().ToUpper();  // Remove any trailing comments
             } else {
-                Echo("ERROR: No tag configured\nPlease add [config] for tag=<substring>");
+                notOkToPlay = "ERROR: No tag configured\nPlease add [config] for tag=<substring>";
+                Echo(notOkToPlay);
                 return;
             }
             jdbg.Debug("Config: tag=" + mytag);
@@ -129,12 +131,14 @@ speed=40000
                     jdbg.Debug("- " + thisblock.CustomName);
                 }
                 if (Controllers.Count > 1) {
-                    Echo("ERROR: Too many controllers");
+                    notOkToPlay = "ERROR: Too many controllers";
+                    Echo(notOkToPlay);
                     return;
                 }
                 controller = (IMyShipController)Controllers[0];
             } else if (Controllers.Count == 0) {
-                Echo("ERROR: No controllers tagged as [" + mytag + ".SEAT]");
+                notOkToPlay = "ERROR: No controllers tagged as [" + mytag + ".SEAT]";
+                Echo(notOkToPlay);
                 return;
             }
 
@@ -150,7 +154,8 @@ speed=40000
                                                                                       ));
                 Echo("Found " + CoinIn.Count + " coin in");
                 if (CoinIn.Count != 1) {
-                    Echo("ERROR: Game has space credit cost but no cargo container tagged [" + mytag + ".COINS]");
+                    notOkToPlay = "ERROR: Game has space credit cost but no cargo container tagged [" + mytag + ".COINS]";
+                    Echo(notOkToPlay);
                     return;
                 } else {
                     coinInInv = CoinIn[0].GetInventory(0);
@@ -167,7 +172,8 @@ speed=40000
                                                                                       ));
                 Echo("Found " + CoinOut.Count + " coin out");
                 if (CoinOut.Count != 1) {
-                    Echo("ERROR: Game has space credit cost but nowhere to move credit to - Needs a cargo container tagged [" + safetag + "]");
+                    notOkToPlay = "ERROR: Game has space credit cost but nowhere to move credit to - Needs a cargo container tagged [" + safetag + "]";
+                    Echo(notOkToPlay);
                     return;
                 } else {
                     coinOutInv = CoinOut[0].GetInventory(0);
@@ -177,8 +183,9 @@ speed=40000
                 // Check we can move from coin in -> coin out
                 // ---------------------------------------------------------------------------
                 if (!(coinInInv.IsConnectedTo(coinOutInv) &&
-                    coinInInv.CanTransferItemTo(coinOutInv, new MyItemType("MyObjectBuilder_PhysicalObject","SpaceCredit")))) { 
-                    Echo("ERROR: No connection/conveyor system between " + CoinIn[0].CustomName + " and " + CoinOut[0].CustomName);
+                    coinInInv.CanTransferItemTo(coinOutInv, new MyItemType("MyObjectBuilder_PhysicalObject","SpaceCredit")))) {
+                    notOkToPlay = "ERROR: No connection/conveyor system between " + CoinIn[0].CustomName + " and " + CoinOut[0].CustomName;
+                    Echo(notOkToPlay);
                     return;
                 }
                 Echo("All set up as arcade machine with cost of " + cost);
@@ -207,7 +214,7 @@ speed=40000
             // Tollerate an fps LCD
             namedisplays = jlcd.GetLCDsWithTag(mytag + ".NAME");
             jlcd.InitializeLCDs(namedisplays, TextAlignment.CENTER);
-            jlcd.SetupFontCustom(namedisplays, 1, 8, false, 0.25F, 0.25F);
+            jlcd.SetupFontCustom(namedisplays, 1, 16, false, 0.25F, 0.25F);
             Echo("Found " + namedisplays.Count + " namedisplays");
 
             // Run every tick
@@ -235,7 +242,9 @@ speed=40000
             }
 
             String errorMessage = null;
-            if (argument == null || argument.Equals("")) {
+            if (notOkToPlay != null) {
+                errorMessage = notOkToPlay;
+            } else if (argument == null || argument.Equals("")) {
                 if (currentGame == GetRomData.Games.None) {
                     errorMessage = "ERROR: No game configured - Please see instructions";
                 }
@@ -307,7 +316,7 @@ speed=40000
                 actFrames = 0;
             }
 
-            jdbg.Echo("Frame " + Frame++ + ", fps: " + lastFrames);
+            jdbg.Echo("Frame " + Frame++ + ", fps: " + lastFrames + ", state:" + si.State);
 
             // -----------------------------------------------------------------
             // Real work starts here
@@ -315,7 +324,7 @@ speed=40000
             // Every 2 seconds, check to see if a credit has been deposited.
             // If it has, insert a coin into the machine, and move the credit to the 
             // safe.
-            if ((si != null) && (Frame > 50) && (cost > 0)) {
+            if ((cost > 0) && (Frame > 50) && (si != null)) {
                 DateTime rightNow = DateTime.UtcNow;
 
                 // Do we need to release the press of the coin down

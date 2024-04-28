@@ -33,11 +33,13 @@ namespace IngameScript
 
             private Memory memory;
             private Specifics specifics;
+            private Arcade8080Machine am = null;
 
-            public Display(Memory memory, Specifics specs)
+            public Display(Memory memory, Specifics specs, Arcade8080Machine mach)
             {
                 this.memory = memory;
                 this.specifics = specs;
+                this.am = mach;
 
                 // Clear statics:
                 isRed = false;
@@ -91,7 +93,7 @@ namespace IngameScript
                     }
 
                     State = 3;
-                    specifics.Echo("Moved to state " + State);
+                    if (am.showStates) specifics.Echo("Moved to state " + State);
                     screenPosn = 0;
                     if (memory.allProms[1] == null) useOptimizations = true;
                 }
