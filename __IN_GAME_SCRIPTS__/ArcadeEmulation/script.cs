@@ -8,16 +8,17 @@
  * Unfortunately all arcade machines were subtely different so you do need to tell the emulator 
  * which game you are running, and that is done through the ROM filename (as known to MAME)
  * 
- * (Obviously) no sound support, and probably not a good idea to run this on a multiplayer server
- *  as it will consume cycles. Suggest you turn the programmable block off when player leaves the
- *  controls.
+ * This is a very intensive script and updates an LCD at up to 60 frames per second, and is
+ * not a good idea to run this on a multiplayer server. I also suggest you turn the programmable 
+ * block off when player leaves the controls as well for example. The games play without sound
+ * as there was no way to play such sounds in a programmable block presently.
  * 
  * Code available on github: https://github.com/eddy0612/SpaceEngineerScripts
  * 
  * Q: Why did I do this? I wrote some simple in game scripts, and got bored of writing them one
  *       by one, and started playing... Then I got addicted to getting as much running as I could
  * 
- * All feedback welcome, please use the discussion area
+ * All feedback welcome, please use the discussion area of my github repo
  *        
  * ```
  * +--------------------------------------------------------------------------------------------------
@@ -49,24 +50,42 @@
  *    filename of the game you wish to start.  I set up one button per filename, but you only need
  *    a single one to get it working.
  * 5. Obtain the rom(s) you can play (from the list below) from the internet. A search on MAME with 
- *    filename is usually a good hit, see below
+ *    filename is usually a good hit, see below. Remember what directory you saved the ROM under,
+ *    which on windows is usually something like `c:\users\myuserid\downloads`
  * + NOTE: You need the EXACT names listed below for this to work, similar files will not be
  *    handled correctly and will not work
  * 
- * EITHER Step 6 using python:
+ * -------------------------------------
+ * EITHER Step 6 using python...
+ *    You need to have manually installed python first from https://www.python.org/downloads/windows/
+ *    (Pick the Windows Installer (64-bit) one, and run the installer)
  * 
- * 6. Download GetRomData.py (or paste in from bottom of these instructions)
- * 			 `python3 invaders.zip | clip`
+ * 6. Download GetRomData.py (or paste in from bottom of these instructions) and save it in the same
+ *    directory as you saved the rom under. 
+ *    
+ * +  At this point you need to use a command prompt. Launch cmd.exe... you should get a black windowed 
+ *     screen. In there type `cd /d "path_to_rom"` eg `cd /d "c:\users\myuser\downloads"`
+ * +  Then for each game, run one of the following.. If the command fails, try the other one. 
+ *      
+ * 			 python3 GetRomData.py invaders.zip    OR
+ * 			 python GetRomData.py invaders.zip
  * 
+ * + This will create a text file alongside the zip file with the contents you need later on, eg `invaders.zip.txt`
+ * + Copy the contents of this text file to the clipboard, which can be simply done in the command prompt by
+ *       issuing `clip < invaders.zip.txt` or whatever the ROM name was.
+ *  
  * OR Step 6 using cygwin:
  * 
  * 6. Using cygwin's unzip and base64, in a comment prompt, do the following, for example:
- * 			 `unzip -p invaders.zip | base64 --wrap=0 | clip`
+ * 			 `unzip -p invaders.zip | base64 --wrap=0 > invaders.zip.txt`
  * 
- * + This will put a textual form of the file into the clipboard.
+ * + This will create a text file alongside the zip file with the contents you need later on, eg `invaders.zip.txt`
+ * + Copy the contents of this text file to the clipboard, which can be simply done in the command prompt by
+ *       issuing `clip < invaders.zip.txt` or whatever the ROM name was.
+ * -------------------------------------
  * 
  * 7. Now go to Space engineers, and create a block... Any block with a custom data will do but I 
- * generally use control panels as they are tiny. Name them [GAME] <filename>, eg "[GAME] invaders.zip".
+ * generally use control panels as they are tiny. Name them `[GAME] filename>`, eg `[GAME] invaders.zip`.
  * + In the custom data, paste in what step 6 stored in the clipboard which is a long string. (I've put the 
  * expected first few characters in the table below)
  * 
@@ -123,12 +142,16 @@
  *        second figure
  *    - Tag an LCD with eg. "[GAME.NAME] name display" and it will be updated with the name of the
  *        current game
- *    - Set a limit on how many cycles the game can take up - default is 45000, mas is 49000. Less 
+ *    - Reduce the (very heavy) LCD panel impact by only drawing every other frame for example
+ *        Add to the [config] something like the following (Not supplied or value of 1 means 
+ *        draw every frame, 2 means every 2nd frame, 3 means every third etc:
+ *        `renderframe=2`
+ *    - Set a limit on how many cycles the game can take up - default is 45000, max is 49000. Less 
  *        cycles means slower FPS.  Add to the [config] something like
- *        speed=40000
+ *        `speed=40000`
  *    - Work like an arcade machine.. Add to the [config] something like
- * 		cost=5
- * 		safetag=SAFE
+ * 		`cost=5`
+ * 		`safetag=SAFE`
  *      Now, tag one cargo container near the machine with [GAME.COINS] Coin In, and another
  *        (which is connected via a conveyor, ideally with a one way sorter to stop things being
  *         removed!) as [SAFE] Coins Safe
@@ -138,7 +161,7 @@
  *    
  * #### GetRomData.py code (available at https://github.com/eddy0612/SpaceEngineerScripts/blob/master/ArcadeEmulation/GetRomData.py)
  * ```
- * import os,base64
+ * import sys,os,base64
  * from zipfile import ZipFile
  * def extract_zip(input_zip):
  *     input_zip=ZipFile(input_zip)
@@ -147,145 +170,156 @@
  * zip_data = extract_zip(zip_name)
  * total_data = bytearray()
  * for name,allbytes in zip_data.items(): total_data = total_data + allbytes
- * print( base64.b64encode(total_data).decode("utf-8"), end='', flush=True )
+ * f = open(str(os.sys.argv[1]) + ".txt", "w")
+ * f.write(base64.b64encode(total_data).decode("utf-8"))
+ * f.close()
+ * print( "File " + str(os.sys.argv[1]) + ".zip created")
+ * print( "On windows you can send to clipboard by issuing:")
+ * print( "  clip < \""+ str(os.sys.argv[1]) + ".zip\"")
  * ```
  */
 String thisScript="ArcadeEmulation";bool debug=false;String mytag="GAME";String safetag="SAFE";JDBG jdbg=null;JLCD jlcd=
 null;List<IMyTerminalBlock>displays=null;List<IMyTerminalBlock>fpsdisplays=null;List<IMyTerminalBlock>namedisplays=null;
 IMyInventory coinInInv=null;IMyInventory coinOutInv=null;IMyShipController controller=null;Arcade8080Machine si=null;int Frame=0;int
-curSec=0;int curFrames=0;int lastFrames=0;int cost=0;DateTime inserted;DateTime lastCoinCheck;Program.GetRomData.Games
-currentGame=Program.GetRomData.Games.None;List<MyInventoryItem>itemList=new List<MyInventoryItem>();Program(){Echo("Start");jdbg=
-new JDBG(this,debug);jlcd=new JLCD(this,jdbg,true);jlcd.UpdateFullScreen(Me,thisScript);MyIniParseResult result;MyIni _ini=
-new MyIni();if(!_ini.TryParse(Me.CustomData,out result))throw new Exception(result.ToString());mytag=_ini.Get("config",
-"tag").ToString();if(mytag!=null){mytag=(mytag.Split(';')[0]).Trim().ToUpper();}else{Echo(
-"ERROR: No tag configured\nPlease add [config] for tag=<substring>");return;}jdbg.Debug("Config: tag="+mytag);int maxFrames=_ini.Get("config","speed").ToInt32(45000);if(maxFrames>1000&&
-maxFrames<49000){Specifics.maxFrames=maxFrames;}int cost=_ini.Get("config","cost").ToInt32(0);if(cost>0){this.cost=cost;safetag=
-_ini.Get("config","safetag").ToString("safe");}Echo("Using tag of "+mytag);Echo("Using cost of "+cost);Echo(
-"Using speed of "+maxFrames);List<IMyTerminalBlock>Controllers=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(
-Controllers,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf("["+mytag.ToUpper()+".SEAT]")>=0)&&(x is
-IMyShipController)));Echo("Found "+Controllers.Count+" controllers");if(Controllers.Count>0){foreach(var thisblock in Controllers){jdbg.
-Debug("- "+thisblock.CustomName);}if(Controllers.Count>1){Echo("ERROR: Too many controllers");return;}controller=(
-IMyShipController)Controllers[0];}else if(Controllers.Count==0){Echo("ERROR: No controllers tagged as ["+mytag+".SEAT]");return;}if(cost>
-0){List<IMyTerminalBlock>CoinIn=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(CoinIn,(IMyTerminalBlock
-x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf("["+mytag.ToUpper()+".COINS]")>=0)&&(x.HasInventory)));Echo(
-"Found "+CoinIn.Count+" coin in");if(CoinIn.Count!=1){Echo("ERROR: Game has space credit cost but no cargo container tagged ["+
-mytag+".COINS]");return;}else{coinInInv=CoinIn[0].GetInventory(0);}List<IMyTerminalBlock>CoinOut=new List<IMyTerminalBlock>()
-;GridTerminalSystem.GetBlocksOfType(CoinOut,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf(
-"["+safetag.ToUpper()+"]")>=0)&&(x.HasInventory)));Echo("Found "+CoinOut.Count+" coin out");if(CoinOut.Count!=1){Echo(
-"ERROR: Game has space credit cost but nowhere to move credit to - Needs a cargo container tagged ["+safetag+"]");return;}else{coinOutInv=CoinOut[0].GetInventory(0);}if(!(coinInInv.IsConnectedTo(coinOutInv)&&coinInInv.
-CanTransferItemTo(coinOutInv,new MyItemType("MyObjectBuilder_PhysicalObject","SpaceCredit")))){Echo(
-"ERROR: No connection/conveyor system between "+CoinIn[0].CustomName+" and "+CoinOut[0].CustomName);return;}Echo("All set up as arcade machine with cost of "+cost);}
-displays=jlcd.GetLCDsWithTag(mytag+".SCREEN");Echo("Found "+displays.Count+" displays");jlcd.SetupFontCustom(displays,Display.
-HEIGHT,Display.WIDTH,true,0.001F,0.001F);jlcd.InitializeLCDs(displays,TextAlignment.LEFT);fpsdisplays=jlcd.GetLCDsWithTag(
-mytag+".FPS");jlcd.InitializeLCDs(fpsdisplays,TextAlignment.CENTER);jlcd.SetupFontCustom(fpsdisplays,1,2,false,0.25F,0.25F);
-Echo("Found "+fpsdisplays.Count+" fpsdisplays");namedisplays=jlcd.GetLCDsWithTag(mytag+".NAME");jlcd.InitializeLCDs(
-namedisplays,TextAlignment.CENTER);jlcd.SetupFontCustom(namedisplays,1,8,false,0.25F,0.25F);Echo("Found "+namedisplays.Count+
+curSec=0;int curFrames=0;int actFrames=0;int lastFrames=0;int cost=0;DateTime inserted;DateTime lastCoinCheck;Program.
+GetRomData.Games currentGame=Program.GetRomData.Games.None;List<MyInventoryItem>itemList=new List<MyInventoryItem>();String
+notOkToPlay=null;Program(){Echo("Start");jdbg=new JDBG(this,debug);jlcd=new JLCD(this,jdbg,true);jlcd.UpdateFullScreen(Me,
+thisScript);notOkToPlay=null;MyIniParseResult result;MyIni _ini=new MyIni();if(!_ini.TryParse(Me.CustomData,out result))throw new
+Exception(result.ToString());mytag=_ini.Get("config","tag").ToString();if(mytag!=null){mytag=(mytag.Split(';')[0]).Trim().ToUpper
+();}else{notOkToPlay="ERROR: No tag configured\nPlease add [config] for tag=<substring>";Echo(notOkToPlay);return;}jdbg.
+Debug("Config: tag="+mytag);int maxFrames=_ini.Get("config","speed").ToInt32(45000);if(maxFrames>1000&&maxFrames<49000){
+Specifics.maxFrames=maxFrames;}int renderframe=_ini.Get("config","renderframe").ToInt32(1);if(renderframe>0&&renderframe<60){
+Specifics.skipFrames=renderframe;}int cost=_ini.Get("config","cost").ToInt32(0);if(cost>0){this.cost=cost;safetag=_ini.Get(
+"config","safetag").ToString("safe");}Echo("Using tag of "+mytag);Echo("Using cost of "+cost);Echo("Using speed of "+maxFrames);
+List<IMyTerminalBlock>Controllers=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(Controllers,(
+IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf("["+mytag.ToUpper()+".SEAT]")>=0)&&(x is IMyShipController))
+);Echo("Found "+Controllers.Count+" controllers");if(Controllers.Count>0){foreach(var thisblock in Controllers){jdbg.
+Debug("- "+thisblock.CustomName);}if(Controllers.Count>1){notOkToPlay="ERROR: Too many controllers";Echo(notOkToPlay);return;
+}controller=(IMyShipController)Controllers[0];}else if(Controllers.Count==0){notOkToPlay=
+"ERROR: No controllers tagged as ["+mytag+".SEAT]";Echo(notOkToPlay);return;}if(cost>0){List<IMyTerminalBlock>CoinIn=new List<IMyTerminalBlock>();
+GridTerminalSystem.GetBlocksOfType(CoinIn,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf("["+mytag.ToUpper()
++".COINS]")>=0)&&(x.HasInventory)));Echo("Found "+CoinIn.Count+" coin in");if(CoinIn.Count!=1){notOkToPlay=
+"ERROR: Game has space credit cost but no cargo container tagged ["+mytag+".COINS]";Echo(notOkToPlay);return;}else{coinInInv=CoinIn[0].GetInventory(0);}List<IMyTerminalBlock>CoinOut=new
+List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(CoinOut,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.
+CustomName.ToUpper().IndexOf("["+safetag.ToUpper()+"]")>=0)&&(x.HasInventory)));Echo("Found "+CoinOut.Count+" coin out");if(
+CoinOut.Count!=1){notOkToPlay=
+"ERROR: Game has space credit cost but nowhere to move credit to - Needs a cargo container tagged ["+safetag+"]";Echo(notOkToPlay);return;}else{coinOutInv=CoinOut[0].GetInventory(0);}if(!(coinInInv.IsConnectedTo(
+coinOutInv)&&coinInInv.CanTransferItemTo(coinOutInv,new MyItemType("MyObjectBuilder_PhysicalObject","SpaceCredit")))){notOkToPlay=
+"ERROR: No connection/conveyor system between "+CoinIn[0].CustomName+" and "+CoinOut[0].CustomName;Echo(notOkToPlay);return;}Echo(
+"All set up as arcade machine with cost of "+cost);}displays=jlcd.GetLCDsWithTag(mytag+".SCREEN");Echo("Found "+displays.Count+" displays");jlcd.SetupFontCustom(
+displays,Display.HEIGHT,Display.WIDTH,true,0.001F,0.001F);jlcd.InitializeLCDs(displays,TextAlignment.LEFT);fpsdisplays=jlcd.
+GetLCDsWithTag(mytag+".FPS");jlcd.InitializeLCDs(fpsdisplays,TextAlignment.CENTER);jlcd.SetupFontCustom(fpsdisplays,1,8,false,0.25F,
+0.25F);Echo("Found "+fpsdisplays.Count+" fpsdisplays");namedisplays=jlcd.GetLCDsWithTag(mytag+".NAME");jlcd.InitializeLCDs(
+namedisplays,TextAlignment.CENTER);jlcd.SetupFontCustom(namedisplays,1,16,false,0.25F,0.25F);Echo("Found "+namedisplays.Count+
 " namedisplays");Runtime.UpdateFrequency=UpdateFrequency.Update1;}void Save(){}void Main(string argument,UpdateType updateSource){if(
 argument==null){jdbg.Echo("Launched with empty parms"+argument);}else{jdbg.Echo("Launched with parms '"+argument+"'");}String
-errorMessage=null;if(argument==null||argument.Equals("")){if(currentGame==GetRomData.Games.None){errorMessage=
-"ERROR: No game configured - Please see instructions";}}else{List<IMyTerminalBlock>gameData=new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(gameData,(
-IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.CustomName.ToUpper().IndexOf("["+mytag.ToUpper()+"]")>=0)&&(x.CustomName.ToUpper().
-IndexOf(argument.ToUpper())>=0)));jdbg.Debug("Found "+gameData.Count+" game block with contents  ["+mytag+"] "+argument);if(
-gameData.Count!=1){errorMessage="Could not find block with name '["+mytag+"] "+argument+"')";}else{String gameCode;gameCode=
-gameData[0].CustomData;argument=argument.ToLower().Replace(".zip","");if(Enum.TryParse(argument,true,out currentGame)){jdbg.
-Debug("Recognized as "+currentGame);}else{errorMessage="ERROR: Invalid parameter: "+argument;}if(!GetRomData.checkRomData(
-currentGame,gameCode)){errorMessage="ERROR: Data does not match expected for that game "+currentGame;}if(errorMessage==null){jlcd.
-WriteToAllLCDs(namedisplays,""+currentGame.ToString().ToUpperInvariant(),false);jdbg.Debug("Creating CPU");Specifics specs=new
-Specifics();specs.mypgm=this;specs.controller=controller;specs.jdbg=jdbg;specs.jctrl=new JCTRL(this,jdbg,false);si=new
-Arcade8080Machine(specs,currentGame,gameCode,cost);Runtime.UpdateFrequency=UpdateFrequency.Update1;}}}if(errorMessage!=null){Echo(
-errorMessage);jlcd.WriteToAllLCDs(displays,errorMessage,false);Runtime.UpdateFrequency=UpdateFrequency.None;return;}int now=DateTime
-.UtcNow.Second;if(now!=curSec){lastFrames=curFrames;jlcd.WriteToAllLCDs(fpsdisplays,""+lastFrames,false);curSec=now;
-curFrames=0;}jdbg.Echo("Frame "+Frame+++", fps: "+lastFrames);if((si!=null)&&(Frame>50)&&(cost>0)){DateTime rightNow=DateTime.
-UtcNow;if((inserted!=DateTime.MinValue)&&((rightNow-inserted).TotalSeconds>=1)){jdbg.Debug("Released coin button");inserted=
-DateTime.MinValue;si.insertCoin(false);lastCoinCheck=rightNow;}else if((rightNow-lastCoinCheck).TotalSeconds>=2){itemList.Clear(
-);coinInInv.GetItems(itemList,b=>(b.Type.ToString().Contains("SpaceCredit")&&b.Amount>=cost));if(itemList.Count>0){jdbg.
-Debug("Found Coins - Moving and pressing coin button");coinInInv.TransferItemTo(coinOutInv,itemList[0],cost);jdbg.Debug(
-"Moved & press coin button");inserted=rightNow;si.insertCoin(true);}lastCoinCheck=rightNow;}}try{si.part_exe(ref curFrames);}catch(Exception ex){
-jdbg.DebugAndEcho("Exception: "+ex.ToString());Echo("Exception: "+ex.ToString());throw ex;}}class Arcade8080Machine{Cpu cpu;
-Memory memory;Display display;Bus iobus;public byte[]keyBits;public Specifics specifics;bool needsProcessing=false;int
-processIndex=0;public int cost=0;public Arcade8080Machine(Specifics specs,GetRomData.Games gameType,String gameData,int cost){
-specifics=specs;specs.am=this;int rotate270=270;memory=new Memory();byte backCol=0;Display.paletteType palType=Display.
-paletteType.RBG;byte port_shift_result=0xFF;byte port_shift_data=0xFF;byte port_shift_offset=0xFF;byte port_input=0xFF;this.cost=
-cost;memory.LoadRom(ref keyBits,ref rotate270,gameType,gameData,ref backCol,ref needsProcessing,ref palType,ref
+errorMessage=null;if(notOkToPlay!=null){errorMessage=notOkToPlay;}else if(argument==null||argument.Equals("")){if(currentGame==
+GetRomData.Games.None){errorMessage="ERROR: No game configured - Please see instructions";}}else{List<IMyTerminalBlock>gameData=
+new List<IMyTerminalBlock>();GridTerminalSystem.GetBlocksOfType(gameData,(IMyTerminalBlock x)=>((x.CustomName!=null)&&(x.
+CustomName.ToUpper().IndexOf("["+mytag.ToUpper()+"]")>=0)&&(x.CustomName.ToUpper().IndexOf(argument.ToUpper())>=0)));jdbg.Debug(
+"Found "+gameData.Count+" game block with contents  ["+mytag+"] "+argument);if(gameData.Count!=1){errorMessage=
+"Could not find block with name '["+mytag+"] "+argument+"')";}else{String gameCode;gameCode=gameData[0].CustomData;argument=argument.ToLower().Replace(
+".zip","");if(Enum.TryParse(argument,true,out currentGame)){jdbg.Debug("Recognized as "+currentGame);}else{errorMessage=
+"ERROR: Invalid parameter: "+argument;}if(!GetRomData.checkRomData(currentGame,gameCode)){errorMessage=
+"ERROR: Data does not match expected for that game "+currentGame;}if(errorMessage==null){jlcd.WriteToAllLCDs(namedisplays,""+currentGame.ToString().ToUpperInvariant(),false
+);jdbg.Debug("Creating CPU");Specifics specs=new Specifics();specs.mypgm=this;specs.controller=controller;specs.jdbg=jdbg
+;specs.jctrl=new JCTRL(this,jdbg,false);si=new Arcade8080Machine(specs,currentGame,gameCode,cost);Runtime.UpdateFrequency
+=UpdateFrequency.Update1;}}}if(errorMessage!=null){Echo(errorMessage);jlcd.WriteToAllLCDs(displays,errorMessage,false);
+Runtime.UpdateFrequency=UpdateFrequency.None;return;}int now=DateTime.UtcNow.Second;if(now!=curSec){lastFrames=curFrames;if(
+Specifics.skipFrames>1){jlcd.WriteToAllLCDs(fpsdisplays,""+actFrames+" of "+lastFrames,false);}else{jlcd.WriteToAllLCDs(
+fpsdisplays,""+lastFrames,false);}curSec=now;curFrames=0;actFrames=0;}jdbg.Echo("Frame "+Frame+++", fps: "+lastFrames+", state:"+si
+.State);if((cost>0)&&(Frame>50)&&(si!=null)){DateTime rightNow=DateTime.UtcNow;if((inserted!=DateTime.MinValue)&&((
+rightNow-inserted).TotalSeconds>=1)){jdbg.Debug("Released coin button");inserted=DateTime.MinValue;si.insertCoin(false);
+lastCoinCheck=rightNow;}else if((rightNow-lastCoinCheck).TotalSeconds>=2){itemList.Clear();coinInInv.GetItems(itemList,b=>(b.Type.
+ToString().Contains("SpaceCredit")&&b.Amount>=cost));if(itemList.Count>0){jdbg.Debug(
+"Found Coins - Moving and pressing coin button");coinInInv.TransferItemTo(coinOutInv,itemList[0],cost);jdbg.Debug("Moved & press coin button");inserted=rightNow;si.
+insertCoin(true);}lastCoinCheck=rightNow;}}try{si.part_exe(ref curFrames,ref actFrames);}catch(Exception ex){jdbg.DebugAndEcho(
+"Exception: "+ex.ToString());Echo("Exception: "+ex.ToString());throw ex;}}class Arcade8080Machine{Cpu cpu;Memory memory;Display
+display;Bus iobus;public byte[]keyBits;public Specifics specifics;bool needsProcessing=false;int processIndex=0;public int cost
+=0;public bool showStates=false;public Arcade8080Machine(Specifics specs,GetRomData.Games gameType,String gameData,int
+cost){specifics=specs;specs.am=this;int rotate270=270;memory=new Memory();byte backCol=0;Display.paletteType palType=Display
+.paletteType.RBG;byte port_shift_result=0xFF;byte port_shift_data=0xFF;byte port_shift_offset=0xFF;byte port_input=0xFF;
+this.cost=cost;memory.LoadRom(ref keyBits,ref rotate270,gameType,gameData,ref backCol,ref needsProcessing,ref palType,ref
 port_shift_result,ref port_shift_data,ref port_shift_offset,ref port_input);iobus=new Bus(keyBits,port_shift_result,port_shift_data,
-port_shift_offset,port_input);cpu=new Cpu(memory,iobus);display=new Display(memory,specifics);display.palType=palType;display.rotate=
-rotate270;Display.backGroundCol=backCol;specifics.display=display;DirectBitmap.Palette=null;State=-3;}int State=-3;public void
-part_exe(ref int curFrames){specifics.Echo("Called with state "+State);if(State==-3){if(needsProcessing){processIndex=0;State=-2
-;}else{State=-1;}}if(State==-2){if(GetRomData.processRom(ref processIndex,ref memory.allProms,specifics,Memory.game)){cpu
-.memory=memory.allProms[0];State=-1;}else{return;}}specifics.CheckKeys();bool seenBegin=false;while(true){if(State>=2){if
-(specifics.GetInstructionCount()<Specifics.maxFrames){bool finished=specifics.drawAndRenderFrame(ref State);if(finished){
-curFrames++;State=-1;specifics.Echo("Moved to state "+State+" - "+specifics.GetInstructionCount());if(seenBegin)return;}else{
-return;}}else{return;}}if(State==-1){seenBegin=true;State=0;specifics.Echo("Moved to state "+State+" - "+specifics.
-GetInstructionCount());}while((cpu.cycles<16666)&&(specifics.GetInstructionCount()<Specifics.maxFrames)){cpu.exe();}if(specifics.
-GetInstructionCount()>=Specifics.maxFrames)return;if(cpu.cycles>=16666){cpu.cycles=0;if(State==0){cpu.handleInterrupt(1);State=1;specifics.
-Echo("Moved to state "+State+" - "+specifics.GetInstructionCount());}else{cpu.handleInterrupt(2);State=2;specifics.Echo(
-"Moved to state "+State+" - "+specifics.GetInstructionCount());}}}}public void insertCoin(bool pushed){byte whichBit=keyBits[(int)Program
-.GetRomData.KeyIndex.q];specifics.DebugAndEcho("Coin inserted: "+whichBit+"/"+pushed+" at "+DateTime.Now);if((keyBits[(
-int)Program.GetRomData.KeyIndex.initmask]&whichBit)>0){if(!pushed){iobus.input|=whichBit;}else{iobus.input&=(byte)~whichBit
-;}}else{if(pushed){iobus.input|=whichBit;}else{iobus.input&=(byte)~whichBit;}}}public void handleInput(byte b,Boolean
-pushed){if((keyBits[(int)Program.GetRomData.KeyIndex.initmask]&b)>0){if(!pushed){iobus.input|=b;}else{iobus.input&=(byte)~b;}}
-else{if(pushed){iobus.input|=b;}else{iobus.input&=(byte)~b;}}}}class Bus{short shift;byte offset;public Cpu cpu;bool
-testMode=false;public bool test_finished=false;byte port_shift_result=0xFF;byte port_shift_data=0xFF;byte port_shift_offset=0xFF
-;byte port_input=0xFF;private bool BIT(int x,int n){return((x>>n)&0x01)>0;}public Bus(byte[]keyBits,byte
-port_shift_result,byte port_shift_data,byte port_shift_offset,byte port_input){if(keyBits==null){testMode=true;}else{input=keyBits[(int)
-Program.GetRomData.KeyIndex.initmask];}this.port_shift_result=port_shift_result;this.port_shift_data=port_shift_data;this.
-port_shift_offset=port_shift_offset;this.port_input=port_input;}public byte input{get;set;}byte lower3bitMask=0x07;public static bool
-rollingc_saved=false;public byte Read(byte b){if(testMode)return 0;byte answer=0x00;if(b==port_input){answer=input;}else if(b==
-port_shift_result){answer=(byte)((shift>>offset)&0xff);}else{switch(b){case 0x00:if(Memory.game==GetRomData.Games.galxwars){answer=0x40;}
-else if(Memory.game==GetRomData.Games.astropal){answer=0x1;}else if(Memory.game==GetRomData.Games.rollingc){int newVal=(
-input&0x80);input=(byte)(input&0x7F);if(newVal>0)rollingc_saved=!rollingc_saved;if(rollingc_saved)return 0x02;else return
-0x04;}else if(Memory.game==GetRomData.Games.spacerng){answer=0xf5;}else if(Memory.game==GetRomData.Games.lupin3){answer=0x03
-;}else if(Memory.game==GetRomData.Games.polaris){answer=(byte)(input&0xf8);}else if(Memory.game==GetRomData.Games.
-indianbt){if(cpu.PC==0x5fec){answer=0x10;}else if(cpu.PC==0x5ffb){answer=0x00;}}else if(Memory.game==GetRomData.Games.vortex){
-answer=0x80;}break;case 0x02:if(Memory.game==GetRomData.Games.indianbt){answer=0x03;}else if(Memory.game==GetRomData.Games.
-vortex){answer=0xff;}else{answer=0;}break;case 0x03:if(Memory.game==GetRomData.Games.astropal){answer=0x80;}break;}}return
-answer;}public void Write(byte b,byte A){if(b==port_shift_offset){offset=(byte)((~A)&lower3bitMask);}else if(b==
-port_shift_data){shift=(short)((shift>>8)|(((short)A)<<7));}else{switch(b){case 0x03:if((Memory.game==GetRomData.Games.ballbomb)||(
-Memory.game==GetRomData.Games.lrescue)||(Memory.game==GetRomData.Games.spacerng)||(Memory.game==GetRomData.Games.schaser)||(
-Memory.game==GetRomData.Games.rollingc)){Display.isRed=(A&0x04)>0;}break;case 0x04:if(Memory.game==GetRomData.Games.galxwars){
-Display.isRed=(A&0x04)>0;}break;case 0x05:if(Memory.game==GetRomData.Games.schaser){Display.backgroundDisable=((A>>3)&1)!=0;
-Display.backgroundSelect=((A>>4)&1)!=0;}else if(Memory.game==GetRomData.Games.invrvnge){Display.isRed=(A&0x10)>0;}else if(
-Memory.game==GetRomData.Games.lupin3){Display.m_color_map=(A&0x40)>0;}else if(Memory.game==GetRomData.Games.galxwars||Memory.
-game==GetRomData.Games.rollingc||Memory.game==GetRomData.Games.ballbomb){Display.m_color_map=BIT(A,5);}break;}}}}class
-DirectBitmap{public static char[]Pixels;public static char[][]QuickPix;public static char[]Palette;private static bool
-lastRollingCGame;private Specifics specifics;public int Height{get;private set;}public int Width{get;private set;}public int
-Memory_Width{get;private set;}public DirectBitmap(int width,int height,Specifics spec,Display.paletteType pal){specifics=spec;Width=
-width;Memory_Width=width+2;Height=height;if(Pixels==null){Pixels=new char[Memory_Width*Height];for(int i=0;i<Height;i++){
-Pixels[(i*Memory_Width)+Width]='\x0d';Pixels[(i*Memory_Width)+(Width+1)]='\x0a';}}if(Palette==null||Bus.rollingc_saved!=
-lastRollingCGame){Palette=new char[16];lastRollingCGame=Bus.rollingc_saved;specifics.mypgm.Echo("Building pallette again");if(Memory.
-game==GetRomData.Games.rollingc){for(int i=0;i<16;i++){int intensity=128;if(Bus.rollingc_saved)intensity=255;if(i>7)
-intensity=255;if(!Bus.rollingc_saved&&i==5){Palette[i]=specifics.mypgm.jlcd.ColorToChar(0xff,0x00,0x80);}else if(!Bus.
-rollingc_saved&&i==6){Palette[i]=specifics.mypgm.jlcd.ColorToChar(0xff,0x80,0x00);}else{Palette[i]=specifics.mypgm.jlcd.ColorToChar(((
-i&4)>0)?(byte)intensity:(byte)0,((i&2)>0)?(byte)intensity:(byte)0,((i&1)>0)?(byte)intensity:(byte)0);}}}else{for(int i=0;
-i<8;i++){if(pal==Display.paletteType.RBG){Palette[i]=specifics.mypgm.jlcd.ColorToChar(((i&1)>0)?(byte)255:(byte)0,((i&4)>
-0)?(byte)255:(byte)0,((i&2)>0)?(byte)255:(byte)0);}else if(pal==Display.paletteType.RGB){Palette[i]=specifics.mypgm.jlcd.
-ColorToChar(((i&1)>0)?(byte)255:(byte)0,((i&2)>0)?(byte)255:(byte)0,((i&4)>0)?(byte)255:(byte)0);}else if(pal==Display.paletteType.
-MONO){if(i==0){Palette[i]=specifics.mypgm.jlcd.ColorToChar(0x00,0x00,0x00);}else{Palette[i]=specifics.mypgm.jlcd.ColorToChar
-(0xff,0xff,0xff);}}}}QuickPix=new char[265][];for(int i=0;i<256;i++){QuickPix[i]=new char[8];for(byte b=0;b<8;b++){if((i&
-(0x1<<b))!=0){QuickPix[i][b]=JLCD.COLOUR_WHITE;}else{QuickPix[i][b]=JLCD.COLOUR_BLACK;}}}}}public void Set8PixelsBW(int x
-,int y,byte b){Array.Copy(QuickPix[b],0,Pixels,(y*Memory_Width)+(x),8);}public void Set8PixelsCol(int x,int y,byte fore,
-byte back,byte data,bool isRed){int index=x+(y*Memory_Width);char whichCol;for(int b=0;b<8;b++,index++){if((data&0x1)!=0){if
-(isRed){whichCol=JLCD.COLOUR_RED;}else{if(Memory.game==GetRomData.Games.rollingc){whichCol=Palette[fore&0x0f];}else{
-whichCol=Palette[fore&0x07];}}}else{whichCol=Palette[back];}Pixels[index]=whichCol;data=(byte)(data>>1);}}public void SetPixel(
-int x,int y,byte fore,byte back,byte data,int bit,bool isRed){int index=x+(y*Memory_Width);char whichCol;if((data&(0x1<<bit
-))!=0){if(isRed){whichCol=JLCD.COLOUR_RED;}else{whichCol=Palette[fore];}}else{whichCol=Palette[back];}Pixels[index]=
-whichCol;}static int oldRotate=-1;public void FinishScreen(int rotate){if(rotate!=oldRotate){specifics.setRotation(rotate);
-oldRotate=rotate;}}}class Display{public enum paletteType{MONO,RGB,RBG,CUSTOM};public static bool isRed;public static bool
-backgroundDisable;public static bool backgroundSelect;public int rotate=270;public static byte backGroundCol=0;public static bool
-m_color_map=false;private bool useOptimizations=false;public paletteType palType;public static bool oldIsRed=false;public const int
-WIDTH=224;public const int HEIGHT=256;private const ushort videoRamStart=0x2400;private const ushort videoRamEnd=0x4000;
-private const ushort MW8080BW_VCOUNTER_START_NO_VBLANK=0x20;private Memory memory;private Specifics specifics;public Display(
-Memory memory,Specifics specs){this.memory=memory;this.specifics=specs;isRed=false;backgroundDisable=false;backgroundSelect=
-false;backGroundCol=0;m_color_map=false;oldIsRed=false;if(Memory.game==GetRomData.Games.schaser){useOptimizations=false;}else
-{useOptimizations=true;}}public DirectBitmap Screen=null;int screenPosn;int[]prevMem=null;int[]curMem=null;int[]curCol=
-null;int[]prevCol=null;int[]curCol2=null;int[]prevCol2=null;public bool generateFrameToDisplay(ref int State){if(State==2){
-Screen=new DirectBitmap(256,224,specifics,palType);screenPosn=0;curMem=new int[(videoRamEnd-videoRamStart)/sizeof(int)];Buffer
-.BlockCopy(memory.allProms[0],videoRamStart,curMem,0,(videoRamEnd-videoRamStart));if(Memory.game==GetRomData.Games.
-schaser){int blockSize=0x1C00;curCol=new int[blockSize/sizeof(int)];Buffer.BlockCopy(memory.allProms[0],0xc400,curCol,0,
-blockSize);}if(Memory.game==GetRomData.Games.rollingc){int blockSize=0x1C00;curCol=new int[blockSize/sizeof(int)];Buffer.
-BlockCopy(memory.allProms[0],0xa400,curCol,0,blockSize);curCol2=new int[blockSize/sizeof(int)];Buffer.BlockCopy(memory.allProms[0
-],0xe400,curCol2,0,blockSize);}State=3;specifics.Echo("Moved to state "+State);screenPosn=0;if(memory.allProms[1]==null)
-useOptimizations=true;}byte[]mem=memory.allProms[0];byte[]col=memory.allProms[1];byte[]extramem=memory.allProms[2];for(;screenPosn<((
+port_shift_offset,port_input);cpu=new Cpu(memory,iobus);display=new Display(memory,specifics,this);display.palType=palType;display.rotate
+=rotate270;Display.backGroundCol=backCol;specifics.display=display;DirectBitmap.Palette=null;State=-3;}public int State=-
+3;public void part_exe(ref int curFrames,ref int actFrames){if(State==-3){if(needsProcessing){processIndex=0;State=-2;}
+else{State=-1;}}if(State==-2){if(GetRomData.processRom(ref processIndex,ref memory.allProms,specifics,Memory.game)){cpu.
+memory=memory.allProms[0];State=-1;}else{return;}}specifics.CheckKeys();bool seenBegin=false;while(true){if(State>=2){if(
+specifics.GetInstructionCount()<Specifics.maxFrames){bool finished=specifics.drawAndRenderFrame(ref State,ref actFrames);if(
+finished){curFrames++;State=-1;if(showStates)specifics.Echo("Moved to state "+State+" - "+specifics.GetInstructionCount());}else
+{return;}}else{return;}}if(State==-1){if(seenBegin)return;seenBegin=true;State=0;if(showStates)specifics.Echo(
+"Moved to state "+State+" - "+specifics.GetInstructionCount());}while((cpu.cycles<16666)&&(specifics.GetInstructionCount()<Specifics.
+maxFrames)){cpu.exe();}if(specifics.GetInstructionCount()>=Specifics.maxFrames)return;if(cpu.cycles>=16666){cpu.cycles=0;if(State
+==0){cpu.handleInterrupt(1);State=1;if(showStates)specifics.Echo("Moved to state "+State+" - "+specifics.
+GetInstructionCount());}else{cpu.handleInterrupt(2);State=2;if(showStates)specifics.Echo("Moved to state "+State+" - "+specifics.
+GetInstructionCount());}}}}public void insertCoin(bool pushed){byte whichBit=keyBits[(int)Program.GetRomData.KeyIndex.q];specifics.
+DebugAndEcho("Coin inserted: "+whichBit+"/"+pushed+" at "+DateTime.Now);if((keyBits[(int)Program.GetRomData.KeyIndex.initmask]&
+whichBit)>0){if(!pushed){iobus.input|=whichBit;}else{iobus.input&=(byte)~whichBit;}}else{if(pushed){iobus.input|=whichBit;}else{
+iobus.input&=(byte)~whichBit;}}}public void handleInput(byte b,Boolean pushed){if((keyBits[(int)Program.GetRomData.KeyIndex.
+initmask]&b)>0){if(!pushed){iobus.input|=b;}else{iobus.input&=(byte)~b;}}else{if(pushed){iobus.input|=b;}else{iobus.input&=(byte
+)~b;}}}}class Bus{short shift;byte offset;public Cpu cpu;bool testMode=false;public bool test_finished=false;byte
+port_shift_result=0xFF;byte port_shift_data=0xFF;byte port_shift_offset=0xFF;byte port_input=0xFF;private bool BIT(int x,int n){return((x
+>>n)&0x01)>0;}public Bus(byte[]keyBits,byte port_shift_result,byte port_shift_data,byte port_shift_offset,byte port_input)
+{if(keyBits==null){testMode=true;}else{input=keyBits[(int)Program.GetRomData.KeyIndex.initmask];}this.port_shift_result=
+port_shift_result;this.port_shift_data=port_shift_data;this.port_shift_offset=port_shift_offset;this.port_input=port_input;}public byte
+input{get;set;}byte lower3bitMask=0x07;public static bool rollingc_saved=false;public byte Read(byte b){if(testMode)return 0;
+byte answer=0x00;if(b==port_input){answer=input;}else if(b==port_shift_result){answer=(byte)((shift>>offset)&0xff);}else{
+switch(b){case 0x00:if(Memory.game==GetRomData.Games.galxwars){answer=0x40;}else if(Memory.game==GetRomData.Games.astropal){
+answer=0x1;}else if(Memory.game==GetRomData.Games.rollingc){int newVal=(input&0x80);input=(byte)(input&0x7F);if(newVal>0)
+rollingc_saved=!rollingc_saved;if(rollingc_saved)return 0x02;else return 0x04;}else if(Memory.game==GetRomData.Games.spacerng){answer=
+0xf5;}else if(Memory.game==GetRomData.Games.lupin3){answer=0x03;}else if(Memory.game==GetRomData.Games.polaris){answer=(byte
+)(input&0xf8);}else if(Memory.game==GetRomData.Games.indianbt){if(cpu.PC==0x5fec){answer=0x10;}else if(cpu.PC==0x5ffb){
+answer=0x00;}}else if(Memory.game==GetRomData.Games.vortex){answer=0x80;}break;case 0x02:if(Memory.game==GetRomData.Games.
+indianbt){answer=0x03;}else if(Memory.game==GetRomData.Games.vortex){answer=0xff;}else{answer=0;}break;case 0x03:if(Memory.game
+==GetRomData.Games.astropal){answer=0x80;}break;}}return answer;}public void Write(byte b,byte A){if(b==port_shift_offset)
+{offset=(byte)((~A)&lower3bitMask);}else if(b==port_shift_data){shift=(short)((shift>>8)|(((short)A)<<7));}else{switch(b)
+{case 0x03:if((Memory.game==GetRomData.Games.ballbomb)||(Memory.game==GetRomData.Games.lrescue)||(Memory.game==GetRomData
+.Games.spacerng)||(Memory.game==GetRomData.Games.schaser)||(Memory.game==GetRomData.Games.rollingc)){Display.isRed=(A&
+0x04)>0;}break;case 0x04:if(Memory.game==GetRomData.Games.galxwars){Display.isRed=(A&0x04)>0;}break;case 0x05:if(Memory.game
+==GetRomData.Games.schaser){Display.backgroundDisable=((A>>3)&1)!=0;Display.backgroundSelect=((A>>4)&1)!=0;}else if(Memory
+.game==GetRomData.Games.invrvnge){Display.isRed=(A&0x10)>0;}else if(Memory.game==GetRomData.Games.lupin3){Display.
+m_color_map=(A&0x40)>0;}else if(Memory.game==GetRomData.Games.galxwars||Memory.game==GetRomData.Games.rollingc||Memory.game==
+GetRomData.Games.ballbomb){Display.m_color_map=BIT(A,5);}break;}}}}class DirectBitmap{public static char[]Pixels;public static
+char[][]QuickPix;public static char[]Palette;private static bool lastRollingCGame;private Specifics specifics;public int
+Height{get;private set;}public int Width{get;private set;}public int Memory_Width{get;private set;}public DirectBitmap(int
+width,int height,Specifics spec,Display.paletteType pal){specifics=spec;Width=width;Memory_Width=width+2;Height=height;if(
+Pixels==null){Pixels=new char[Memory_Width*Height];for(int i=0;i<Height;i++){Pixels[(i*Memory_Width)+Width]='\x0d';Pixels[(i*
+Memory_Width)+(Width+1)]='\x0a';}}if(Palette==null||Bus.rollingc_saved!=lastRollingCGame){Palette=new char[16];lastRollingCGame=Bus.
+rollingc_saved;specifics.mypgm.Echo("Building pallette again");if(Memory.game==GetRomData.Games.rollingc){for(int i=0;i<16;i++){int
+intensity=128;if(Bus.rollingc_saved)intensity=255;if(i>7)intensity=255;if(!Bus.rollingc_saved&&i==5){Palette[i]=specifics.mypgm.
+jlcd.ColorToChar(0xff,0x00,0x80);}else if(!Bus.rollingc_saved&&i==6){Palette[i]=specifics.mypgm.jlcd.ColorToChar(0xff,0x80,
+0x00);}else{Palette[i]=specifics.mypgm.jlcd.ColorToChar(((i&4)>0)?(byte)intensity:(byte)0,((i&2)>0)?(byte)intensity:(byte)0,
+((i&1)>0)?(byte)intensity:(byte)0);}}}else{for(int i=0;i<8;i++){if(pal==Display.paletteType.RBG){Palette[i]=specifics.
+mypgm.jlcd.ColorToChar(((i&1)>0)?(byte)255:(byte)0,((i&4)>0)?(byte)255:(byte)0,((i&2)>0)?(byte)255:(byte)0);}else if(pal==
+Display.paletteType.RGB){Palette[i]=specifics.mypgm.jlcd.ColorToChar(((i&1)>0)?(byte)255:(byte)0,((i&2)>0)?(byte)255:(byte)0,((
+i&4)>0)?(byte)255:(byte)0);}else if(pal==Display.paletteType.MONO){if(i==0){Palette[i]=specifics.mypgm.jlcd.ColorToChar(
+0x00,0x00,0x00);}else{Palette[i]=specifics.mypgm.jlcd.ColorToChar(0xff,0xff,0xff);}}}}QuickPix=new char[265][];for(int i=0;i
+<256;i++){QuickPix[i]=new char[8];for(byte b=0;b<8;b++){if((i&(0x1<<b))!=0){QuickPix[i][b]=JLCD.COLOUR_WHITE;}else{
+QuickPix[i][b]=JLCD.COLOUR_BLACK;}}}}}public void Set8PixelsBW(int x,int y,byte b){Array.Copy(QuickPix[b],0,Pixels,(y*
+Memory_Width)+(x),8);}public void Set8PixelsCol(int x,int y,byte fore,byte back,byte data,bool isRed){int index=x+(y*Memory_Width);
+char whichCol;for(int b=0;b<8;b++,index++){if((data&0x1)!=0){if(isRed){whichCol=JLCD.COLOUR_RED;}else{if(Memory.game==
+GetRomData.Games.rollingc){whichCol=Palette[fore&0x0f];}else{whichCol=Palette[fore&0x07];}}}else{whichCol=Palette[back];}Pixels[
+index]=whichCol;data=(byte)(data>>1);}}public void SetPixel(int x,int y,byte fore,byte back,byte data,int bit,bool isRed){int
+index=x+(y*Memory_Width);char whichCol;if((data&(0x1<<bit))!=0){if(isRed){whichCol=JLCD.COLOUR_RED;}else{whichCol=Palette[
+fore];}}else{whichCol=Palette[back];}Pixels[index]=whichCol;}static int oldRotate=-1;public void FinishScreen(int rotate){if
+(rotate!=oldRotate){specifics.setRotation(rotate);oldRotate=rotate;}}}class Display{public enum paletteType{MONO,RGB,RBG,
+CUSTOM};public static bool isRed;public static bool backgroundDisable;public static bool backgroundSelect;public int rotate=
+270;public static byte backGroundCol=0;public static bool m_color_map=false;private bool useOptimizations=false;public
+paletteType palType;public static bool oldIsRed=false;public const int WIDTH=224;public const int HEIGHT=256;private const ushort
+videoRamStart=0x2400;private const ushort videoRamEnd=0x4000;private const ushort MW8080BW_VCOUNTER_START_NO_VBLANK=0x20;private
+Memory memory;private Specifics specifics;private Arcade8080Machine am=null;public Display(Memory memory,Specifics specs,
+Arcade8080Machine mach){this.memory=memory;this.specifics=specs;this.am=mach;isRed=false;backgroundDisable=false;backgroundSelect=false;
+backGroundCol=0;m_color_map=false;oldIsRed=false;if(Memory.game==GetRomData.Games.schaser){useOptimizations=false;}else{
+useOptimizations=true;}}public DirectBitmap Screen=null;int screenPosn;int[]prevMem=null;int[]curMem=null;int[]curCol=null;int[]prevCol=
+null;int[]curCol2=null;int[]prevCol2=null;public bool generateFrameToDisplay(ref int State){if(State==2){Screen=new
+DirectBitmap(256,224,specifics,palType);screenPosn=0;curMem=new int[(videoRamEnd-videoRamStart)/sizeof(int)];Buffer.BlockCopy(memory
+.allProms[0],videoRamStart,curMem,0,(videoRamEnd-videoRamStart));if(Memory.game==GetRomData.Games.schaser){int blockSize=
+0x1C00;curCol=new int[blockSize/sizeof(int)];Buffer.BlockCopy(memory.allProms[0],0xc400,curCol,0,blockSize);}if(Memory.game==
+GetRomData.Games.rollingc){int blockSize=0x1C00;curCol=new int[blockSize/sizeof(int)];Buffer.BlockCopy(memory.allProms[0],0xa400,
+curCol,0,blockSize);curCol2=new int[blockSize/sizeof(int)];Buffer.BlockCopy(memory.allProms[0],0xe400,curCol2,0,blockSize);}
+State=3;if(am.showStates)specifics.Echo("Moved to state "+State);screenPosn=0;if(memory.allProms[1]==null)useOptimizations=
+true;}byte[]mem=memory.allProms[0];byte[]col=memory.allProms[1];byte[]extramem=memory.allProms[2];for(;screenPosn<((
 videoRamEnd-videoRamStart)/sizeof(int));screenPosn++){if(specifics.GetInstructionCount()>=Specifics.maxFrames)return false;int y=(
 screenPosn*sizeof(int))/32;bool redrawthisbyte=false;if(prevMem==null){redrawthisbyte=true;}else if(oldIsRed!=isRed){
 redrawthisbyte=true;}else if(Memory.game==GetRomData.Games.rollingc){int coloffs=((((y>>2)<<7)|((screenPosn*sizeof(int))&0x1f)))/
@@ -602,48 +636,50 @@ GetLCDsWithName(String tag){List<IMyTerminalBlock>allLCDs=new List<IMyTerminalBl
 IMyTextSurfaceProvider)));jdbg.Debug("Found "+allLCDs.Count+" lcds to update with tag "+tag);return allLCDs;}public void InitializeLCDs(List<
 IMyTerminalBlock>allLCDs,TextAlignment align){foreach(var thisLCD in allLCDs){jdbg.Debug("Setting up the font for "+thisLCD.CustomName);
 IMyTextSurface thisSurface=((IMyTextSurfaceProvider)thisLCD).GetSurface(0);if(thisSurface==null)continue;thisSurface.Font="Monospace";
-thisSurface.ContentType=ContentType.TEXT_AND_IMAGE;thisSurface.BackgroundColor=Color.Black;thisSurface.Alignment=align;}}public
-void SetLCDFontColour(List<IMyTerminalBlock>allLCDs,Color colour){foreach(var thisLCD in allLCDs){if(thisLCD is IMyTextPanel
-){jdbg.Debug("Setting up the color for "+thisLCD.CustomName);((IMyTextPanel)thisLCD).FontColor=colour;}}}public void
-SetLCDRotation(List<IMyTerminalBlock>allLCDs,float Rotation){foreach(var thisLCD in allLCDs){if(thisLCD is IMyTextPanel){jdbg.Debug(
-"Setting up the rotation for "+thisLCD.CustomName);thisLCD.SetValueFloat("Rotate",Rotation);}}}public void SetupFont(List<IMyTerminalBlock>allLCDs,int
-rows,int cols,bool mostlySpecial){_SetupFontCalc(allLCDs,ref rows,cols,mostlySpecial,0.05F,0.05F);}public int
-SetupFontWidthOnly(List<IMyTerminalBlock>allLCDs,int cols,bool mostlySpecial){int rows=-1;_SetupFontCalc(allLCDs,ref rows,cols,
-mostlySpecial,0.05F,0.05F);return rows;}public void SetupFontCustom(List<IMyTerminalBlock>allLCDs,int rows,int cols,bool
-mostlySpecial,float size,float incr){_SetupFontCalc(allLCDs,ref rows,cols,mostlySpecial,size,incr);}private void _SetupFontCalc(List<
-IMyTerminalBlock>allLCDs,ref int rows,int cols,bool mostlySpecial,float startSize,float startIncr){int bestRows=rows;foreach(var thisLCD
-in allLCDs){jdbg.Debug("Setting up font on screen: "+thisLCD.CustomName+" ("+rows+" x "+cols+")");IMyTextSurface
-thisSurface=((IMyTextSurfaceProvider)thisLCD).GetSurface(0);if(thisSurface==null)continue;float size=startSize;float incr=startIncr
-;StringBuilder teststr=new StringBuilder("".PadRight(cols,(mostlySpecial?solidcolor["BLACK"]:'W')));Vector2
-actualScreenSize=thisSurface.TextureSize;while(true){thisSurface.FontSize=size;Vector2 actualSize=thisSurface.TextureSize;Vector2
-thisSize=thisSurface.MeasureStringInPixels(teststr,thisSurface.Font,size);int displayrows=(int)Math.Floor(actualScreenSize.Y/
-thisSize.Y);if((thisSize.X<actualSize.X)&&(rows==-1||(displayrows>rows))){size+=incr;bestRows=displayrows;}else{break;}}
-thisSurface.FontSize=size-incr;jdbg.Debug("Calc size of "+thisSurface.FontSize);if(rows==-1)rows=bestRows;if(thisLCD.
-DefinitionDisplayNameText.Contains("Corner LCD")){jdbg.Debug("INFO: Avoiding bug, multiplying by 4: "+thisLCD.DefinitionDisplayNameText);
-thisSurface.FontSize*=4;}}}public void UpdateFullScreen(IMyTerminalBlock block,String text){List<IMyTerminalBlock>lcds=new List<
-IMyTerminalBlock>{block};InitializeLCDs(lcds,TextAlignment.CENTER);SetupFont(lcds,1,text.Length+4,false);WriteToAllLCDs(lcds,text,false)
-;}public void WriteToAllLCDs(List<IMyTerminalBlock>allLCDs,String msg,bool append){foreach(var thisLCD in allLCDs){if(!
-this.suppressDebug)jdbg.Debug("Writing to display "+thisLCD.CustomName);IMyTextSurface thisSurface=((IMyTextSurfaceProvider)
-thisLCD).GetSurface(0);if(thisSurface==null)continue;thisSurface.WriteText(msg,append);}}public char ColorToChar(byte r,byte g,
-byte b){const double bitSpacing=255.0/7.0;return(char)(0xe100+((int)Math.Round(r/bitSpacing)<<6)+((int)Math.Round(g/
-bitSpacing)<<3)+(int)Math.Round(b/bitSpacing));}}class Memory{public byte[][]allProms=new byte[3][];public bool isColour=false;
-public static GetRomData.Games game;public Memory(){game=GetRomData.Games.None;allProms[0]=new byte[0x10000];}public void
-LoadRom(ref byte[]keyBits,ref int rotate,GetRomData.Games newgame,String gameData,ref byte backCol,ref bool needsProcessing,ref
-Display.paletteType palType,ref byte port_shift_result,ref byte port_shift_data,ref byte port_shift_offset,ref byte port_input)
-{game=newgame;allProms=GetRomData.getRomData(game,gameData.Equals("")?GetRomData.getRomData(game):gameData,ref keyBits,
-ref rotate,ref backCol,ref needsProcessing,ref palType,ref port_shift_result,ref port_shift_data,ref port_shift_offset,ref
-port_input);if(allProms[1]!=null){isColour=true;}else{isColour=false;}}}class Specifics{public Arcade8080Machine am;public Display
-display;public JDBG jdbg;public JCTRL jctrl;public IMyShipController controller;public Program mypgm;public static int
-maxFrames=45000;bool space=false;bool left=false;bool right=false;bool crouch=false;bool up=false;bool down=false;bool q=false;
-bool e=false;public void CheckKeys(){if(left!=jctrl.IsLeft(controller)){left=!left;am.handleInput(am.keyBits[(int)GetRomData
-.KeyIndex.keyleft],left);}if(right!=jctrl.IsRight(controller)){right=!right;am.handleInput(am.keyBits[(int)GetRomData.
-KeyIndex.keyright],right);}if(up!=jctrl.IsUp(controller)){up=!up;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.keyup],up);}
-if(down!=jctrl.IsDown(controller)){down=!down;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.keydown],down);}if(space
-!=jctrl.IsSpace(controller)){space=!space;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.space],space);}if(crouch!=
-jctrl.IsCrouch(controller)){crouch=!crouch;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.crouch],crouch);}if(am.cost==0
-&&(q!=jctrl.IsRollLeft(controller))){q=!q;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.q],q);}if(e!=jctrl.
-IsRollRight(controller)){e=!e;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.e],e);}}public void DebugAndEcho(String s){jdbg.
-DebugAndEcho(s);}public void Echo(String s){jdbg.Echo(s);}public int GetInstructionCount(){return mypgm.Runtime.
-CurrentInstructionCount;}public bool drawAndRenderFrame(ref int State){bool didComplete=display.generateFrameToDisplay(ref State);if(!
-didComplete)return false;mypgm.jlcd.WriteToAllLCDs(mypgm.displays,new String(DirectBitmap.Pixels),false);return true;}public void
-setRotation(int rotate){mypgm.jlcd.SetLCDRotation(mypgm.displays,(float)rotate);}}
+thisSurface.ContentType=ContentType.TEXT_AND_IMAGE;thisSurface.BackgroundColor=Color.Black;thisSurface.Alignment=align;thisSurface.
+TextPadding=0;}}public void SetLCDFontColour(List<IMyTerminalBlock>allLCDs,Color colour){foreach(var thisLCD in allLCDs){if(thisLCD
+is IMyTextPanel){jdbg.Debug("Setting up the color for "+thisLCD.CustomName);((IMyTextPanel)thisLCD).FontColor=colour;}}}
+public void SetLCDRotation(List<IMyTerminalBlock>allLCDs,float Rotation){foreach(var thisLCD in allLCDs){if(thisLCD is
+IMyTextPanel){jdbg.Debug("Setting up the rotation for "+thisLCD.CustomName);thisLCD.SetValueFloat("Rotate",Rotation);}}}public void
+SetupFont(List<IMyTerminalBlock>allLCDs,int rows,int cols,bool mostlySpecial){_SetupFontCalc(allLCDs,ref rows,cols,mostlySpecial,
+0.05F,0.05F);}public int SetupFontWidthOnly(List<IMyTerminalBlock>allLCDs,int cols,bool mostlySpecial){int rows=-1;
+_SetupFontCalc(allLCDs,ref rows,cols,mostlySpecial,0.05F,0.05F);return rows;}public void SetupFontCustom(List<IMyTerminalBlock>allLCDs
+,int rows,int cols,bool mostlySpecial,float size,float incr){_SetupFontCalc(allLCDs,ref rows,cols,mostlySpecial,size,incr
+);}private void _SetupFontCalc(List<IMyTerminalBlock>allLCDs,ref int rows,int cols,bool mostlySpecial,float startSize,
+float startIncr){int bestRows=rows;foreach(var thisLCD in allLCDs){jdbg.Debug("Setting up font on screen: "+thisLCD.
+CustomName+" ("+rows+" x "+cols+")");IMyTextSurface thisSurface=((IMyTextSurfaceProvider)thisLCD).GetSurface(0);if(thisSurface==
+null)continue;float size=startSize;float incr=startIncr;StringBuilder teststr=new StringBuilder("".PadRight(cols,(
+mostlySpecial?solidcolor["BLACK"]:'W')));Vector2 actualScreenSize=thisSurface.TextureSize;while(true){thisSurface.FontSize=size;
+Vector2 actualSize=thisSurface.TextureSize;Vector2 thisSize=thisSurface.MeasureStringInPixels(teststr,thisSurface.Font,size);
+int displayrows=(int)Math.Floor(actualScreenSize.Y/thisSize.Y);if((thisSize.X<actualSize.X)&&(rows==-1||(displayrows>rows))
+){size+=incr;bestRows=displayrows;}else{break;}}thisSurface.FontSize=size-incr;jdbg.Debug("Calc size of "+thisSurface.
+FontSize);if(rows==-1)rows=bestRows;if(thisLCD.DefinitionDisplayNameText.Contains("Corner LCD")){jdbg.Debug(
+"INFO: Avoiding bug, multiplying by 4: "+thisLCD.DefinitionDisplayNameText);thisSurface.FontSize*=4;}}}public void UpdateFullScreen(IMyTerminalBlock block,
+String text){List<IMyTerminalBlock>lcds=new List<IMyTerminalBlock>{block};InitializeLCDs(lcds,TextAlignment.CENTER);SetupFont(
+lcds,1,text.Length+4,false);WriteToAllLCDs(lcds,text,false);}public void WriteToAllLCDs(List<IMyTerminalBlock>allLCDs,String
+msg,bool append){foreach(var thisLCD in allLCDs){if(!this.suppressDebug)jdbg.Debug("Writing to display "+thisLCD.CustomName
+);IMyTextSurface thisSurface=((IMyTextSurfaceProvider)thisLCD).GetSurface(0);if(thisSurface==null)continue;thisSurface.
+WriteText(msg,append);}}public char ColorToChar(byte r,byte g,byte b){const double bitSpacing=255.0/7.0;return(char)(0xe100+((int
+)Math.Round(r/bitSpacing)<<6)+((int)Math.Round(g/bitSpacing)<<3)+(int)Math.Round(b/bitSpacing));}}class Memory{public
+byte[][]allProms=new byte[3][];public bool isColour=false;public static GetRomData.Games game;public Memory(){game=
+GetRomData.Games.None;allProms[0]=new byte[0x10000];}public void LoadRom(ref byte[]keyBits,ref int rotate,GetRomData.Games newgame
+,String gameData,ref byte backCol,ref bool needsProcessing,ref Display.paletteType palType,ref byte port_shift_result,ref
+byte port_shift_data,ref byte port_shift_offset,ref byte port_input){game=newgame;allProms=GetRomData.getRomData(game,
+gameData.Equals("")?GetRomData.getRomData(game):gameData,ref keyBits,ref rotate,ref backCol,ref needsProcessing,ref palType,ref
+port_shift_result,ref port_shift_data,ref port_shift_offset,ref port_input);if(allProms[1]!=null){isColour=true;}else{isColour=false;}}}
+class Specifics{public Arcade8080Machine am;public Display display;public JDBG jdbg;public JCTRL jctrl;public
+IMyShipController controller;public Program mypgm;public static int maxFrames=45000;public static int skipFrames=0;public static int
+skipFramesLeft=0;bool space=false;bool left=false;bool right=false;bool crouch=false;bool up=false;bool down=false;bool q=false;bool e
+=false;public void CheckKeys(){if(left!=jctrl.IsLeft(controller)){left=!left;am.handleInput(am.keyBits[(int)GetRomData.
+KeyIndex.keyleft],left);}if(right!=jctrl.IsRight(controller)){right=!right;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.
+keyright],right);}if(up!=jctrl.IsUp(controller)){up=!up;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.keyup],up);}if(down!=
+jctrl.IsDown(controller)){down=!down;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.keydown],down);}if(space!=jctrl.
+IsSpace(controller)){space=!space;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.space],space);}if(crouch!=jctrl.IsCrouch(
+controller)){crouch=!crouch;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.crouch],crouch);}if(am.cost==0&&(q!=jctrl.
+IsRollLeft(controller))){q=!q;am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.q],q);}if(e!=jctrl.IsRollRight(controller)){e=!e;
+am.handleInput(am.keyBits[(int)GetRomData.KeyIndex.e],e);}}public void DebugAndEcho(String s){jdbg.DebugAndEcho(s);}public
+void Echo(String s){jdbg.Echo(s);}public int GetInstructionCount(){return mypgm.Runtime.CurrentInstructionCount;}public bool
+drawAndRenderFrame(ref int State,ref int actualDraws){bool didComplete=true;if(skipFramesLeft<=1){didComplete=display.
+generateFrameToDisplay(ref State);if(!didComplete)return false;actualDraws++;mypgm.jlcd.WriteToAllLCDs(mypgm.displays,new String(DirectBitmap.
+Pixels),false);skipFramesLeft=skipFrames;}else{skipFramesLeft--;}return true;}public void setRotation(int rotate){mypgm.jlcd.
+SetLCDRotation(mypgm.displays,(float)rotate);}}
