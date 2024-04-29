@@ -10,6 +10,6 @@ for name,allbytes in zip_data.items(): total_data = total_data + allbytes
 f = open(str(os.sys.argv[1]) + ".txt", "w")
 f.write(base64.b64encode(total_data).decode("utf-8"))
 f.close()
-print( "File " + str(os.sys.argv[1]) + ".zip created")
+print( "File " + str(os.sys.argv[1]) + ".txt created")
 print( "On windows you can send to clipboard by issuing:")
-print( "  clip < \""+ str(os.sys.argv[1]) + ".zip\"")
+print( "  clip < \""+ str(os.sys.argv[1]) + ".txt\"")
