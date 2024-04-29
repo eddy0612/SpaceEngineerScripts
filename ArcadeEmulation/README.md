@@ -4,18 +4,19 @@
 
 This script emulates the 8080 used in the arcade machines very early on, in the era of Space 
 Invaders. It can play multiple games and (on my machine) hits pretty much original speed. 
-Unfortunately all arcade machines were subtely different so you do need to tell the emulator 
+Unfortunately all arcade machines were subtly different so you do need to tell the emulator 
 which game you are running, and that is done through the ROM filename (as known to MAME)
 
-This is a very intensive script and updates an LCD at up to 60 frames per second, and is
+This is a very intensive script and updates an LCD at up to 60 frames per second, and so is
 not a good idea to run this on a multiplayer server. I also suggest you turn the programmable 
 block off when player leaves the controls as well for example. The games play without sound
 as there was no way to play such sounds in a programmable block presently.
 
 Code available on github: https://github.com/eddy0612/SpaceEngineerScripts
 
-Q: Why did I do this? I wrote some simple in game scripts, and got bored of writing them one
-      by one, and started playing... Then I got addicted to getting as much running as I could
+Q: What is the point of this and why did I do it?  I wrote some simple games as a joke, and then
+got bored writing them one by one and wondered if this was possible... I found it very much was and then
+got addicted to getting more games running in this engine
 
 All feedback welcome, please use the discussion area of my github repo
        
