@@ -16,7 +16,7 @@ namespace IngameScript
             Memory memory;
             Display display;
             Bus iobus;
-            public byte[] keyBits;
+            public int[] keyBits;
             public Specifics specifics;
             bool needsProcessing = false;
             int processIndex = 0;
@@ -37,12 +37,13 @@ namespace IngameScript
                 byte port_shift_data = 0xFF;
                 byte port_shift_offset = 0xFF; 
                 byte port_input = 0xFF;
+                byte port_input2 = 0xFF;
                 this.cost = cost;
 
                 memory.LoadRom(ref keyBits, ref rotate270, gameType, gameData, ref backCol, ref needsProcessing, ref palType, ref port_shift_result, ref port_shift_data,
-                                ref port_shift_offset, ref port_input);
+                                ref port_shift_offset, ref port_input, ref port_input2);
 
-                iobus = new Bus(keyBits, port_shift_result, port_shift_data, port_shift_offset, port_input);
+                iobus = new Bus(keyBits, port_shift_result, port_shift_data, port_shift_offset, port_input, port_input2);
                 cpu = new Cpu(memory, iobus);
 
                 display = new Display(memory, specifics, this);
@@ -136,46 +137,92 @@ namespace IngameScript
 
             public void insertCoin(bool pushed)
             {
-                byte whichBit = keyBits[(int)Program.GetRomData.KeyIndex.q];
+                int whichBit = keyBits[(int)Program.GetRomData.KeyIndex.q];
+                bool isInput1 = true;
+                if (whichBit > 0xFF) {
+                    isInput1 = false;
+                    whichBit = whichBit >> 8;
+                }
                 specifics.DebugAndEcho("Coin inserted: " + whichBit + "/" + pushed + " at " + DateTime.Now);
 
-                if ((keyBits[(int)Program.GetRomData.KeyIndex.initmask] & whichBit) > 0) {
+                if ((keyBits[(int)Program.GetRomData.KeyIndex.initmask] & keyBits[(int)Program.GetRomData.KeyIndex.q]) > 0) {
 
                     if (!pushed) {
-                        iobus.input |= whichBit;
+                        if (isInput1) {
+                            iobus.input |= (byte)whichBit;
+                        } else {
+                            iobus.input2 |= (byte)whichBit;
+                        }
                     } else {
-                        iobus.input &= (byte)~whichBit;
+                        if (isInput1) {
+                            iobus.input &= (byte)~whichBit;
+                        } else {
+                            iobus.input2 &= (byte)~whichBit;
+                        }
                     }
 
                     // ACTIVE_HIGH
                 } else {
                     if (pushed) {
-                        iobus.input |= whichBit;
+                        if (isInput1) {
+                            iobus.input |= (byte)whichBit;
+                        } else {
+                            iobus.input2 |= (byte)whichBit;
+                        }
                     } else {
-                        iobus.input &= (byte)~whichBit;
+                        if (isInput1) {
+                            iobus.input &= (byte)~whichBit;
+                        } else {
+                            iobus.input2 &= (byte)~whichBit;
+                        }
                     }
                 }
 
             }
 
-            public void handleInput(byte b, Boolean pushed)
+            public void handleInput(int b, Boolean pushed)
             {
+                byte whichBit;
+                bool isInput1 = true;
+                if (b > 0xff) {
+                    isInput1 = false;
+                    whichBit = (byte)(b>>8);
+                } else {
+                    whichBit = (byte)b;
+                }
+
                 // ACTIVE_LOW:
                 if ((keyBits[(int)Program.GetRomData.KeyIndex.initmask] & b) > 0)
                 {
 
                     if (!pushed) {
-                        iobus.input |= b;
+                        if (isInput1) {
+                            iobus.input |= whichBit;
+                        } else {
+                            iobus.input2 |= whichBit;
+                        }
                     } else {
-                        iobus.input &= (byte)~b;
+                        if (isInput1) {
+                            iobus.input &= (byte)~whichBit;
+                        } else {
+                            iobus.input2 &= (byte)~whichBit;
+                        }
                     }
 
                 // ACTIVE_HIGH
                 } else {
                     if (pushed) {
-                        iobus.input |= b;
+                        if (isInput1) {
+                            iobus.input |= whichBit;
+                        } else {
+                            iobus.input2 |= whichBit;
+                        }
                     } else {
-                        iobus.input &= (byte)~b;
+                        if (isInput1) {
+                            iobus.input &= (byte)~whichBit;
+                        } else {
+                            iobus.input2 &= (byte)~whichBit;
+                        }
                     }
                 }
             }

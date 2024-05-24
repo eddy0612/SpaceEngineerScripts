@@ -128,6 +128,7 @@ expected first few characters in the table below)
 | astropal.zip | Astropal				| MaAglwDDtg | https://www.retrostic.com/roms/mame/astropal-47538
 | galactic.zip | Galactica				| AAAAw5sA// | https://www.retrostic.com/roms/mame/galactica-batalha-espacial-45078
 | attackfc.zip | Attack Force			| PgAyKyLDAA | https://www.retrostic.com/roms/mame/attack-force-47625
+| maze.zip     | Amazing Maze			| AcMECDodIO | https://www.retrostic.com/roms/mame/amazing-maze-44504
 
  
 ### Credits:

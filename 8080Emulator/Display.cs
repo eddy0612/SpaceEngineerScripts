@@ -84,6 +84,11 @@ namespace IngameScript
                         curCol = new int[blockSize / sizeof(int)];
                         Buffer.BlockCopy(memory.allProms[0], 0xc400, curCol, 0, blockSize);
                     }
+                    if (Memory.game == GetRomData.Games.cosmo) {
+                        int blockSize = 0x400;
+                        curCol = new int[blockSize / sizeof(int)];
+                        Buffer.BlockCopy(memory.allProms[0], 0x5c00, curCol, 0, blockSize);
+                    }
                     if (Memory.game == GetRomData.Games.rollingc) {
                         int blockSize = 0x1C00;
                         curCol = new int[blockSize / sizeof(int)];
@@ -118,6 +123,15 @@ namespace IngameScript
                         redrawthisbyte = true;
                     } else if (oldIsRed != isRed) {
                         redrawthisbyte = true;
+                    } else if (Memory.game == GetRomData.Games.cosmo) {
+                        int screenByte = (screenPosn * sizeof(int));
+                        int colIdx = (screenByte >> 8 << 5) | (screenByte & 0x1f);
+
+                        int foreOffs = (0x80 + colIdx) / sizeof(int);
+                        if ((curCol[foreOffs] != prevCol[foreOffs]) ||
+                            (curMem[screenPosn] != prevMem[screenPosn])) {
+                            redrawthisbyte = true;
+                        }
                     } else if (Memory.game == GetRomData.Games.rollingc) {
                         int coloffs = ((((y >> 2) << 7) | ((screenPosn * sizeof(int)) & 0x1f))) / sizeof(int);
                         if ((curCol[coloffs] != prevCol[coloffs]) ||
@@ -183,6 +197,10 @@ namespace IngameScript
                                     } else {
                                         backColour = (byte)(((((bgr & 0x0c) == 0x0c) && Display.backgroundSelect)) ? 4 : 2);
                                     }
+                                } else if (Memory.game == GetRomData.Games.cosmo) {
+                                    bgr = mem[0x5c80 + colIdx];
+                                    backColour = backGroundCol;
+                                    foreColour = (byte)(bgr & 0x07);
                                 } else if (Memory.game == GetRomData.Games.polaris) {
                                     foreColour = (byte)(~((mem[0xc400 + (((y >> 2) << 7) | (screenByte & 0x1f))]) & 0x07));
                                     backColour = (byte)((((bgr & 0x01) == 0x01)) ? 6 : 2);
