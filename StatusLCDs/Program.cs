@@ -135,7 +135,8 @@ namespace IngameScript
 
                 int totalRows = 0;
                 int longestRow = 30;
-                String fullScreen = "";
+                String fullScreen = "\n";
+                fullScreen += thisScript + " Last updated: " + DateTime.Now.ToString() + "\n\n";
 
                 foreach (IMyTerminalBlock refinery in refineries) {
                     // Green    - >90% 

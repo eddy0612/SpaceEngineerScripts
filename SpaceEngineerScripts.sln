@@ -60,6 +60,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "__IN_GAME_SCRIPTS__", "__IN
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RotatingConsole", "RotatingConsole\RotatingConsole.csproj", "{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DoorHandler", "DoorHandler\DoorHandler.csproj", "{48B82E05-AC93-4F72-BAC1-71D468675DC8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -220,6 +222,14 @@ Global
 		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}.Release|x64.Build.0 = Debug|x64
 		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}.Release|x86.ActiveCfg = Debug|x64
 		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4}.Release|x86.Build.0 = Debug|x64
+		{48B82E05-AC93-4F72-BAC1-71D468675DC8}.Debug|x64.ActiveCfg = Debug|x64
+		{48B82E05-AC93-4F72-BAC1-71D468675DC8}.Debug|x64.Build.0 = Debug|x64
+		{48B82E05-AC93-4F72-BAC1-71D468675DC8}.Debug|x86.ActiveCfg = Debug|x64
+		{48B82E05-AC93-4F72-BAC1-71D468675DC8}.Debug|x86.Build.0 = Debug|x64
+		{48B82E05-AC93-4F72-BAC1-71D468675DC8}.Release|x64.ActiveCfg = Debug|x64
+		{48B82E05-AC93-4F72-BAC1-71D468675DC8}.Release|x64.Build.0 = Debug|x64
+		{48B82E05-AC93-4F72-BAC1-71D468675DC8}.Release|x86.ActiveCfg = Debug|x64
+		{48B82E05-AC93-4F72-BAC1-71D468675DC8}.Release|x86.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -247,6 +257,7 @@ Global
 		{3330AF42-F726-4550-A87E-0F09D8B37D9B} = {F2564B34-516A-4D6F-BB94-30AD7ADF84AA}
 		{C533FBDE-C761-47E6-8276-E27D9EF88A5E} = {4AAAEA48-9E7E-4288-853F-A75B580DBADC}
 		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4} = {45CA2169-BE61-4FFB-A389-D9E88F05920D}
+		{48B82E05-AC93-4F72-BAC1-71D468675DC8} = {F2564B34-516A-4D6F-BB94-30AD7ADF84AA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5F261BFD-DE92-4F2C-99FC-71989B6008BF}
@@ -260,6 +271,7 @@ Global
 		8080Emulator\8080Emulator.projitems*{34a873be-cc98-486a-8ab0-147aebc3bdaa}*SharedItemsImports = 4
 		JSharedUtils\JSharedUtils.projitems*{34a873be-cc98-486a-8ab0-147aebc3bdaa}*SharedItemsImports = 4
 		JSharedUtils\JSharedUtils.projitems*{395e3849-d8bb-4226-bcf0-eea188ad617a}*SharedItemsImports = 4
+		JSharedUtils\JSharedUtils.projitems*{48b82e05-ac93-4f72-bac1-71d468675dc8}*SharedItemsImports = 4
 		JSharedUtils\JSharedUtils.projitems*{5e072221-41fc-413e-8bff-aa70a1ec715c}*SharedItemsImports = 4
 		JSharedUtils\JSharedUtils.projitems*{609e54c0-e5b4-4eff-8aef-2537083b9090}*SharedItemsImports = 4
 		JSharedUtils\JSharedUtils.projitems*{61eba249-19f3-48b6-a25b-a4cee90168ba}*SharedItemsImports = 13

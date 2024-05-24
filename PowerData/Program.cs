@@ -29,7 +29,7 @@ namespace IngameScript
     partial class Program : MyGridProgram
     {
         // ----------------------------- CUT -------------------------------------
-        String thisScript = "CountOre";
+        String thisScript = "PowerData";
 
         // Development or user config time flags
         bool debug = true;
@@ -71,6 +71,7 @@ refreshSpeed=10
             jdbg = new JDBG(this, debug);
             jlcd = new JLCD(this, jdbg, false);
             jinv = new JINV(jdbg);
+            jlcd.UpdateFullScreen(Me, thisScript);
 
             // Run every 100 ticks, but relies on internal check to only actually
             // perform on a defined frequency
