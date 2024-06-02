@@ -641,16 +641,21 @@ namespace IngameScript
                 throw new Exception((PC - 1).ToString("x4") + " Unsupported operation " + opcode.ToString("x2"));
             }
 
-/*
             public int dev;
             private void debug(byte opcode)
             {
-                Console.WriteLine("cycle" + dev++ + " " + (PC - 1).ToString("x4") + " " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
-                    + " BC: " + B.ToString("x2") + "" + C.ToString("x2") + " DE: " + D.ToString("x2") + "" + E.ToString("x2") + " HL: " + H.ToString("x2") + "" + L.ToString("x2")
-                    + " op " + opcode.ToString("x2") + " next16 " + Data16.ToString("x4"));
-            }
-*/
+                /* MAME Format: 
+                // Mame debugger string: trace trace.txt,0,noloop,{ tracelog "%04.4x %04.4x AF: %04.4x BC: %04.4x DE: %04.4x HL: %04.4x -- %05.5d %d --",pc,sp,af,bc,de,hl,cycles,inte; }
+                Console.WriteLine((PC - 1).ToString("x4") + " " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
+                    + " BC: " + B.ToString("x2") + "" + C.ToString("x2") + " DE: " + D.ToString("x2") + "" + E.ToString("x2") + " HL: " + H.ToString("x2") + "" + L.ToString("x2") + " -- " + cycles + " " + (interruptPin?"1":"0") + " -- " + dev++);
+                */
 
+                /* Original debugging format: 
+                Console.WriteLine("cycle" + dev++ + " " + (PC - 1).ToString("x4") + " " + SP.ToString("x4") + " AF: " + A.ToString("x2") + "" + F.ToString("x2")
+                                  + " BC: " + B.ToString("x2") + "" + C.ToString("x2") + " DE: " + D.ToString("x2") + "" + E.ToString("x2") + " HL: " + H.ToString("x2") + "" + L.ToString("x2")
+                                     + " op " + opcode.ToString("x2") + " next16 " + Data16.ToString("x4"));
+                */
+            }
         }
     }
 }

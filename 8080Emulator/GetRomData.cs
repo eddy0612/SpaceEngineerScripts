@@ -5,6 +5,9 @@ using System;
 //   - Balloon Bomber - 2nd logo redraw in demo is dashed
 //   - Balloon Bomber - crashes/screen corruption/no ship if left running too long in demo mode
 //   - rollingc - vertical white should be green
+//   - boothill - Cannot control direction of gun
+// RESTRICTION:
+//   - lagunar/280zzzap - Have to release accelerator to change gear - space + crouch same axis on controller
 
 namespace IngameScript
 {
@@ -38,7 +41,6 @@ namespace IngameScript
                 bowler,
                 lagunar,
                 gmissile,
-                spcenctr,
                 m4,
                 yosakdon,
                 shuttlei,
@@ -81,7 +83,6 @@ namespace IngameScript
             private static String start_bowler = "wDqsIrfKp0";
             private static String start_lagunar = "wvwXASAANv";
             private static String start_gmissile = "vBIhBhHNTB";
-            private static String start_spcenctr = "wEDAQAEB/A";
             private static String start_m4 = "aAYYA1UYaE";
             private static String start_yosakdon = "w7AOAP8A/w";
             private static String start_shuttlei = "MQBEr9P/0/";
@@ -116,7 +117,6 @@ namespace IngameScript
                     case Games.bowler: expected = start_bowler; break;
                     case Games.lagunar: expected = start_lagunar; break;
                     case Games.gmissile: expected = start_gmissile; break;
-                    case Games.spcenctr: expected = start_spcenctr; break;
                     case Games.m4: expected = start_m4; break;
                     case Games.yosakdon: expected = start_yosakdon; break;
                     case Games.shuttlei: expected = start_shuttlei; break;
@@ -134,7 +134,7 @@ namespace IngameScript
                                               ref byte backgroundCol, ref bool needsProcessing,
                                               ref Display.paletteType palType,
                                               ref byte port_shift_result, ref byte port_shift_data, 
-                                              ref byte port_shift_offset, ref byte port_input, ref byte port_input2)
+                                              ref byte port_shift_offset, ref byte[] port_inputs)
             {
                 byte[][] roms = new byte[3][];
                 byte[] rom = Convert.FromBase64String(gameBytes);
@@ -145,6 +145,11 @@ namespace IngameScript
                 byte[] extra = new byte[2048];
                 rotate = 270;
                 backgroundCol = 0;
+
+                byte port_input  = 0x50;   // Something I havent seen any game use
+                byte port_input2 = 0x50;   // Something I havent seen any game use
+                byte port_input3 = 0x50;   // Something I havent seen any game use
+                byte port_input4 = 0x50;   // Something I havent seen any game use
 
                 // Each rom is dumped differently :-(
                 // See MAME source 8080bw.cpp for maps
@@ -495,6 +500,7 @@ namespace IngameScript
                     loadrom(rom, ref curPos, ref main, 0x0000, 0x0400);
                     roms[0] = main;
                     palType = Display.paletteType.MONO;
+                    needsProcessing = true;  // Set trackball defaults
                     port_shift_data = 0x03;
                     port_shift_offset = 0x04;
                     port_input = 0x01;
@@ -510,6 +516,7 @@ namespace IngameScript
                     loadrom(rom, ref curPos, ref main, 0x0000, 0x0800);
                     roms[0] = main;
                     palType = Display.paletteType.MONO;
+                    needsProcessing = true;  // Set trackball defaults
                     port_shift_data = 0x03;
                     port_shift_offset = 0x04;
                     port_input = 0x01;
@@ -518,7 +525,6 @@ namespace IngameScript
                     rotate = 90;
                     // OK
 
-                    // ---------------------------------- to be fixed
                 } else if (gameType == Games.bowler) {
                     loadrom(rom, ref curPos, ref main, 0x4000, 0x0800);
                     loadrom(rom, ref curPos, ref main, 0x1800, 0x0800);
@@ -527,32 +533,17 @@ namespace IngameScript
                     loadrom(rom, ref curPos, ref main, 0x0000, 0x0800);
                     roms[0] = main;
                     palType = Display.paletteType.MONO;
+                    needsProcessing = true;  // Set trackball defaults
                     port_shift_data = 0x02;
                     port_shift_offset = 0x01;
-                    port_input = 0x05;
+                    port_input = 0x05;  // y-axis
                     port_input2 = 0x04;
+                    port_input3 = 0x06; // x-axis
                     port_shift_result = 0xff;  // Done in code as reverse
                     rotate = 90;
-                    // UNKNOWN
+                    // OK as good as trackball support is
 
-                } else if (gameType == Games.spcenctr) {
-                    loadrom(rom, ref curPos, ref main, 0x5800, 0x0800);
-                    loadrom(rom, ref curPos, ref main, 0x5000, 0x0800);
-                    loadrom(rom, ref curPos, ref main, 0x4800, 0x0800);
-                    loadrom(rom, ref curPos, ref main, 0x4000, 0x0800);
-                    loadrom(rom, ref curPos, ref main, 0x1800, 0x0800);
-                    loadrom(rom, ref curPos, ref main, 0x1000, 0x0800);
-                    loadrom(rom, ref curPos, ref main, 0x0800, 0x0800);
-                    loadrom(rom, ref curPos, ref main, 0x0000, 0x0800);
-                    roms[0] = main;
-                    palType = Display.paletteType.MONO;
-                    port_shift_data = 0xff;
-                    port_shift_offset = 0xff;
-                    port_input = 0x00;
-                    port_input2 = 0x01;
-                    port_shift_result = 0xff;
-                    rotate = 0;
-                    // UNKNOWN
+                // ---------------------------------- to be fixed
 
                 } else if (gameType == Games.steelwkr) {
                     loadrom(rom, ref curPos, ref main, 0x0000, 0x0400 * 8);
@@ -572,6 +563,11 @@ namespace IngameScript
                     return null;
                 }
                 keyports = getKeyBits(gameType);
+
+                port_inputs[0] = port_input;
+                port_inputs[1] = port_input2;
+                port_inputs[2] = port_input3;
+                port_inputs[3] = port_input4;
                 return roms;
             }
 
@@ -592,6 +588,13 @@ namespace IngameScript
                     }
                     roms[0] = newmain;
                     // ok
+                    return true;
+                } else if (gameType == Games.bowler) {
+                    specifics.xaxis_tick_delta = 3;
+                    return true;
+                } else if ((gameType == Games.lagunar) ||
+                           (gameType == Games.z280zzzap)) { 
+                    specifics.xaxis_tick_delta = 20;
                     return true;
                 } else if (gameType == Games.vortex) {
                     /* Copied from MAME source */
@@ -799,10 +802,10 @@ namespace IngameScript
                         break;
 
                     case Games.bowler:
-                        indexes[(int)KeyIndex.keyleft] = 0x04;
-                        indexes[(int)KeyIndex.keyright] = 0x08;
-                        indexes[(int)KeyIndex.keydown] = 0x02;
-                        indexes[(int)KeyIndex.keyup] = 0x01;
+                        indexes[(int)KeyIndex.keyleft] = 0x040000;
+                        indexes[(int)KeyIndex.keyright] = 0x080000;
+                        indexes[(int)KeyIndex.keydown] = 0x0200;
+                        indexes[(int)KeyIndex.keyup] = 0x0100;
                         indexes[(int)KeyIndex.q] = 0x0100;  // coin in 
                         indexes[(int)KeyIndex.e] = 0x0400;  // 1p start
                         indexes[(int)KeyIndex.initmask] = 0x0000;
@@ -810,7 +813,6 @@ namespace IngameScript
                         indexes[(int)KeyIndex.crouch] = 0x0800;
                         break;
 
-                    case Games.spcenctr:
                     case Games.yosakdon:
                         indexes[(int)KeyIndex.q] = 0x01;  // coin in 
                         indexes[(int)KeyIndex.e] = 0x04;  // 1p start
@@ -848,13 +850,16 @@ namespace IngameScript
                         break;
 
                     case Games.steelwkr:
-                        indexes[(int)KeyIndex.crouch] = 0x0800;
+                        indexes[(int)KeyIndex.crouch] = 0x08;
+
                         indexes[(int)KeyIndex.space] = 0x10;
                         indexes[(int)KeyIndex.keyleft] = 0x20;
                         indexes[(int)KeyIndex.keyright] = 0x40;
+                        indexes[(int)KeyIndex.keyup] = 0x80;
+
                         indexes[(int)KeyIndex.q] = 0x01;  // coin in 
                         indexes[(int)KeyIndex.e] = 0x04;  // 1p start
-                        indexes[(int)KeyIndex.initmask] = 0xff01;
+                        indexes[(int)KeyIndex.initmask] = 0x01;
                         break;
 
                     default:  /* Invader keys: */

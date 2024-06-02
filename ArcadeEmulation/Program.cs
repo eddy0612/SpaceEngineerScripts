@@ -265,7 +265,11 @@ speed=40000
 
                     argument = argument.ToLower().Replace(".zip", "");
 
-                    if (Enum.TryParse(argument, true, out currentGame)) {
+                    /* Special case 280zzzap as you cant have variables starting with a number */
+                    if (argument.Equals("280zzzap")) {
+                        currentGame = GetRomData.Games.z280zzzap;
+                        jdbg.Debug("Recognized special as " + currentGame);
+                    } else if (Enum.TryParse(argument, true, out currentGame)) {
                         jdbg.Debug("Recognized as " + currentGame);
                     } else {
                         errorMessage = "ERROR: Invalid parameter: " + argument;

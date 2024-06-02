@@ -27,8 +27,8 @@ namespace IngameScript
             // General variables
             public const int WIDTH = 224;
             public const int HEIGHT = 256;
-            private const ushort videoRamStart = 0x2400;
-            private const ushort videoRamEnd = 0x4000;
+            private ushort videoRamStart = 0x2400;
+            private ushort videoRamEnd = 0x4000;
             private const ushort MW8080BW_VCOUNTER_START_NO_VBLANK = 0x20;
 
             private Memory memory;
@@ -48,6 +48,8 @@ namespace IngameScript
                 backGroundCol = 0;
                 m_color_map = false;
                 oldIsRed = false;
+                videoRamStart = 0x2400;
+                videoRamEnd = 0x4000;
 
                 // Should we use optimizations - can only do so if the fore colour is based from a
                 // read only memory (B&W automatically uses optimizations)
@@ -55,6 +57,11 @@ namespace IngameScript
                     useOptimizations = false;
                 } else {
                     useOptimizations = true;
+                }
+                if ((Memory.game == GetRomData.Games.skylove) ||
+                    (Memory.game == GetRomData.Games.shuttlei)) {
+                    videoRamStart = 0x2000;
+                    videoRamEnd = 0x3800;
                 }
             }
 
@@ -157,7 +164,13 @@ namespace IngameScript
 
                             // We have a clever optimization for black and white
                             if (palType == paletteType.MONO) {
-                                Screen.Set8PixelsBW((((sizeof(int) * screenPosn) + j) % 32) * 8, y, mem[((sizeof(int) * screenPosn) + j) + videoRamStart]);
+                                if ((Memory.game == GetRomData.Games.skylove) ||
+                                    (Memory.game == GetRomData.Games.shuttlei)) {
+                                    Screen.Set8PixelsBW((((sizeof(int) * screenPosn) + j) % 32) * 8, y, Bus.ReverseBitsWith7Operations(mem[((sizeof(int) * screenPosn) + j) + videoRamStart]));
+                                } else {
+                                    Screen.Set8PixelsBW((((sizeof(int) * screenPosn) + j) % 32) * 8, y, mem[((sizeof(int) * screenPosn) + j) + videoRamStart]);
+                                }
+
                                 continue;
                             } else {
                                 // But for colour we really need to work this out bit by bit

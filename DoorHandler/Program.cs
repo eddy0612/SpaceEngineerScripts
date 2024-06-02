@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using VRage;
@@ -25,15 +26,15 @@ namespace IngameScript
     partial class Program : MyGridProgram
     {
         // ----------------------------- CUT -------------------------------------
-        String thisScript = "CountOre";
+        String thisScript = "DoorHandler";
 
         // Development or user config time flags
         bool debug = true;
-        bool stayRunning = false;
+        bool stayRunning = true;
 
         // Data read from program config
         String myTag = "IDONTCARE";    // Which tags to watch out for
-        int cacheTime = 30;            // Refresh config every 30 seconds
+        int threshold = 95;            // Default oxygen threshold
 
         // Private variables
         private JDBG jdbg = null;
@@ -44,6 +45,7 @@ namespace IngameScript
         /* Example custom data in programming block: 
 [Config]
 tag=doors
+threshold=80   (optional)
         */
         // -------------------------------------------
 
@@ -60,7 +62,6 @@ tag=doors
             // ---------------------------------------------------------------------------
             // Work out our tag
             // ---------------------------------------------------------------------------
-
             // ---------------------------------------------------------------------------
             // Get my custom data and parse to get the config
             // ---------------------------------------------------------------------------
@@ -75,22 +76,24 @@ tag=doors
                 myTag = "DOORS";
             } else {
                 myTag = myTag.ToUpper();
-                return;
             }
             Echo("Using tag: " + myTag);
 
-            // Populate the config cache
-            processGroups();
-            lastCheck = DateTime.Now;
+            // Get the value of the "refreshSpeed" key under the "config" section.
+            int newthreshold = _ini.Get("config", "threshold").ToInt32(95);
+            jdbg.DebugAndEcho("New threshhold will be " + newthreshold);
+            if (newthreshold < 0 || newthreshold > 100) {
+                jdbg.DebugAndEcho("Invalid refresh speed or not defined - defaulting to 95%");
+                newthreshold = 95;
+            } else {
+                threshold = newthreshold;
+            }
 
             // Run every 100 ticks, but relies on internal check to only actually
             // perform on a defined frequency
             if (stayRunning) {
                 Runtime.UpdateFrequency = UpdateFrequency.Update100;
             }
-
-
-
         }
 
         public void Save()
@@ -166,6 +169,7 @@ tag=doors
                 // Note if there's no air vents, we dont care on the status and its always in the right state
                 bool isFullyPressurized = true;     // Based on what we find we will clear one or both of
                 bool isFullyDePressurized = true;   // these flags.
+                bool isActivelyDepressurizing = false;
                 int maxOpenDoors = 0;
 
                 // if there are no airvents, we are treating as airlock
@@ -179,17 +183,33 @@ tag=doors
                     // Otherwise correct the status from the airvents
                     jdbg.Debug("Calculating airvent state");
                     foreach (var thisVent in airvents) {
-                        VentStatus thisStatus = ((IMyAirVent)thisVent).Status;
-                        jdbg.Debug(".." + thisVent.Name + " : " + thisStatus);
-                        if (!(thisStatus == VentStatus.Pressurized)) {
+                        IMyAirVent vent = ((IMyAirVent)thisVent);
+                        VentStatus thisStatus = vent.Status;
+                        float perc = vent.GetOxygenLevel();
+                        jdbg.Debug(".." + thisVent.CustomName + " : " + thisStatus.ToString() + " at " + perc + "%");
+                        jdbg.Debug("..PressurizationEnabled: " + vent.PressurizationEnabled);
+                        jdbg.Debug("..Is airtight          : " + vent.CanPressurize);
+                        jdbg.Debug("..Set to Depressurize  : " + vent.Depressurize);  /* Is it configured to depressurize!!!! */
+                        jdbg.Debug("..Status               : " + vent.Status);
+                        /* Idealistic - instead allow 5% leeway (stays in depressurizing even when 0.00%) */
+                        if (perc > ((float)threshold)/100.0F) {
+                            /* isFullyPressurized */
+                        } else {
                             isFullyPressurized = false;
                         }
-                        if (!(thisStatus == VentStatus.Depressurized)) {
+                        if (perc < 0.05F) {
+                            /* isFullyDePressurized */
+                        } else {
                             isFullyDePressurized = false;
+                        }
+
+                        /* If a vent is in an airtight area and trying to empty the room, close any IN door */
+                        if (vent.Enabled && vent.Depressurize == true && vent.CanPressurize) { 
+                            isActivelyDepressurizing = true;
                         }
                     }
                 }
-                jdbg.Debug("Result: isPress " + isFullyPressurized + ", isDepress " + isFullyDePressurized + ", maxdoors:" + maxOpenDoors);
+                jdbg.Debug("Result: isPress " + isFullyPressurized + "isActiveDepress" + isActivelyDepressurizing + ", isDepress " + isFullyDePressurized + ", maxdoors:" + maxOpenDoors);
 
                 // ---------------------------------------------------------------------
                 // Work out what we would like the doors to do for this group
@@ -199,6 +219,8 @@ tag=doors
                 // for each door
                 foreach (var door in doors) {
                     IMyDoor thisDoor = (IMyDoor)door;
+                    jdbg.Debug("Door: " + door.CustomName + ", Status: " + thisDoor.Status);
+                    jdbg.Debug("  IsIn? " + isIn(door) + ", IsOut? " + isOut(door));
 
                     if (thisDoor.Status == DoorStatus.Open) {   /* OPEN DOORS */
                         opendoors = opendoors + 1;
@@ -206,34 +228,37 @@ tag=doors
                         // Ensure door is enabled - no case where an open door should be disabled
                         thisDoor.Enabled = true;
 
-                        // if door is [in] and not fully pressurized OR
-                        //    door is [out] and not fully depressurized THEN
-                        if ((isIn(door) && !isFullyPressurized) ||
+                        // if door is [in] and not fully pressurized or is depressurizing, OR
+                        //    door is [out] and not fully depressurized (wont pressurize if there's a leak) THEN
+                        if ((isIn(door) && (isActivelyDepressurizing || !isFullyPressurized)) ||
                             (isOut(door) && !isFullyDePressurized)) {
                             if (!mustClose.Contains(thisDoor)) {
                                 mustClose.Add(thisDoor);
+                                jdbg.Debug("  MUSTCLOSE");
                             }
                         }
 
                     } else if (thisDoor.Status == DoorStatus.Closed) {
                         // if opendoors<max doors open AND   /* airlock case */
                         //           fully depressurized AND door is [out] OR   /* CLOSED DOORS room in right state */
-                        //           fully pressurized AND door is [in] OR
+                        //           fully pressurized AND not trying to depressurize AND door is [in] OR
                         //           door is [inout]
                         //        THEN
                         //            add to 'valid to open' doors
                         if ((opendoors < maxOpenDoors) &&
                             ((isOut(door) && isFullyDePressurized) ||
-                             (isIn(door) && isFullyPressurized) ||
+                             (isIn(door) && (!isActivelyDepressurizing && isFullyPressurized)) ||
                              (isInOut(door)))
                             ) {
                             if (!allowedToOpen.Contains(thisDoor)) {
+                                jdbg.Debug("  ALLOWED TO OPEN");
                                 allowedToOpen.Add(thisDoor);
                             }
                         } else {
                             // else   /* CLOSED DOORS room in wrong state */
                             //	add to 'invalid to open' doors
                             if (!invalidToOpen.Contains(thisDoor)) {
+                                jdbg.Debug("  INVALID TO OPEN");
                                 invalidToOpen.Add(thisDoor);
                             }
                         }

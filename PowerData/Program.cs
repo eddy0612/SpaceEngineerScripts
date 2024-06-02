@@ -32,7 +32,7 @@ namespace IngameScript
         String thisScript = "PowerData";
 
         // Development or user config time flags
-        bool debug = true;
+        bool debug = false;
         bool stayRunning = false;
 
         // Data read from program config

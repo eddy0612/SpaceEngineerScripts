@@ -25,13 +25,13 @@ namespace IngameScript
             public void LoadRom(ref int[] keyBits, ref int rotate, GetRomData.Games newgame, String gameData, 
                                 ref byte backCol, ref bool needsProcessing, ref Display.paletteType palType,
                                 ref byte port_shift_result, ref byte port_shift_data,
-                                ref byte port_shift_offset, ref byte port_input, ref byte port_input2)
+                                ref byte port_shift_offset, ref byte[] port_inputs)
             {
                 game = newgame;
                 allProms = GetRomData.getRomData(game, gameData.Equals("") ? GetRomData.getRomData(game) : gameData, ref keyBits, ref rotate,
                                                         ref backCol, ref needsProcessing, ref palType, 
                                                         ref port_shift_result, ref port_shift_data,
-                                                        ref port_shift_offset, ref port_input, ref port_input2);
+                                                        ref port_shift_offset, ref port_inputs);
                 if (allProms[1] != null) {
                     isColour = true;
                 } else {

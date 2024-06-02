@@ -15,14 +15,16 @@ namespace IngameScript
             Cpu cpu;
             Memory memory;
             Display display;
-            Bus iobus;
+            public Bus iobus;
             public int[] keyBits;
             public Specifics specifics;
             bool needsProcessing = false;
             int processIndex = 0;
             public int cost = 0;
             public bool showStates = false;
+            public GetRomData.Games game;
 
+            // NOTE: Key stuff in specifics for lagunar/zzzap
             public Arcade8080Machine(Specifics specs, GetRomData.Games gameType, String gameData, int cost)
             {
                 specifics = specs;
@@ -35,15 +37,14 @@ namespace IngameScript
 
                 byte port_shift_result = 0xFF; 
                 byte port_shift_data = 0xFF;
-                byte port_shift_offset = 0xFF; 
-                byte port_input = 0xFF;
-                byte port_input2 = 0xFF;
+                byte port_shift_offset = 0xFF;
+                byte[] port_inputs = new byte[4] { 0xff, 0xff, 0xff, 0xff };
                 this.cost = cost;
-
+                this.game = gameType;
                 memory.LoadRom(ref keyBits, ref rotate270, gameType, gameData, ref backCol, ref needsProcessing, ref palType, ref port_shift_result, ref port_shift_data,
-                                ref port_shift_offset, ref port_input, ref port_input2);
+                                ref port_shift_offset, ref port_inputs);
 
-                iobus = new Bus(keyBits, port_shift_result, port_shift_data, port_shift_offset, port_input, port_input2);
+                iobus = new Bus(keyBits, port_shift_result, port_shift_data, port_shift_offset, port_inputs);
                 cpu = new Cpu(memory, iobus);
 
                 display = new Display(memory, specifics, this);
@@ -90,6 +91,10 @@ namespace IngameScript
                         if (specifics.GetInstructionCount() < Specifics.maxFrames) {
                             bool finished = specifics.drawAndRenderFrame(ref State, ref actFrames);
                             if (finished) {
+                                if (game == GetRomData.Games.skylove ||
+                                    game == GetRomData.Games.shuttlei) {
+                                    iobus.input |= (byte)0x02;
+                                }
                                 curFrames++;
                                 State = -1;
                                 if (showStates) specifics.Echo("Moved to state " + State + " - " + specifics.GetInstructionCount());
@@ -107,6 +112,29 @@ namespace IngameScript
                         seenBegin = true;
                         State = 0;
                         if (showStates) specifics.Echo("Moved to state " + State + " - " + specifics.GetInstructionCount());
+
+                        // Move wheel on those games
+                        if ((game == GetRomData.Games.lagunar) ||
+                            (game == GetRomData.Games.bowler) ||
+                            (game == GetRomData.Games.z280zzzap)) {
+                            if (specifics.xaxis_state == -1) {
+                                if (specifics.xaxis_value > 7) specifics.xaxis_value -= specifics.xaxis_tick_delta;
+                            } else if (specifics.xaxis_state == 1) {
+                                if (specifics.xaxis_value < 247) specifics.xaxis_value += specifics.xaxis_tick_delta;
+                            }
+                            
+                            if (specifics.yaxis_state == -1) {
+                                if (specifics.yaxis_value > 7) specifics.yaxis_value -= specifics.yaxis_tick_delta;
+                            } else if (specifics.yaxis_state == 1) {
+                                if (specifics.yaxis_value < 247) specifics.yaxis_value += specifics.yaxis_tick_delta;
+                            }
+                            if ((game == GetRomData.Games.bowler)) {
+                                iobus.input = specifics.yaxis_value;
+                                iobus.input3 = specifics.xaxis_value;
+                            } else {
+                                iobus.input = specifics.xaxis_value;
+                            }
+                        }
                     }
 
                     // Get here, its cpu time
@@ -119,6 +147,11 @@ namespace IngameScript
 
                     // Its interrupt time
                     if (cpu.cycles >= 16666) {
+                        if (game == GetRomData.Games.skylove ||
+                            game == GetRomData.Games.shuttlei) {
+                            int whichBit = 0x02;
+                            iobus.input &= (byte)(~whichBit);
+                        }
                         cpu.cycles = 0;
                         if (State == 0) {
                             cpu.handleInterrupt(1);
@@ -138,6 +171,7 @@ namespace IngameScript
             public void insertCoin(bool pushed)
             {
                 int whichBit = keyBits[(int)Program.GetRomData.KeyIndex.q];
+                // Assumed never use input3 for coins
                 bool isInput1 = true;
                 if (whichBit > 0xFF) {
                     isInput1 = false;
@@ -184,8 +218,16 @@ namespace IngameScript
             {
                 byte whichBit;
                 bool isInput1 = true;
-                if (b > 0xff) {
+                bool isInput2 = false;
+                bool isInput3 = false;
+
+                if (b > 0xff00) {
                     isInput1 = false;
+                    isInput3 = true;
+                    whichBit = (byte)(b >> 16);
+                } else if (b > 0xff) {
+                    isInput1 = false;
+                    isInput2 = true;
                     whichBit = (byte)(b>>8);
                 } else {
                     whichBit = (byte)b;
@@ -198,30 +240,38 @@ namespace IngameScript
                     if (!pushed) {
                         if (isInput1) {
                             iobus.input |= whichBit;
-                        } else {
+                        } else if (isInput2) {
                             iobus.input2 |= whichBit;
+                        } else if (isInput3) {
+                            iobus.input3 |= whichBit;
                         }
                     } else {
                         if (isInput1) {
                             iobus.input &= (byte)~whichBit;
-                        } else {
+                        } else if (isInput2) {
                             iobus.input2 &= (byte)~whichBit;
+                        } else if (isInput3) {
+                            iobus.input3 &= (byte)~whichBit;
                         }
                     }
 
-                // ACTIVE_HIGH
+                    // ACTIVE_HIGH
                 } else {
                     if (pushed) {
                         if (isInput1) {
                             iobus.input |= whichBit;
-                        } else {
+                        } else if (isInput2) {
                             iobus.input2 |= whichBit;
+                        } else if (isInput3) {
+                            iobus.input3 |= whichBit;
                         }
                     } else {
                         if (isInput1) {
                             iobus.input &= (byte)~whichBit;
-                        } else {
+                        } else if (isInput2) {
                             iobus.input2 &= (byte)~whichBit;
+                        } else if (isInput3) {
+                            iobus.input3 &= (byte)~whichBit;
                         }
                     }
                 }

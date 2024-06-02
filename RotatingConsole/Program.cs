@@ -48,11 +48,6 @@ namespace IngameScript
         int yRotation = 0;
         int zRotation = 0;
 
-        // My configuration
-        int refreshSpeed = 1;
-        String originalName = "";
-        bool isConfirm = false;
-
         // Internals
         DateTime lastCheck = new DateTime(0);
         int counter = 0;

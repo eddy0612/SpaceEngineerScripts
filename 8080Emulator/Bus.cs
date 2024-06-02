@@ -23,14 +23,13 @@ namespace IngameScript
             byte port_shift_result = 0xFF;
             byte port_shift_data = 0xFF;
             byte port_shift_offset = 0xFF;
-            byte port_input = 0xFF;
-            byte port_input2 = 0xFE;
 
+            public byte[] port_inputs = new byte[4];
 
             private bool BIT(int x, int n) { return ((x >> n) & 0x01) > 0; }
 
             public Bus(int[] keyBits, byte port_shift_result, byte port_shift_data, 
-                byte port_shift_offset, byte port_input, byte port_input2)
+                byte port_shift_offset, byte[] port_inputs)
             {
                 // Some games are coin is on active_low, and requires the bits high to start
                 // with
@@ -44,12 +43,13 @@ namespace IngameScript
                 this.port_shift_result = port_shift_result;
                 this.port_shift_data = port_shift_data;
                 this.port_shift_offset = port_shift_offset;
-                this.port_input = port_input;
-                this.port_input2 = port_input2;
+                this.port_inputs = port_inputs;
             }
 
             public byte input { get; set; }
             public byte input2 { get; set; }
+            public byte input3 { get; set; }
+            public byte input4 { get; set; }
 
             byte lower3bitMask = 0x07; //0000 0111 covers amount to shift from 0 to 7
 
@@ -60,10 +60,16 @@ namespace IngameScript
                 byte answer = 0x00;
 
                 // Things usually needed:
-                if (b == port_input) {
+                if (b == port_inputs[0]) {
                     answer = input;
-                } else if (b == port_input2) {
+                } else if (b == port_inputs[1]) {
                     answer = input2;
+                } else if (b == port_inputs[2]) {
+                    if (Memory.game == GetRomData.Games.bowler) {
+                        answer = (byte)(0xff - input3);
+                    } else { 
+                        answer = input3;
+                    }
                 } else if (b == port_shift_result) {
                     answer = (byte)((shift >> offset) & 0xff);
                 } else {
@@ -97,9 +103,16 @@ namespace IngameScript
                             }
 
                             break;
+                        case 0x01:
+                            if (Memory.game == GetRomData.Games.bowler) {
+                                answer = (byte)~((shift >> offset) & 0xff);
+                            }
+                            break;
                         case 0x02:
                             if (Memory.game == GetRomData.Games.indianbt) {
                                 answer = 0x03;
+                            } else if (Memory.game == GetRomData.Games.bowler) {
+                                answer = 0x2c;
                             } else if (Memory.game == GetRomData.Games.vortex) {
                                 answer = 0xff;
                             } else if (Memory.game == GetRomData.Games.gmissile) {
@@ -117,7 +130,8 @@ namespace IngameScript
                                 answer = 0x80;
                             } else if ((Memory.game == GetRomData.Games.boothill) ||
                                        (Memory.game == GetRomData.Games.m4) ||
-                                       (Memory.game == GetRomData.Games.gmissile)) {
+                                       (Memory.game == GetRomData.Games.bowler) ||
+                                        (Memory.game == GetRomData.Games.gmissile)) {
                                 answer = (byte)((shift >> offset) & 0xff);
                                 if (m_rev_shift_res) {
                                     answer = ReverseBitsWith7Operations(answer);
@@ -127,7 +141,7 @@ namespace IngameScript
                     }
                 }
 
-                //Console.WriteLine("Port - Read : " + b.ToString("X") + " answer:" + answer.ToString("X2"));
+                //Console.WriteLine("Port - Read : " + b.ToString("X") + " answer:" + answer.ToString("X2") + " at PC:" + cpu.PC.ToString("X4"));
                 return answer;
             }
             public static byte ReverseBitsWith7Operations(byte b)
@@ -155,7 +169,7 @@ namespace IngameScript
                     }
                     return;
                 }*/
-                //Console.WriteLine("Port - Write : " + b.ToString("X") + " , " + A.ToString("X"));
+                //Console.WriteLine("Port - Write : " + b.ToString("X") + " , " + A.ToString("X") + " at PC:" + cpu.PC.ToString("X4"));
                 // Things usually needed:
                 if (b == port_shift_offset) {
                     offset = (byte)((~A) & lower3bitMask);

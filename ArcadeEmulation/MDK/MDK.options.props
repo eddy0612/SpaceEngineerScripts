@@ -14,6 +14,5 @@
     <MDKIgnore>
       <Folder>mdk</Folder>
     </MDKIgnore>
-    <MDKExcludeFromDeployAll />
   </PropertyGroup>
 </Project>
