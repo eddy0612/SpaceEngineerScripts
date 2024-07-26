@@ -388,7 +388,8 @@ item.21="THRUSTER COMP.",250,25
                         }
                     } else
                     {
-                        batchItems = (maxItems * 10) / 100;
+                        // Must always produce at least one!
+                        batchItems = Math.Max((maxItems * 10) / 100,1);
                     }
                     if (batchItems <= 0) { batchItems = 0; }
 
