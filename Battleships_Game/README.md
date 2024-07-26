@@ -24,6 +24,7 @@ For a 2 player mode, somewhere where the players cant see each other (eg another
 5. Create an LCD, change its name to `[GAME.SCREEN2] Player2 lcd`  (only the tag [..] bit is important)
 6. In front of that add either a helm or cockpit, but in such a way that when in the cockpit you can see the whole screen. Change its name to `[GAME.SEAT2] Player2`
 7. On the programmable block click recompile
+8. On the helm add the programable block to launch with an argument of 'START'
 
 Controls
 --------

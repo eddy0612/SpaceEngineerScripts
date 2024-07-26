@@ -349,7 +349,7 @@ item.21="THRUSTER COMP.",250,25
                     if (nextItem == null || nextItem.Equals("")) { finished = true; break; }
                     jdbg.Debug("Found item " + (itemcount + 1).ToString() + " - " + nextItem);
                     string[] parts = nextItem.Split(',');
-                    if (parts.Length != 3)
+                    if ((parts.Length != 3) && (parts.Length != 2))
                     {
                         Echo("Invalid configuration for item." + (itemcount + 1).ToString() + " - Must have 3 components");
                         return;

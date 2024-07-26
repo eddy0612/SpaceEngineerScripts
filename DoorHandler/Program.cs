@@ -35,12 +35,14 @@ namespace IngameScript
         // Data read from program config
         String myTag = "IDONTCARE";    // Which tags to watch out for
         int threshold = 95;            // Default oxygen threshold
+        int framemax = 30;             // How often to do the check
 
         // Private variables
         private JDBG jdbg = null;
         private JINV jinv = null;
         private JLCD jlcd = null;
         private String alertTag = "alert";    // TODO: Could move into config
+        int framecur = 0;              // How often to do the check (Start at 0)
 
         /* Example custom data in programming block: 
 [Config]
@@ -79,7 +81,8 @@ threshold=80   (optional)
             }
             Echo("Using tag: " + myTag);
 
-            // Get the value of the "refreshSpeed" key under the "config" section.
+            // Get the value of the "threshold" key under the "config" section.
+            // Which is what % we consider to be in air
             int newthreshold = _ini.Get("config", "threshold").ToInt32(95);
             jdbg.DebugAndEcho("New threshhold will be " + newthreshold);
             if (newthreshold < 0 || newthreshold > 100) {
@@ -89,10 +92,21 @@ threshold=80   (optional)
                 threshold = newthreshold;
             }
 
-            // Run every 100 ticks, but relies on internal check to only actually
+            // Get the value of the "frames" key under the "config" section.
+            // Which is how many frames before the check is redone
+            int newFrames = _ini.Get("config", "frames").ToInt32(30);
+            jdbg.DebugAndEcho("Frame check speed will be " + newFrames);
+            if (newFrames < 0 || newFrames > 100) {
+                jdbg.DebugAndEcho("Invalid frames speed or not defined - defaulting to 30");
+                framemax = 30;
+            } else {
+                framemax = newFrames;
+            }
+
+            // Run every 10 ticks, but relies on internal check to only actually
             // perform on a defined frequency
             if (stayRunning) {
-                Runtime.UpdateFrequency = UpdateFrequency.Update100;
+                Runtime.UpdateFrequency = UpdateFrequency.Update10;
             }
         }
 
@@ -103,16 +117,21 @@ threshold=80   (optional)
         public void Main(string argument, UpdateType updateSource)
         {
             try {
-                // ---------------------------------------------------------------------------
-                // We only get here if we are refreshing
-                // ---------------------------------------------------------------------------                
-                jdbg.ClearDebugLCDs();  // Clear the debug screens
-                jdbg.DebugAndEcho("Main from " + thisScript + " running..." + DateTime.Now.ToString());
 
-                // Do the work now
-                int changed = processGroups();
+                if (framecur > 0) framecur = framecur - 10; // Assuming Update10;
+                else {
+                    // ---------------------------------------------------------------------------
+                    // We only get here if we are refreshing
+                    // ---------------------------------------------------------------------------                
+                    framecur = framemax;
+                    jdbg.ClearDebugLCDs();  // Clear the debug screens
+                    jdbg.DebugAndEcho("Main from " + thisScript + " running..." + DateTime.Now.ToString());
 
-                jdbg.Alert("Completed - OK, " + changed + " things changed", "GREEN", alertTag, thisScript);
+                    // Do the work now
+                    int changed = processGroups();
+
+                    jdbg.Alert("Completed - OK, " + changed + " things changed", "GREEN", alertTag, thisScript);
+                }
             }
             catch (Exception ex) {
                 jdbg.Alert("Exception - " + ex.ToString() + "\n" + ex.StackTrace, "RED", alertTag, thisScript);
@@ -209,7 +228,7 @@ threshold=80   (optional)
                         }
                     }
                 }
-                jdbg.Debug("Result: isPress " + isFullyPressurized + "isActiveDepress" + isActivelyDepressurizing + ", isDepress " + isFullyDePressurized + ", maxdoors:" + maxOpenDoors);
+                jdbg.Debug("Result: isPress " + isFullyPressurized + ", isActiveDepress" + isActivelyDepressurizing + ", isDepress " + isFullyDePressurized + ", maxdoors:" + maxOpenDoors);
 
                 // ---------------------------------------------------------------------
                 // Work out what we would like the doors to do for this group
@@ -219,14 +238,30 @@ threshold=80   (optional)
                 // for each door
                 foreach (var door in doors) {
                     IMyDoor thisDoor = (IMyDoor)door;
+                    if (thisDoor.Status == DoorStatus.Open) {   /* OPEN DOORS */
+                        opendoors = opendoors + 1;
+                    }
+                }
+
+                foreach (var door in doors) {
+                    IMyDoor thisDoor = (IMyDoor)door;
                     jdbg.Debug("Door: " + door.CustomName + ", Status: " + thisDoor.Status);
                     jdbg.Debug("  IsIn? " + isIn(door) + ", IsOut? " + isOut(door));
 
                     if (thisDoor.Status == DoorStatus.Open) {   /* OPEN DOORS */
-                        opendoors = opendoors + 1;
+
 
                         // Ensure door is enabled - no case where an open door should be disabled
                         thisDoor.Enabled = true;
+
+                        // If we have more doors upen than we are allowed to, close the lot
+                        // Should only happen if people open dooes between runs of the script
+                        if (opendoors > maxOpenDoors) {
+                            if (!mustClose.Contains(thisDoor)) {
+                                mustClose.Add(thisDoor);
+                                jdbg.Debug("  MUSTCLOSE as too many open");
+                            }
+                        }
 
                         // if door is [in] and not fully pressurized or is depressurizing, OR
                         //    door is [out] and not fully depressurized (wont pressurize if there's a leak) THEN
