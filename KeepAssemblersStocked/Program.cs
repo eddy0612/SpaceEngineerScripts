@@ -228,7 +228,7 @@ tag=ingots
                         }
                     }
                     foreach (KeyValuePair<String, String> entry in ore2ingots) {
-                        jdbg.Debug("Total: " + oresum[entry.Value]);
+                        jdbg.Debug("Total in assembler: " +entry.Value + "/" + entry.Key + " = "+ oresum[entry.Value]);
                     }
 
                     // So do we need more ingots moved into this assembler, or move them away?
@@ -241,6 +241,7 @@ tag=ingots
 
                             // Enumerate the cargos
                             foreach (var thisCargo in allIngots) {
+                                if (thisCargo is IMyAssembler) continue;
                                 jdbg.Debug("Checking " + thisCargo.CustomName);
                                 List<MyInventoryItem> allItemsInCargo = new List<MyInventoryItem>();
                                 IMyInventory cargoInv = thisCargo.GetInventory(0);
@@ -282,31 +283,37 @@ tag=ingots
 
         void moveTo(IMyInventory inv, MyInventoryItem item, List<IMyTerminalBlock> into, IMyTerminalBlock from)
         {
-            /* Find best fit */
-            foreach (var thisPlace in into) {
-                IMyInventory destInv = thisPlace.GetInventory(0);
-                if (!inv.CanTransferItemTo(destInv, item.Type)) {
-                    jdbg.Debug("- No conveyor to " + thisPlace.CustomName + " from " + from.DisplayName);
-                    continue;
-                }
+            /* Find best fit - do non assemblers first, otherwise we can fill them with the wrong stuff */
+            for (int stage = 0; stage < 2; stage++) {
+                foreach (var thisPlace in into) {
+                    if ((stage == 0) && (thisPlace is IMyAssembler)) continue;
+                    if ((stage == 1) && !(thisPlace is IMyAssembler)) continue;
 
-                // See if enough space
-                MyFixedPoint curVol = destInv.CurrentVolume;
-                MyFixedPoint maxVol = destInv.MaxVolume;
-                jdbg.Debug("Moving to " + thisPlace.CustomName + " cur:" + curVol + "max:" + maxVol);
-
-                if (inv.TransferItemTo(destInv, item)) {
-                    MyFixedPoint newVol = destInv.CurrentVolume;
-                    if (!newVol.Equals(curVol)) {
-                        jdbg.Debug("Moved ok, new vol: " + newVol);
-                    } else {
-                        jdbg.Debug("Move failed - assume out of space");
+                    IMyInventory destInv = thisPlace.GetInventory(0);
+                    if (!inv.CanTransferItemTo(destInv, item.Type)) {
+                        jdbg.Debug("- No conveyor to " + thisPlace.CustomName + " from " + from.DisplayName);
                         continue;
                     }
-                    break;
-                } else {
-                    jdbg.Debug("Failed to move - try another");
-                    continue;
+
+                    // See if enough space
+                    MyFixedPoint curVol = destInv.CurrentVolume;
+                    MyFixedPoint maxVol = destInv.MaxVolume;
+                    jdbg.Debug("Moving to " + thisPlace.CustomName + " cur:" + curVol + "max:" + maxVol);
+
+                    if (inv.TransferItemTo(destInv, item)) {
+                        MyFixedPoint newVol = destInv.CurrentVolume;
+                        if (!newVol.Equals(curVol)) {
+                            jdbg.Debug("Moved ok, new vol: " + newVol);
+                            stage = 3;
+                        } else {
+                            jdbg.Debug("Move failed - assume out of space");
+                            continue;
+                        }
+                        break;
+                    } else {
+                        jdbg.Debug("Failed to move - try another");
+                        continue;
+                    }
                 }
             }
         }
