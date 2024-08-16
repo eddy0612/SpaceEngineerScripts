@@ -532,13 +532,16 @@ item.21="THRUSTER COMP.",250,25
                 var assemblers = new List<IMyAssembler>();
                 GridTerminalSystem.GetBlocksOfType<IMyAssembler>(assemblers);
                 IMyAssembler firstAssembler = null;
-                jdbg.Debug("Working out assembler");
+                Boolean foundNamed = false;
+                jdbg.Debug("Working out assembler, ideally " + myqtag);
                 foreach (var thisAss in assemblers)
                 {
                     // If we find the one we tag, use it
                     if (thisAss.CustomName.IndexOf("[" + myqtag + "]") >= 0)
                     {
                         firstAssembler = thisAss;
+                        jdbg.Debug("Found the one we named, " + thisAss);
+                        foundNamed = true;
                     }
                     else
                     {
@@ -554,7 +557,7 @@ item.21="THRUSTER COMP.",250,25
                         }
                         // Pick any assembler initially
                         if (firstAssembler == null) firstAssembler = thisAss;
-                        if (firstAssembler.CooperativeMode && !thisAss.CooperativeMode) firstAssembler = thisAss;
+                        if (!foundNamed && firstAssembler.CooperativeMode && !thisAss.CooperativeMode) firstAssembler = thisAss;
                     }
 
                     // Now add up the items building
@@ -599,10 +602,9 @@ item.21="THRUSTER COMP.",250,25
                             jdbg.Debug("Total : " + name + " : " + count);
                             jdbg.Debug("Queued: " + queued);
                             jdbg.Debug("Wanted: " + wanted + " / " + batch);
-
                             int toQueue = wanted - (count + queued);
                             if (wanted > batch) toQueue = batch;
-                            Echo("Qing up " + toQueue + "of " + name + " on " + firstAssembler.CustomName + " as we have " + count);
+                            jdbg.DebugAndEcho("Qing up " + toQueue + "of " + name + " on " + firstAssembler.CustomName + " as we have " + count);
                             MyFixedPoint mfp = toQueue;
                             MyItemType component_type = new MyItemType("MyObjectBuilder_Component", name);
                             MyDefinitionId blueprint = MyDefinitionId.Parse(compToBlueprint[component_type.ToString()]);
