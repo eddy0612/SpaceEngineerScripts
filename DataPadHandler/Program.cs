@@ -1,4 +1,5 @@
 ﻿using EmptyKeys.UserInterface.Generated.DataTemplatesStoreBlock_Bindings;
+using Sandbox.Common.ObjectBuilders.Definitions;
 using Sandbox.Engine.Platform;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI.Ingame;
@@ -41,14 +42,17 @@ namespace IngameScript
         private JLCD jlcd = null;
         private String alertTag = "alert";    // TODO: Could move into config
 
-//EarthLike	227.02	120.00	GPS:EarthLike:0.50:0.50:0.50:
-//Moon	176.92	19.00	GPS:Moon:16384.50:136384.50:-113615.50:
-//Mars	1749.29	120.00	GPS:Mars:1031072.50:131072.50:1631072.50:
-//Europa	1835.76	19.00	GPS:Europa:916384.50:16384.50:1616384.50:
-//Triton	2542.14	80.25	GPS:Triton:-284463.50:-2434463.50:365536.50:
-//Pertam	4079.73	60.00	GPS:Pertam:-3967231.50:-32231.50:-767231.50:
-//Alien	5600.00	120.00	GPS:Alien:131072.50:131072.50:5731072.50:
-//Titan	5783.85	19.00	GPS:Titan:36384.50:226384.50:5796384.50:
+        // Data read from program config
+        String mytag = "IDONTCARE";    /* Which tanks to move things to [mytag] */
+
+        //EarthLike	227.02	120.00	GPS:EarthLike:0.50:0.50:0.50:
+        //Moon	176.92	19.00	GPS:Moon:16384.50:136384.50:-113615.50:
+        //Mars	1749.29	120.00	GPS:Mars:1031072.50:131072.50:1631072.50:
+        //Europa	1835.76	19.00	GPS:Europa:916384.50:16384.50:1616384.50:
+        //Triton	2542.14	80.25	GPS:Triton:-284463.50:-2434463.50:365536.50:
+        //Pertam	4079.73	60.00	GPS:Pertam:-3967231.50:-32231.50:-767231.50:
+        //Alien	5600.00	120.00	GPS:Alien:131072.50:131072.50:5731072.50:
+        //Titan	5783.85	19.00	GPS:Titan:36384.50:226384.50:5796384.50:
 
         // -------------------------------------------
         /* Example custom data in programming block: NONE
@@ -113,6 +117,25 @@ namespace IngameScript
                 // ---------------------------------------------------------------------------
                 jdbg.DebugAndEcho("Main from " + thisScript + " running..." + DateTime.Now.ToString());
 
+                // ---------------------------------------------------------------------------
+                // Get my custom data and parse to get the config
+                // ---------------------------------------------------------------------------
+                MyIniParseResult result;
+                MyIni _ini = new MyIni();
+                if (!_ini.TryParse(Me.CustomData, out result))
+                    throw new Exception(result.ToString());
+
+                // Get the required value of the "tag" key under the "config" section.
+                mytag = _ini.Get("config", "tag").ToString();
+                if (mytag != null) {
+                    mytag = (mytag.Split(';')[0]).ToUpper().Trim();  // Remove any trailing comments
+                    Echo("Using tag of " + mytag);
+                } else {
+                    Echo("No tag configured\nPlease add [config] for tag=<substring>");
+                    return;
+                }
+                jdbg.Debug("Config: tag=" + mytag);
+
                 // -----------------------------------------------------------------
                 // Real work starts here
                 // -----------------------------------------------------------------
@@ -121,7 +144,7 @@ namespace IngameScript
                 List<IMyTerminalBlock> allInventories = new List<IMyTerminalBlock>();
                 GridTerminalSystem.GetBlocksOfType(allInventories, (IMyTerminalBlock x) => (x.HasInventory &&
                                                                                             x.CubeGrid == Me.CubeGrid
-                                                                                            && (x.CustomName.ToUpper().IndexOf("[DATAPADS]") >= 0)
+                                                                                            && (x.CustomName.ToUpper().IndexOf("[" + mytag + "]") >= 0)
                                                                                       ));
 
                 int pads = 0;
@@ -138,8 +161,9 @@ namespace IngameScript
 
                             for (int j = 0; j < allItemsInInventory.Count; j++) {
                                 String name = allItemsInInventory[j].Type.ToString();
-                                if (name.Contains("Datapad")) {
-                                    Echo("Found: " + allItemsInInventory[j]);
+                                if (allItemsInInventory[j] is MyObjectBuilder_Datapad) {    // name.Contains("Datapad")) {
+                                    MyObjectBuilder_Datapad datapad = (MyObjectBuilder_Datapad) allItemsInInventory[j];
+                                    Echo("Found: " + allItemsInInventory[j] + : " + " + datapad.Data);
                                 }
                             }
                         }
