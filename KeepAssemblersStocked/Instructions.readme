@@ -11,7 +11,7 @@ Installation
 ------------
 1. Put script in programmable block
 2. Add in custom data the tag for this script, eg
-[custom]
+[config]
 tag=ingots
 3. Tag all the cargo containers you are happy for the ingots to be moved to with [ingots] somewhere in the name
 4. Tag all the assemblers you want kept stocked with ingots with [ingots] somewhere in the name
