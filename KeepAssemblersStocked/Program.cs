@@ -41,6 +41,7 @@ namespace IngameScript
         String mytag = "IDONTCARE";    /* Which tanks to move things to [mytag] */
         int minore = 500;
         int maxore = 1000;
+        bool allGrids = false;
 
         // Private variables
         private JDBG jdbg = null;
@@ -139,6 +140,21 @@ tag=ingots
                 }
                 jdbg.Debug("Config: tag=" + mytag);
 
+                // Get the required value of the "allgrids" key under the "config" section.
+                String allgridsstr = _ini.Get("config", "allgrids").ToString();
+                if (allgridsstr != null) {
+                    allgridsstr = (allgridsstr.Split(';')[0]).Trim();  // Remove any trailing comments
+                    if (allgridsstr.ToUpper().Equals("YES")) {
+                        allGrids = true;
+                    }
+
+                    Echo("Using all grids? " + allGrids);
+                } else {
+                    Echo("No tag configured\nPlease add [config] for tag=<substring>");
+                    return;
+                }
+                jdbg.Debug("Config: tag=" + mytag);
+
                 // -----------------------------------------------------------------
                 // Real work starts here
                 // -----------------------------------------------------------------
@@ -147,7 +163,7 @@ tag=ingots
                 GridTerminalSystem.GetBlocksOfType(allIngots, (IMyTerminalBlock x) => (
                                                                                      (x.CustomName.ToUpper().IndexOf("[LOCKED]") < 0) &&
                                                                                      (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + "]") >= 0) &&
-                                                                                     (x.CubeGrid.Equals(Me.CubeGrid))
+                                                                                     (allGrids || x.CubeGrid.Equals(Me.CubeGrid))
                                                                                       ));
                 jdbg.Debug("Found " + allIngots.Count + " things tagged [" + mytag + "]");
                 if (allIngots.Count == 0) {
@@ -161,7 +177,7 @@ tag=ingots
                                                                                      (x.CustomName.ToUpper().IndexOf("[LOCKED]") < 0) &&
                                                                                      (x is IMyAssembler) &&
                                                                                      (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + "]") >= 0) &&
-                                                                                     (x.CubeGrid.Equals(Me.CubeGrid))
+                                                                                     (allGrids || x.CubeGrid.Equals(Me.CubeGrid))
                                                                                       ));
                 jdbg.Debug("Found " + allAssemblers.Count + " assemblers");
                 if (allAssemblers.Count == 0) {
@@ -174,7 +190,7 @@ tag=ingots
                 GridTerminalSystem.GetBlocksOfType(allInventories, (IMyTerminalBlock x) => (x.HasInventory &&
                                                                                      (x.CustomName.ToUpper().IndexOf("[LOCKED]") < 0) &&
                                                                                      (x.CustomName.ToUpper().IndexOf("[" + mytag.ToUpper() + "]") < 0) &&
-                                                                                     (x.CubeGrid.Equals(Me.CubeGrid)) && 
+                                                                                     (allGrids || x.CubeGrid.Equals(Me.CubeGrid)) && 
                                                                                      (!((x is IMyAssembler) || (x is IMyReactor)))
                                                                                       ));
                 jdbg.Debug("============================================================");
