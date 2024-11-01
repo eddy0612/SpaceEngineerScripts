@@ -129,6 +129,21 @@ expected first few characters in the table below)
 | galactic.zip | Galactica				| AAAAw5sA// | https://www.retrostic.com/roms/mame/galactica-batalha-espacial-45078
 | attackfc.zip | Attack Force			| PgAyKyLDAA | https://www.retrostic.com/roms/mame/attack-force-47625
 | maze.zip     | Amazing Maze			| AcMECDodIO | https://www.retrostic.com/roms/mame/amazing-maze-44504
+| New in v2: |  |  |  |
+| 280zzzap.zip | 280-zzzap              | ghSRFB8Tmx | https://www.retrostic.com/roms/mame/280-zzzap-46240
+| boothill.zip | Boot Hill              | pzJIIPxBGH | https://www.retrostic.com/roms/mame/boot-hill-44141
+| checkmat.zip | Checkmate              | DB3NWQzAIR | https://www.retrostic.com/roms/gbc/checkmate-16676
+| bowler.zip   | Bowling Alley          | wDqsIrfKp0 | https://www.retrostic.com/roms/mame/bowling-alley-47394
+| lagunar.zip  | Laguna Racer           | wvwXASAANv | https://www.retrostic.com/roms/mame/laguna-racer-48036
+| gmissile.zip | Guided Missile         | vBIhBhHNTB | https://www.retrostic.com/roms/mame/guided-missile-48682
+| m4.zip       | M-4 Tank Battle        | aAYYA1UYaE | https://www.retrostic.com/roms/mame/m-4-47533
+| yosakdon.zip | Yosaku To Donbei       | w7AOAP8A/w | https://www.retrostic.com/roms/mame/yosaku-to-donbei-48248
+| shuttlei.zip | Shuttle Invader        | MQBEr9P/0/ | https://www.retrostic.com/roms/mame/shuttle-invader-48506
+| skylove.zip  | Sky Love               | rzKQYdP/0/ | https://www.retrostic.com/roms/mame/sky-love-49022
+| cosmo.zip    | Cosmo                  | AAAAAADDGw | https://www.retrostic.com/roms/mame/cosmo-47900
+| steelwkr.zip | Steel Worker           | MQAkw1AB// | https://www.retrostic.com/roms/mame/steel-worker-47543
+
+
 
  
 ### Credits:
