@@ -38,7 +38,8 @@ namespace IngameScript
         bool stayRunning = true;
 
         // Data read from program config
-        String mytag = "IDONTCARE";    /* Which tanks to move things to [mytag] */
+        String mytag = "IDONTCARE";       /* Which ingots to move things to [mytag] */
+        String myoretag = "IDONTCARE";    /* Which ores   to move things to [mytag] */
         int minore = 500;
         int maxore = 1000;
         bool allGrids = false;
@@ -140,6 +141,17 @@ tag=ingots
                 }
                 jdbg.Debug("Config: tag=" + mytag);
 
+                // Get the required value of the "tag" key under the "config" section.
+                myoretag = _ini.Get("config", "oretag").ToString();
+                if (myoretag != null) {
+                    myoretag = (myoretag.Split(';')[0]).Trim();  // Remove any trailing comments
+                    Echo("Using tag of " + myoretag);
+                } else {
+                    myoretag = null;
+                    return;
+                }
+                jdbg.Debug("Config: oretag=" + myoretag);
+
                 // Get the required value of the "allgrids" key under the "config" section.
                 String allgridsstr = _ini.Get("config", "allgrids").ToString();
                 if (allgridsstr != null) {
@@ -171,6 +183,21 @@ tag=ingots
                     return;
                 }
 
+                // Get all blocks with the tag [configured_oretagname] to know where to move things from/to
+                List<IMyTerminalBlock> allOres = new List<IMyTerminalBlock>();
+                if (myoretag != null) {
+                    GridTerminalSystem.GetBlocksOfType(allOres, (IMyTerminalBlock x) => (
+                                                                                         (x.CustomName.ToUpper().IndexOf("[LOCKED]") < 0) &&
+                                                                                         (x.CustomName.ToUpper().IndexOf("[" + myoretag.ToUpper() + "]") >= 0) &&
+                                                                                         (allGrids || x.CubeGrid.Equals(Me.CubeGrid))
+                                                                                          ));
+                    jdbg.Debug("Found " + allOres.Count + " things tagged [" + myoretag + "]");
+                    if (allOres.Count == 0) {
+                        jdbg.DebugAndEcho("Nothing tagged - Aborting");
+                        return;
+                    }
+                }
+
                 // Get all assemblers on the cubegrid, which we will keep stocked
                 List<IMyTerminalBlock> allAssemblers = new List<IMyTerminalBlock>();
                 GridTerminalSystem.GetBlocksOfType(allAssemblers, (IMyTerminalBlock x) => (
@@ -193,6 +220,33 @@ tag=ingots
                                                                                      (allGrids || x.CubeGrid.Equals(Me.CubeGrid)) && 
                                                                                      (!((x is IMyAssembler) || (x is IMyReactor)))
                                                                                       ));
+
+                if (myoretag != null) {
+                    jdbg.Debug("============================================================");
+                    jdbg.Debug("Moving ores to central place");
+                    jdbg.Debug("============================================================");
+                    jdbg.Debug("Found " + allInventories.Count + " blocks with inventories to investigate");
+                    foreach (var thisblock in allInventories) {
+                        if (thisblock.HasInventory && !(thisblock is IMyRefinery)) {
+                            for (int invCount = 0; invCount < thisblock.InventoryCount; invCount++) {
+                                List<MyInventoryItem> allItemsInInventory = new List<MyInventoryItem>();
+                                IMyInventory inv = thisblock.GetInventory(invCount);
+                                inv.GetItems(allItemsInInventory);
+
+                                for (int j = 0; j < allItemsInInventory.Count; j++) {
+
+                                    String name = allItemsInInventory[j].Type.ToString();
+                                    //jdbg.Debug("inv: " + allItemsInInventory[j].Type.ToString() + " -> " + ore2ingots.Count());
+                                    if (ore2ingots.ContainsKey(name)) {
+                                        jdbg.Debug("Found ore " + name + " in " + thisblock.CustomName);
+                                        moveTo(inv, allItemsInInventory[j], allOres, thisblock);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 jdbg.Debug("============================================================");
                 jdbg.Debug("Moving ingots to central place");
                 jdbg.Debug("============================================================");
