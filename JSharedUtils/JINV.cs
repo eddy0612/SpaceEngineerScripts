@@ -44,7 +44,7 @@ namespace IngameScript
                 { "MyObjectBuilder_Ore/Uranium", "MyObjectBuilder_Ingot/Uranium" },
 
                 // Not needing these at present:
-                //{ "MyObjectBuilder_Ore/Scrap", "MyObjectBuilder_Ingot/Scrap" },
+                { "MyObjectBuilder_Ore/Scrap", "MyObjectBuilder_Ingot/Scrap" },
                 //{ "MyObjectBuilder_Ore/Ice", "?" },
                 //{ "MyObjectBuilder_Ore/Organic", "?" },
             };
