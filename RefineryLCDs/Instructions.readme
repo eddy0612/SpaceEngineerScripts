@@ -1,0 +1,25 @@
+﻿RefineryLCDs
+------------
+
+This is a simple script which runs periodically and updates status LCDs with the name of what the tagged
+refinery is currently working on plus an indication of how full the refinery is
+
+Source available via https://github.com/eddy0612/SpaceEngineerScripts
+
+Instructions
+------------
+
+1. Create a programmable block, Add custom data as follows - the value of the tag can be anything but you need to use it consistently everywhere as a prefix
+
+```
+[config]
+tag=refineryLCD
+```
+
+2. On a statusLCD add custom data as follows, where Refinery1 is a single refinery name to display
+```
+[config]
+refinery=Refinery1
+```
+
+3. Add the script to the programmable block, recompile and run.

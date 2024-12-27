@@ -62,6 +62,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RotatingConsole", "Rotating
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DoorHandler", "DoorHandler\DoorHandler.csproj", "{48B82E05-AC93-4F72-BAC1-71D468675DC8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefineryLCDs", "RefineryLCDs\RefineryLCDs.csproj", "{87231C85-0FA9-43A8-BE85-5CF6061DDAA6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -230,6 +232,14 @@ Global
 		{48B82E05-AC93-4F72-BAC1-71D468675DC8}.Release|x64.Build.0 = Debug|x64
 		{48B82E05-AC93-4F72-BAC1-71D468675DC8}.Release|x86.ActiveCfg = Debug|x64
 		{48B82E05-AC93-4F72-BAC1-71D468675DC8}.Release|x86.Build.0 = Debug|x64
+		{87231C85-0FA9-43A8-BE85-5CF6061DDAA6}.Debug|x64.ActiveCfg = Debug|x64
+		{87231C85-0FA9-43A8-BE85-5CF6061DDAA6}.Debug|x64.Build.0 = Debug|x64
+		{87231C85-0FA9-43A8-BE85-5CF6061DDAA6}.Debug|x86.ActiveCfg = Debug|x64
+		{87231C85-0FA9-43A8-BE85-5CF6061DDAA6}.Debug|x86.Build.0 = Debug|x64
+		{87231C85-0FA9-43A8-BE85-5CF6061DDAA6}.Release|x64.ActiveCfg = Debug|x64
+		{87231C85-0FA9-43A8-BE85-5CF6061DDAA6}.Release|x64.Build.0 = Debug|x64
+		{87231C85-0FA9-43A8-BE85-5CF6061DDAA6}.Release|x86.ActiveCfg = Debug|x64
+		{87231C85-0FA9-43A8-BE85-5CF6061DDAA6}.Release|x86.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -258,6 +268,7 @@ Global
 		{C533FBDE-C761-47E6-8276-E27D9EF88A5E} = {4AAAEA48-9E7E-4288-853F-A75B580DBADC}
 		{30A10D74-D9C7-4709-B88F-D8C7A015ADA4} = {45CA2169-BE61-4FFB-A389-D9E88F05920D}
 		{48B82E05-AC93-4F72-BAC1-71D468675DC8} = {F2564B34-516A-4D6F-BB94-30AD7ADF84AA}
+		{87231C85-0FA9-43A8-BE85-5CF6061DDAA6} = {F2564B34-516A-4D6F-BB94-30AD7ADF84AA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5F261BFD-DE92-4F2C-99FC-71989B6008BF}
@@ -281,6 +292,7 @@ Global
 		JSharedUtils\JSharedUtils.projitems*{7fa2c089-e522-4098-b9bf-1a45a163c834}*SharedItemsImports = 4
 		JSharedUtils\JSharedUtils.projitems*{80578f02-6844-4b49-a42c-9d4df67d8802}*SharedItemsImports = 4
 		JSharedUtils\JSharedUtils.projitems*{830f7af6-a7c8-40ee-9df2-cb5147484b9c}*SharedItemsImports = 4
+		JSharedUtils\JSharedUtils.projitems*{87231c85-0fa9-43a8-be85-5cf6061ddaa6}*SharedItemsImports = 4
 		JSharedUtils\JSharedUtils.projitems*{a4b2a0a7-f659-4b18-903d-cd61bdb3daa3}*SharedItemsImports = 4
 		JSharedUtils\JSharedUtils.projitems*{a5ed3b58-d73d-48fa-bd9a-921188c0f931}*SharedItemsImports = 4
 		JSharedUtils\JSharedUtils.projitems*{ca3bea00-b66a-4fee-9d10-8d27a0bf44c3}*SharedItemsImports = 4
