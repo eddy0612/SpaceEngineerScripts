@@ -351,9 +351,11 @@ namespace IngameScript
                 // the assemblers (Note we might q to one but coop might distribute the production) we can move
                 // and queue up the remainder needed
                 var allAssemblers = new List<IMyAssembler>();
-                GridTerminalSystem.GetBlocksOfType<IMyAssembler>(allAssemblers, (IMyAssembler x) => (
-                                                                                                    x.CubeGrid.Equals(Me.CubeGrid)
-                                                                                                 ));
+                /* Previously I only stuck to the same grid but this is problematic if one assembler is in coop mode on 
+                   an adjacent grid, because then its inventory isnt seen so we ignore what its doing, resuling in 
+                   far more than we needed
+                 */
+                GridTerminalSystem.GetBlocksOfType<IMyAssembler>(allAssemblers); //, (IMyAssembler x) => (x.CubeGrid.Equals(Me.CubeGrid)));
                 int totalQueued = 0;
                 foreach (var ammoName in friendlyitemname)
                 {
