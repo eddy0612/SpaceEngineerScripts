@@ -187,6 +187,12 @@ namespace IngameScript
                         jdbg.Debug("INFO: Avoiding bug, multiplying by 4: " + thisLCD.DefinitionDisplayNameText);
                         thisSurface.FontSize *= 4;
                     }
+                    // Other oddities:
+                    if (thisLCD.DefinitionDisplayNameText.Contains("Console Module Button") ||
+                        thisLCD.DefinitionDisplayNameText.Contains("Bridge Button Panel")) { 
+                        jdbg.Debug("INFO: Avoiding bug, multiplying by 2: " + thisLCD.DefinitionDisplayNameText);
+                        thisSurface.FontSize *= 2;
+                    }
                 }
             }
 
