@@ -1,7 +1,7 @@
 JumpDrive
 =========
 
-This is a very simple script which outputs to a display the current status of any Jump drive it finds on the local grid onto an LCD. It was started to
+This is a very simple script which outputs to a display the current status of any Jump drive it finds on the local or connected grid onto an LCD. It was started to
 be a lot more functional but I then discovered that the API in Space Engineers to interface with JumpDrives is extremely limited, and this was all I could
 do for now
 
