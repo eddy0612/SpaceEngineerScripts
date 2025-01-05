@@ -37,7 +37,7 @@ namespace IngameScript
         bool debug = false;
         bool stayRunning = true;
 
-        int MAXCOLS = 70;
+        int MAXCOLS = 50;
         int INDENT = 5;
 
         // Data read from program config
@@ -157,23 +157,51 @@ tag=jumpdrive
                 // Get all jump drive blocks on current grid
                 List<IMyTerminalBlock> AllDrives = new List<IMyTerminalBlock>();
                 GridTerminalSystem.GetBlocksOfType(AllDrives, (IMyTerminalBlock x) => (
-                                                                                       (x is IMyJumpDrive) &&
-                                                                                       (x.CubeGrid.Equals(Me.CubeGrid))
+                                                                                       (x is IMyJumpDrive) 
                                                                                       ));
                 jdbg.Debug("Found " + AllDrives.Count + " jump drives");
+                AllDrives.Sort((a, b) =>
+                {
+                    if (a == null) {
+                        if (b == null) return 0;
+                        else return -1;
+                    } else if (b == null) {
+                        return 1;
+                    } else if (a.CubeGrid == b.CubeGrid) {
+                        // Same grid... look at Name
+                        return a.CustomName.CompareTo(b.CustomName);
+                    } else if (a.CubeGrid == Me.CubeGrid) {
+                        return -1;
+                    } else if (b.CubeGrid == Me.CubeGrid) {
+                        return 1;
+                    } else 
+                        // Sort into 'ships' (grids)
+                        return (a.CubeGrid.EntityId < b.CubeGrid.EntityId ? -1 : 1);
+                });
 
                 // Resize all the displays so we can show MAXROWS and MAXCOLS
-                jlcd.SetupFont(displays, AllDrives.Count + 2, MAXCOLS+INDENT, false);
-
+                jlcd.SetupFont(displays, (3 * (AllDrives.Count)) + 10, MAXCOLS+INDENT, false);
 
                 String fullScreen = "";
                 fullScreen += thisScript + "    " + DateTime.Now.ToString() + "\n\n";
+                bool doneOtherHdr = false;
+                bool doneLocalHdr = false;
 
                 String[] outputLines = new string[AllDrives.Count];
                 int count = 0;
                 foreach (var thisDrive in AllDrives)
                 {
                     IMyJumpDrive drive = (IMyJumpDrive) thisDrive;
+
+                    if (!doneLocalHdr && drive.CubeGrid == Me.CubeGrid) {
+                        outputLines[count++] = "  Jump drives on current ship:\n\n";
+                        doneLocalHdr = true;
+                    }
+                    if (!doneOtherHdr && drive.CubeGrid != Me.CubeGrid) {
+                        outputLines[count++] = "  Jump drives on connected ships:\n\n";
+                        doneOtherHdr = true;
+                    }
+
                     String line = "";
                     float perc = (100.0F * drive.CurrentStoredPower / drive.MaxStoredPower);
                     if (drive.CurrentStoredPower == drive.MaxStoredPower)
@@ -184,7 +212,7 @@ tag=jumpdrive
                     {
                         line += JLCD.solidcolor["RED"];
                     }
-                    line += " " + drive.CustomName.PadRight(40);
+                    line += " " + drive.CustomName.PadRight(25);
 
                     line += "(" + Math.Floor(perc).ToString().PadLeft(3) + "%)";
 
@@ -195,10 +223,17 @@ tag=jumpdrive
                     }
                     jdbg.Debug(line);
                     outputLines[count++] = line;
+
+                    // Add progress bar
+                    String newline = "   [";
+                    newline += GetLine((int)Math.Floor(perc), 30);
+                    newline += "]";
+                    // Deliberately add it twice to make it stand out
+                    outputLines[count++] = newline;
+                    outputLines[count++] = newline;
                 }
 
                 // Sort by name
-                Array.Sort(outputLines, StringComparer.OrdinalIgnoreCase);
                 for (int i=0; i< outputLines.Length; i++)
                 {
                     fullScreen = fullScreen + ("".PadRight(INDENT, ' ')) + outputLines[i] + "\n";
@@ -212,6 +247,25 @@ tag=jumpdrive
             {
                 jdbg.Alert("Exception - " + ex.ToString() + "\n" + ex.StackTrace, "RED", alertTag, thisScript);
             }
+        }
+
+        String GetLine(int perc, int barSize)
+        {
+            String bar = "".PadRight(barSize);
+            char[] barchars = bar.ToCharArray();
+
+            double squaresize = (double)((double)perc / (double)barSize);
+
+            // Never round up completed, as 99/100 shouldnt show as a full bar
+            // However we do end up with 0.9999R which is a pain, so allow 0.01 leeway
+            int c_count = (int)Math.Floor((double)0.01 + (double)((double)perc / (double)squaresize));
+
+            var bari = 0;
+            for (int i = 0; i < c_count; i++) {
+                barchars[i] = JLCD.solidcolor["GREEN"];
+                bari++;
+            }
+            return new string(barchars);
         }
 
         // ----------------------------- CUT -------------------------------------
